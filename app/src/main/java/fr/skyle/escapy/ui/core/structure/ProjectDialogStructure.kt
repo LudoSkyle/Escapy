@@ -1,11 +1,9 @@
 package fr.skyle.escapy.ui.core.structure
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -28,7 +26,6 @@ fun ProjectDialogStructure(
     onRightButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
-    dialogButtonsOrientation: ProjectDialogDefaults.ButtonsOrientation = ProjectDialogDefaults.dialogButtonsOrientation
 ) {
     Column(modifier = modifier) {
         Text(
@@ -53,54 +50,26 @@ fun ProjectDialogStructure(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        when (dialogButtonsOrientation) {
-            ProjectDialogDefaults.ButtonsOrientation.HORIZONTAL -> {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    ProjectButton(
-                        modifier = Modifier.weight(1f),
-                        text = leftButtonText,
-                        size = ProjectButtonDefaults.Size.MEDIUM,
-                        tint = ProjectButtonDefaults.Tint.SECONDARY,
-                        style = ProjectButtonDefaults.Style.FILLED,
-                        onClick = onLeftButtonClick,
-                    )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            ProjectButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = leftButtonText,
+                size = ProjectButtonDefaults.Size.MEDIUM,
+                tint = ProjectButtonDefaults.Tint.SECONDARY,
+                style = ProjectButtonDefaults.Style.FILLED,
+                onClick = onLeftButtonClick,
+            )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-                    ProjectButton(
-                        modifier = Modifier.weight(1f),
-                        text = rightButtonText,
-                        size = ProjectButtonDefaults.Size.MEDIUM,
-                        tint = ProjectButtonDefaults.Tint.PRIMARY,
-                        style = ProjectButtonDefaults.Style.FILLED,
-                        onClick = onRightButtonClick,
-                    )
-                }
-            }
-
-            ProjectDialogDefaults.ButtonsOrientation.VERTICAL -> {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    ProjectButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = leftButtonText,
-                        size = ProjectButtonDefaults.Size.MEDIUM,
-                        tint = ProjectButtonDefaults.Tint.SECONDARY,
-                        style = ProjectButtonDefaults.Style.FILLED,
-                        onClick = onLeftButtonClick,
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ProjectButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = rightButtonText,
-                        size = ProjectButtonDefaults.Size.MEDIUM,
-                        tint = ProjectButtonDefaults.Tint.PRIMARY,
-                        style = ProjectButtonDefaults.Style.FILLED,
-                        onClick = onRightButtonClick,
-                    )
-                }
-            }
+            ProjectButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = rightButtonText,
+                size = ProjectButtonDefaults.Size.MEDIUM,
+                tint = ProjectButtonDefaults.Tint.PRIMARY,
+                style = ProjectButtonDefaults.Style.FILLED,
+                onClick = onRightButtonClick,
+            )
         }
     }
 }
@@ -135,7 +104,6 @@ private fun ProjectDialogStructurePreview(
             rightButtonText = "Right Button",
             onLeftButtonClick = {},
             onRightButtonClick = {},
-            dialogButtonsOrientation = data.buttonOrientation
         )
     }
 }

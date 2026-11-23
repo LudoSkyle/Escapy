@@ -173,5 +173,10 @@
 
     <!-- Lobby -->
     <string name="lobby_screen_title">Salon</string>
+    <string name="lobby_screen_manager">Organisateur:</string>
+    <string name="lobby_screen_game_duration">Durée de la partie:</string>
+    <string name="lobby_screen_participants">Participants:</string>
+    <string name="lobby_screen_waiting_for_game_to_start">En attente du lancement de la partie</string>
+    <string name="lobby_screen_start">Commencer</string>
 
 </resources>

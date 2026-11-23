@@ -5,12 +5,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.skyle.escapy.MIN_DELAY_TO_SHOW_LOADER
 import fr.skyle.escapy.data.usecase.lobby.EnsureLobbyAccessibleUseCase
-import fr.skyle.escapy.data.usecase.lobby.EnsureLobbyAccessibleUseCaseLobbyDoesNotExist
-import fr.skyle.escapy.data.usecase.lobby.EnsureLobbyAccessibleUseCaseNotInLobby
 import fr.skyle.escapy.data.usecase.lobby.FetchLobbiesForCurrentUserUseCaseImpl
+import fr.skyle.escapy.data.usecase.lobby.LobbyAccessException
+import fr.skyle.escapy.data.usecase.lobby.LobbyAccessResult
 import fr.skyle.escapy.data.usecase.lobby.WatchCurrentUserActiveLobbiesUseCase
 import fr.skyle.escapy.data.usecase.user.FetchCurrentUserUseCaseImpl
 import fr.skyle.escapy.data.usecase.user.WatchCurrentUserUseCase
+import fr.skyle.escapy.data.utils.getOrThrow
 import fr.skyle.escapy.ui.screens.home.ui.mapper.toLobbyUI
 import fr.skyle.escapy.ui.screens.home.ui.model.LobbyUI
 import kotlinx.coroutines.CancellationException
@@ -104,27 +105,35 @@ class HomeViewModel @Inject constructor(
             }
 
             try {
-                ensureLobbyAccessibleUseCase(lobbyId)
+                ensureLobbyAccessibleUseCase(lobbyId).getOrThrow()
 
                 _state.update {
                     it.copy(event = HomeEvent.HasAccessToLobby(lobbyId))
                 }
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: EnsureLobbyAccessibleUseCaseLobbyDoesNotExist) {
+            } catch (e: LobbyAccessException) {
                 Timber.e(e)
-                _state.update {
-                    it.copy(event = HomeEvent.LobbyNotExisting)
-                }
-            } catch (e: EnsureLobbyAccessibleUseCaseNotInLobby) {
-                Timber.e(e)
-                _state.update {
-                    it.copy(event = HomeEvent.NotInLobby)
-                }
-            } catch (e: Exception) {
-                Timber.e(e)
-                _state.update {
-                    it.copy(event = HomeEvent.Error(e.message))
+
+                when (e.failure) {
+                    LobbyAccessResult.Failure.NotFound -> {
+                        _state.update {
+                            it.copy(event = HomeEvent.LobbyNotExisting)
+                        }
+                    }
+
+                    LobbyAccessResult.Failure.NotInLobby -> {
+                        _state.update {
+                            it.copy(event = HomeEvent.NotInLobby)
+                        }
+                    }
+
+                    LobbyAccessResult.Failure.NoCurrentUser,
+                    is LobbyAccessResult.Failure.Unexpected -> {
+                        _state.update {
+                            it.copy(event = HomeEvent.Error(e.message))
+                        }
+                    }
                 }
             } finally {
                 _state.update {

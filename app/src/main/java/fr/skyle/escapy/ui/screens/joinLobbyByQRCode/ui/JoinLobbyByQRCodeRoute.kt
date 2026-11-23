@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,7 +26,7 @@ fun JoinLobbyByQRCodeRoute(
     navigateBack: () -> Unit,
     joinLobbyByQRCodeViewModel: JoinLobbyByQRCodeViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val haptics = LocalHapticFeedback.current
 
     val joinLobbyByQRCodeState by joinLobbyByQRCodeViewModel.state.collectAsStateWithLifecycle()
@@ -43,7 +43,7 @@ fun JoinLobbyByQRCodeRoute(
                 JoinLobbyByQRCodeViewModel.JoinLobbyByQRCodeEvent.InvalidQRCode -> {
                     haptics.performHapticFeedback(HapticFeedbackType.Reject)
                     snackbarState.showSnackbar(
-                        message = context.getString(R.string.join_lobby_by_qrcode_error_qrcode_invalid),
+                        message = resources.getString(R.string.join_lobby_by_qrcode_error_qrcode_invalid),
                         type = ProjectSnackbarDefaults.ProjectSnackbarType.ERROR
                     )
                 }
@@ -51,7 +51,7 @@ fun JoinLobbyByQRCodeRoute(
                 is JoinLobbyByQRCodeViewModel.JoinLobbyByQRCodeEvent.ScanError -> {
                     haptics.performHapticFeedback(HapticFeedbackType.Reject)
                     snackbarState.showSnackbar(
-                        message = context.getString(
+                        message = resources.getString(
                             R.string.generic_error_format,
                             event.message ?: "-"
                         ),

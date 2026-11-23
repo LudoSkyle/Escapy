@@ -2,36 +2,56 @@ package fr.skyle.escapy.data.usecase.lobby
 
 import com.google.firebase.auth.FirebaseAuth
 import fr.skyle.escapy.data.ext.isUserInLobby
-import kotlinx.coroutines.flow.first
+import fr.skyle.escapy.data.utils.Either
+import fr.skyle.escapy.data.utils.EitherFailure
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 interface EnsureLobbyAccessibleUseCase {
 
-    suspend operator fun invoke(lobbyId: String)
+    suspend operator fun invoke(lobbyId: String): Either<LobbyAccessResult.Failure, LobbyAccessResult.Success>
 }
 
 class EnsureLobbyAccessibleUseCaseImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val fetchLobbyUseCase: FetchLobbyUseCase,
     private val watchLobbyUseCase: WatchLobbyUseCase,
 ) : EnsureLobbyAccessibleUseCase {
 
-    override suspend fun invoke(lobbyId: String) {
-        fetchLobbyUseCase(lobbyId)
+    override suspend fun invoke(lobbyId: String): Either<LobbyAccessResult.Failure, LobbyAccessResult.Success> {
+        return try {
+            val lobby = watchLobbyUseCase(lobbyId).firstOrNull()
+                ?: return Either.Failure(LobbyAccessResult.Failure.NotFound)
 
-        val lobby = watchLobbyUseCase(lobbyId).first()
-            ?: throw EnsureLobbyAccessibleUseCaseLobbyDoesNotExist()
+            val user = firebaseAuth.currentUser
+                ?: return Either.Failure(LobbyAccessResult.Failure.NoCurrentUser)
 
-        val user = firebaseAuth.currentUser ?: throw Exception("No current user")
+            if (!lobby.isUserInLobby(user.uid)) {
+                return Either.Failure(LobbyAccessResult.Failure.NotInLobby)
+            }
 
-        if (!lobby.isUserInLobby(user.uid)) {
-            throw EnsureLobbyAccessibleUseCaseNotInLobby()
+            Either.Success(LobbyAccessResult.Success)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Either.Failure(LobbyAccessResult.Failure.Unexpected(e))
         }
     }
 }
 
-class EnsureLobbyAccessibleUseCaseLobbyDoesNotExist() :
-    Exception("The lobby is not existing anymore")
+class LobbyAccessException(val failure: LobbyAccessResult.Failure) : Exception()
 
-class EnsureLobbyAccessibleUseCaseNotInLobby() :
-    Exception("The user is not part of the lobby")
+sealed interface LobbyAccessResult {
+    data object Success : LobbyAccessResult
+
+    sealed interface Failure : LobbyAccessResult, EitherFailure {
+        data object NotFound : Failure
+        data object NotInLobby : Failure
+        data object NoCurrentUser : Failure
+        data class Unexpected(val cause: Throwable) : Failure
+
+        override fun toException(): Exception =
+            LobbyAccessException(failure = this)
+        }
+    }
+}

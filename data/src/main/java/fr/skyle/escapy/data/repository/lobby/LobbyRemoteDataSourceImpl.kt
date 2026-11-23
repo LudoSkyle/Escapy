@@ -7,13 +7,12 @@ import fr.skyle.escapy.data.enums.LobbyStatus
 import fr.skyle.escapy.data.repository.lobby.api.LobbyRemoteDataSource
 import fr.skyle.escapy.data.repository.lobby.model.CreateLobbyRequest
 import fr.skyle.escapy.data.rest.firebase.LobbyRequestDTO
+import fr.skyle.escapy.data.utils.listenAsFlow
 import fr.skyle.escapy.data.utils.readOnce
 import fr.skyle.escapy.data.utils.updateOnce
 import fr.skyle.escapy.data.vo.Lobby
 import fr.skyle.escapy.data.vo.mapper.toRequestDTO
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,7 +61,17 @@ class LobbyRemoteDataSourceImpl @Inject constructor(
             .readOnce(LobbyRequestDTO::class.java)
 
     override suspend fun fetchUserLobbyIds(userId: String): Map<String, Boolean>? =
-        dbRef.child(FirebaseNode.USER_LOBBIES)
+        dbRef
+            .child(FirebaseNode.USER_LOBBIES)
             .child(userId)
             .readOnce(object : GenericTypeIndicator<Map<String, Boolean>>() {})
+
+    override fun listenLobby(lobbyId: String): Flow<LobbyRequestDTO?> {
+        val pathRef = dbRef
+            .child(FirebaseNode.LOBBIES)
+            .child(lobbyId)
+        val typeIndicator = object : GenericTypeIndicator<LobbyRequestDTO>() {}
+
+        return pathRef.listenAsFlow(typeIndicator)
+    }
 }

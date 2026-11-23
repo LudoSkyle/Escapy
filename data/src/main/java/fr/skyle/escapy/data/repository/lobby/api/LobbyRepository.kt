@@ -17,6 +17,8 @@ interface LobbyRepository {
 
     suspend fun fetchLobbiesForUser(userId: String)
 
+    suspend fun listenLobby(lobbyId: String)
+
     fun watchLobby(lobbyId: String): Flow<Lobby?>
 
     fun watchActiveLobbiesForUser(userId: String): Flow<List<Lobby>>

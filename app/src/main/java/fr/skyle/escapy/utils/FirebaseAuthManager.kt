@@ -30,7 +30,7 @@ class FirebaseAuthManager @Inject constructor(
         }
 
         val idTokenListener = FirebaseAuth.IdTokenListener { auth ->
-            updateState(auth.currentUser)
+            updateState(auth.currentUser?.)
         }
 
         firebaseAuth.addAuthStateListener(authListener)
@@ -58,7 +58,7 @@ class FirebaseAuthManager @Inject constructor(
         )
 
         if (_state.value != newState) {
-            Timber.Forest.d("Firebase auth state updated: $newState")
+            Timber.d("Firebase auth state updated: $newState")
             _state.value = newState
         }
     }

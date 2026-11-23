@@ -82,6 +82,15 @@ class LobbyRepositoryImpl @Inject constructor(
         fetchLobbies(lobbyIds)
     }
 
+    override suspend fun listenLobby(lobbyId: String) {
+        lobbyRemoteDataSource.listenLobby(lobbyId).collect { lobbyRequestDTO ->
+            // TODO handle null deletion
+            lobbyRequestDTO?.toLobby(lobbyId)?.let { lobby ->
+                lobbyLocalDataSource.insertLobby(lobby)
+            }
+        }
+    }
+
     override fun watchLobby(lobbyId: String): Flow<Lobby?> =
         lobbyLocalDataSource.watchLobby(lobbyId)
 

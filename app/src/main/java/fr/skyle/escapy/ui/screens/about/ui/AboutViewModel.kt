@@ -1,5 +1,6 @@
 package fr.skyle.escapy.ui.screens.about.ui
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -61,6 +62,7 @@ class AboutViewModel @Inject constructor(
         }
     }
 
+    @Immutable
     data class State(
         val isContributorsLoading: Boolean = true,
         val contributors: List<GithubContributorUI> = emptyList(),

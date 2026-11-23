@@ -15,8 +15,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 @InstallIn(SingletonComponent::class)
 internal object APIModule {
 
-    // Toolkit
-
     @GithubUrl
     @Provides
     fun githubUrl(@ApplicationContext context: Context): HttpUrl =

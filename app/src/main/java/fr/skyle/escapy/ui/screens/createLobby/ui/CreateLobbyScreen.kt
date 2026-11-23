@@ -187,7 +187,6 @@ private data class CreateLobbyScreenContentPreviewData(
     val isButtonLoading: Boolean,
 )
 
-
 @ProjectComponentPreview
 @Composable
 private fun CreateLobbyScreenContentPreview(
