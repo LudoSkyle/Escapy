@@ -15,7 +15,8 @@ exécute la suite sur la JVM et sur le simulateur iOS.
 
 Un test de code commun va dans `commonTest` : c'est ce qui vérifie que le code se comporte pareil sur
 les deux plateformes. Les tests en place sont tous dans `commonTest` : `SessionRepositoryImplTest`
-(`data`), `WatchSessionUseCaseImplTest` (`domain`), `MainViewModelTest` (`shared`).
+(`data`), `WatchSessionUseCaseImplTest` (`domain`), `MainViewModelTest` (`shared`), et ceux des
+composants et des contrastes du design system (`designSystem`).
 
 ### Outillage
 
@@ -24,6 +25,7 @@ les deux plateformes. Les tests en place sont tous dans `commonTest` : `SessionR
 | Framework | `kotlin.test` (`@Test`, `assertEquals`, `assertFailsWith`) |
 | Coroutines | `kotlinx-coroutines-test` (`runTest`, `UnconfinedTestDispatcher`) |
 | Doublures | Fakes écrits à la main, dans un package `fake/` du source set de test |
+| Composants et écrans | `runComposeUiTest` (`org.jetbrains.compose.ui:ui-test`) dans `commonTest`, sur la JVM par Robolectric et sur le simulateur iOS tel quel |
 
 Pas de framework de mock : les interfaces sont petites, un fake qui enregistre les appels est plus
 lisible et ne casse pas au premier refactor.
@@ -36,14 +38,24 @@ lisible et ne casse pas au premier refactor.
 | UseCase (`domain`) | fakes des Repositories de `data` | orchestration, conversion, exceptions typées levées |
 | Repository (`data`) | voir « Firebase dans les tests » | ce qui ne dépend pas d'un appel réel : repli sans Firebase, conversion des documents et des erreurs |
 | ViewModel (`shared`) | fakes des UseCases et des interfaces natives | état exposé, events émis, erreurs attrapées |
+| Composant du design system | `runComposeUiTest` | ce qu'il promet : un bouton en chargement ignore le toucher, un champ dit son erreur, un bouton icône est nommé |
+| Contrastes des couleurs | `kotlin.test` seul (`ESColorsContrastTest`) | chaque couple texte/surface à 4,5:1, chaque contour de contrôle à 3:1 |
 | Règles Firestore et Storage, fonctions | émulateur Firebase, `firebase/functions/test/` (vitest) | qui peut lire et écrire quoi ; ce que fait chaque fonction, ses refus compris |
 
 - **Tout UseCase, Repository et ViewModel est livré avec son fichier de test**, nommé comme son
   implémentation et suffixé `Test` (`WatchSessionUseCaseImplTest`), dans le même package du source
   set de test.
 - Une `Preview` n'est pas un test.
-- Les tests d'écran en Compose (`runComposeUiTest`) ne sont pas encore en place : leur outillage se
-  décide avec le premier écran qui a de la logique (lot 5) et s'inscrit ici.
+- **Un test qui dessine** (`runComposeUiTest`) hérite de `ComposeTest`, une classe `expect` du
+  source set de test : sur la JVM, elle lance Robolectric (`@RunWith(RobolectricTestRunner::class)`,
+  graphismes natifs, `robolectric.properties` dans `androidHostTest/resources`, et
+  `isIncludeAndroidResources` dans le build du module) ; sur iOS, elle ne fait rien. Le module
+  ajoute `test-composeMultiplatform-ui` à `commonTest`, et `test-junit`, `test-robolectric`,
+  `test-androidx-compose-ui-manifest` à `androidHostTest`.
+- Un test qui dessine cherche un élément par ce qu'en lit un lecteur d'écran (texte, description,
+  action), pas par une étiquette de test, et sans dépendre de la langue : un texte traduit se compare
+  à sa ressource ou ne se compare pas.
+- Un écran se teste ainsi à partir du lot 5, avec son premier écran qui a de la logique.
 
 ### Firebase dans les tests
 

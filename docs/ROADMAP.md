@@ -101,14 +101,23 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
    - [ ] Emplacement du bucket Storage par défaut, consigné dans
          [ADR-0004](./adr/0004-firestore-et-le-serveur-source-de-verite.md)
 4. **Design system v2**
-   - [ ] Tokens propres (surfaces sur quatre niveaux, contours, couleurs `on…`, espacements, états),
-         sans `MaterialTheme` exposé ; contrastes WCAG AA
-   - [ ] Un composant `ES…` pour chaque composant Material utilisé, variantes dans un objet
-         `<Composant>Defaults` ; `contentDescription` obligatoire ; bouton désactivé pendant un
-         chargement ; champs complets (erreur, remplissage automatique, visibilité du mot de passe,
-         focus)
-   - [ ] Icônes Material Symbols Rounded
-   - [ ] Icône de l'app iOS, et l'icône sur l'écran de démarrage iOS
+   - [x] Tokens propres, sans `MaterialTheme` : `ESColors` (surfaces sur quatre niveaux, contours,
+         textes sur trois niveaux, ambre, erreur, succès, états désactivés), `ESTypography` (Exo 2,
+         sept styles), `ESShapes` (12, 20 et 28 dp), `ESSpacing` (échelle de 4 dp) ; contrastes WCAG
+         AA vérifiés par un test
+   - [x] Les composants dont les écrans du compte (lot 5) ont besoin : `ESButton` (chargement qui
+         ignore le toucher et garde la largeur), `ESIconButton` (`contentDescription` obligatoire),
+         `ESTextField` (erreur lue par le lecteur d'écran, remplissage automatique, mot de passe à
+         afficher, focus visible), `ESTopAppBar`, `ESScreenStructure`, `ESSnackbarState`, `ESDialog`,
+         `ESCard`, `ESDivider`, `ESProgressIndicator`, `ESText` ; variantes dans des
+         `<Composant>Defaults`
+   - [x] Icônes Material Symbols Rounded des composants (retour, afficher et masquer le mot de passe)
+   - [x] Icône de l'app iOS et écran de démarrage iOS (le trou de serrure de l'icône Android) ; fond
+         de démarrage Android aligné sur le nouveau fond
+   - [x] Catalogue des composants, ouvert par un build debug seulement ; tests des composants en
+         Compose (`runComposeUiTest`), sur la JVM et le simulateur iOS
+   - Vérifié sur un émulateur Android (API 31, police à 2×) et le simulateur iOS 26.2. Non vérifié :
+     le remplissage automatique par un gestionnaire de mots de passe, sur les deux plateformes.
 5. **Compte et profil**, reconçus : connexion, inscription, invité (`isAnonymous`), mot de passe
    oublié, lier un compte (avec vérification de l'e-mail), changer d'e-mail et de mot de passe,
    suppression, avatar, à propos. Erreurs typées, textes en anglais et en français, events one-shot.

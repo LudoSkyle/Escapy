@@ -127,7 +127,8 @@ sur les émulateurs Firebase, projet `demo-escapy` (voir [firebase/CLAUDE.md](..
 
 Le job des apps, sur un runner `macos-26` (le Xcode du projet, le SDK Android), Java 17 :
 
-1. `:data:allTests`, `:domain:allTests`, `:shared:allTests` (JVM et simulateur iOS) et
+1. `:data:allTests`, `:domain:allTests`, `:designSystem:allTests`, `:shared:allTests` (JVM et
+   simulateur iOS) et
    `:androidApp:assembleDebug` ;
 2. le paquet de liaison SwiftPM régénéré (`:shared:integrateLinkagePackage`), puis
    `git diff --exit-code` : un module GitLive ajouté ou retiré sans régénérer le paquet fait échouer
