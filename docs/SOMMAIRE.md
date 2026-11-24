@@ -31,7 +31,7 @@ en sont les pages. Tout le reste en est exclu par `_config.yml`.
 | [Common/04_BUILD.md](./Common/04_BUILD.md) | Gradle, catalogue, plugins de convention, signature, build sans `private/`, CI | Ajout d'une dépendance, montée de version, configuration du build |
 | [UI/01_NAVIGATION.md](./UI/01_NAVIGATION.md) | `Route.kt`, `RootNavDisplay.kt`, racine pilotée par la session | Ajout ou modification d'une route |
 | [UI/02_ARCHITECTURE_ECRAN.md](./UI/02_ARCHITECTURE_ECRAN.md) | Structure d'un écran (`entry`, `Route`, `Screen`, `ViewModel`), events one-shot | Création ou modification d'un écran, d'un ViewModel |
-| [UI/03_DESIGN_SYSTEM.md](./UI/03_DESIGN_SYSTEM.md) | Module `designSystem` : `ESTheme` provisoire, `ESText`, `ESScreenStructure` | Travail sur le thème ou un composant générique |
+| [UI/03_DESIGN_SYSTEM.md](./UI/03_DESIGN_SYSTEM.md) | Module `designSystem` : tokens, `ESTheme`, composants et leurs variantes, icônes, catalogue | Travail sur le thème ou un composant générique |
 | [UI/04_CONVENTIONS_COMPOSE.md](./UI/04_CONVENTIONS_COMPOSE.md) | Signature d'un composable, état, performance, mise en page, ressources, previews | Toute contribution UI, en complément de [Common/02_CONVENTIONS.md](./Common/02_CONVENTIONS.md) |
 | [KMP/01_MODULE_DATA.md](./KMP/01_MODULE_DATA.md) | Module `data` : Firebase par GitLive, Repositories, horodatages serveur | Tout accès à Firebase |
 | [KMP/02_MODULE_DOMAIN.md](./KMP/02_MODULE_DOMAIN.md) | Module `domain` : modèles métier, mappers, UseCases, exceptions | Logique métier côté app |

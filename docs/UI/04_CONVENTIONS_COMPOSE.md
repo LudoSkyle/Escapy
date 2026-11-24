@@ -14,14 +14,15 @@ Ces conventions s'appliquent à `shared` et `designSystem`, en complément de
 - Les `Route` et les `Screen` n'exposent pas de `modifier` : ils occupent tout l'écran.
 - À l'appel, tout composant reçoit un `modifier` qui dit sa stratégie de taille
   (`fillMaxWidth()`, `fillMaxSize()`, `wrapContentWidth()`, `size(...)`, le `modifier` reçu…).
-    - Exemple à éviter : `ESText(text = title)`.
-    - Exemple attendu : `ESText(modifier = Modifier.fillMaxWidth(), text = title)`, sur plusieurs
-      lignes.
+    - Exemple à éviter : `ESText(text = title, style = ESTheme.typography.title)`.
+    - Exemple attendu : `ESText(modifier = Modifier.fillMaxWidth(), text = title, style = …)`, sur
+      plusieurs lignes.
 - `modifier = ...` est le **premier argument nommé** de l'appel :
   ```kotlin
   ESText(
-      modifier = Modifier.padding(24.dp),
+      modifier = Modifier.padding(ESTheme.spacing.l),
       text = stringResource(Res.string.home_coming_soon),
+      style = ESTheme.typography.body,
       textAlign = TextAlign.Center,
   )
   ```
@@ -91,14 +92,15 @@ Ces conventions s'appliquent à `shared` et `designSystem`, en complément de
           ESText(
               modifier = Modifier.fillMaxWidth(),
               text = stringResource(Res.string.app_name),
-              style = ESTextStyle.Title,
+              style = ESTheme.typography.headline,
           )
 
-          Spacer(modifier = Modifier.height(12.dp))
+          Spacer(modifier = Modifier.height(ESTheme.spacing.s))
 
           ESText(
               modifier = Modifier.fillMaxWidth(),
               text = stringResource(Res.string.welcome_coming_soon),
+              style = ESTheme.typography.body,
           )
       }
       ```

@@ -56,14 +56,15 @@ Cinq règles à ne jamais perdre de vue :
 La réécriture en KMP/CMP avance lot par lot, par pull request. Le spike Firebase (lot 1) a validé
 le SDK de GitLive et Firestore. La fondation (lot 2) est en place : modules, build, Koin, navigation
 pilotée par la session, hôtes Android et iOS, thème provisoire, CI. Le backend socle (lot 3) est
-dans `firebase/` : règles testées, création, modification et suppression du profil, émulateur. Les
-écrans Bienvenue et Accueil ne sont encore que des emplacements. La suite arrive dans l'ordre de la
+dans `firebase/` : règles testées, création, modification et suppression du profil, émulateur. Le
+design system v2 (lot 4) est en place : tokens, composants des écrans du compte, icônes, catalogue.
+Les écrans Bienvenue et Accueil ne sont encore que des emplacements. La suite arrive dans l'ordre de la
 [feuille de route](./docs/ROADMAP.md).
 
 ## Commandes
 
 ```bash
-./gradlew :data:allTests :domain:allTests :shared:allTests   # tests (JVM et simulateur iOS)
+./gradlew :data:allTests :domain:allTests :designSystem:allTests :shared:allTests   # tests (JVM et simulateur iOS)
 ./gradlew :androidApp:assembleDebug                          # app Android
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64        # framework iOS
 (cd firebase/functions && npm ci && npm test)                # backend sur les émulateurs Firebase
