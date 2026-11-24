@@ -1,0 +1,76 @@
+# Every pull request, and every push to develop and main: the tests on the JVM and on the iOS simulator,
+# the Android app and the iOS app. Without the private submodule, which a fork cannot reach: the build
+# runs without the signing keys and the Firebase files (see docs/Common/04_BUILD.md).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+# A new push to a pull request stops the run of the previous one
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests and builds
+    # macOS for the iOS simulator, with the Xcode of the project and the Android SDK
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The Firebase iOS SDK and its dependencies, resolved by Gradle and by Xcode: long to download
+      - name: Cache the Swift packages
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            .swiftpm-locks/default/swiftPMCheckout
+          key: swiftpm-${{ hashFiles('.swiftpm-locks/default/swiftImport/Package.resolved', 'iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: swiftpm-
+
+      - name: Test on the JVM and the iOS simulator, build the Android app
+        run: ./gradlew :data:allTests :domain:allTests :shared:allTests :androidApp:assembleDebug
+
+      # The linkage package is generated from the Firebase modules of the Kotlin code and committed:
+      # a module added or removed without it would fail the first build of the app
+      - name: Check that the SwiftPM linkage package is up to date
+        run: |
+          XCODEPROJ_PATH="$PWD/iosApp/iosApp.xcodeproj" ./gradlew :shared:integrateLinkagePackage
+          git diff --exit-code -- iosApp/KotlinMultiplatformLinkedPackage
+
+      # Its build phase builds the Shared framework. On a simulator of the runner: a generic one would
+      # build for x86_64 too, which the framework has no target for
+      - name: Build the iOS app
+        run: >-
+          xcodebuild build
+          -project iosApp/iosApp.xcodeproj
+          -scheme iosApp
+          -destination 'platform=iOS Simulator,name=iPhone 17'
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Keep the test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: '**/build/reports/tests/'
