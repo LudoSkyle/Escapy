@@ -36,11 +36,12 @@ en sont les pages. Tout le reste en est exclu par `_config.yml`.
 | [KMP/01_MODULE_DATA.md](./KMP/01_MODULE_DATA.md) | Module `data` : Firebase par GitLive, Repositories, horodatages serveur | Tout accès à Firebase |
 | [KMP/02_MODULE_DOMAIN.md](./KMP/02_MODULE_DOMAIN.md) | Module `domain` : modèles métier, mappers, UseCases, exceptions | Logique métier côté app |
 | [KMP/03_CODE_PLATEFORME.md](./KMP/03_CODE_PLATEFORME.md) | `expect`/`actual`, interfaces natives, démarrage de Firebase, matrice Android/iOS | Tout ce qui diffère par plateforme |
-| [Backend/README.md](./Backend/README.md) | Principes du backend, ce qui arrive au lot 3, émulateur | Toute question sur ce que fait le serveur |
+| [Backend/README.md](./Backend/README.md) | Principes du backend, données, fonctions, raisons d'erreur, émulateur | Toute question sur ce que fait le serveur |
 | [adr/0001-le-domaine-depend-de-la-donnee.md](./adr/0001-le-domaine-depend-de-la-donnee.md) | `shared` → `domain` → `data`, exceptions typées | Toute intervention sur `data` ou `domain` |
 | [adr/0002-ui-commune-en-compose-multiplatform.md](./adr/0002-ui-commune-en-compose-multiplatform.md) | UI 100 % Compose Multiplatform, natif derrière une frontière | Toute question « commun ou natif ? » |
 | [adr/0003-firebase-en-kotlin-commun-avec-gitlive.md](./adr/0003-firebase-en-kotlin-commun-avec-gitlive.md) | SDK Firebase de GitLive épinglé, isolé dans `data`, mesures, paquet de liaison | Toute dépendance Firebase, toute montée de version de GitLive |
 | [adr/0004-firestore-et-le-serveur-source-de-verite.md](./adr/0004-firestore-et-le-serveur-source-de-verite.md) | Firestore à `europe-west1`, callables, règles, horodatage serveur | Toute écriture, toute lecture de données de partie |
+| [adr/0005-le-contrat-des-callables.md](./adr/0005-le-contrat-des-callables.md) | Raison d'erreur stable, profil par `ensureProfile`, suppression du compte | Tout appel à une fonction, toute nouvelle fonction |
 
 ## Résumé rapide des modules
 

@@ -82,16 +82,24 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
          iOS, à chaque pull request
    - [x] `CLAUDE.md`, `iosApp/CLAUDE.md` et `docs/`, exclus du site public
 3. **Backend socle**
-   - [ ] Dossier `firebase/` dans le dépôt : `firebase.json`, `firestore.rules`, `storage.rules`,
+   - [x] Dossier `firebase/` dans le dépôt : `firebase.json`, `firestore.rules`, `storage.rules`,
          `firestore.indexes.json`, `functions/` (TypeScript, Cloud Functions v2 à `europe-west1`)
-   - [ ] Règles versionnées et testées sur l'émulateur (`@firebase/rules-unit-testing`), dans la CI
-   - [ ] Émulateur Firebase et `scripts/emulators.sh` (ports, `adb reverse` pour Android)
-   - [ ] `ensureProfile` (idempotente, appelée après chaque connexion), `updateProfile`, suppression
-         du compte en cascade, synchronisation de l'e-mail côté serveur
-   - [ ] `minInstances` des fonctions de partie, chiffré
+   - [x] Règles versionnées et testées sur l'émulateur (`@firebase/rules-unit-testing`) : profil lu
+         par son propriétaire seulement, tout le reste refusé, Storage fermé
+   - [x] Émulateur Firebase sur le projet de démonstration `demo-escapy`, et `scripts/emulators.sh`
+         (ports, `adb reverse` pour Android)
+   - [x] `ensureProfile` (idempotente, sans risque en double appel), `updateProfile` (pseudo et
+         avatar validés côté serveur), `deleteAccount` (données puis compte, connexion récente pour
+         un membre) ; contrat d'erreur `details.reason`
+         ([ADR-0005](./adr/0005-le-contrat-des-callables.md)). Pas d'e-mail dans le profil, donc rien
+         à synchroniser
+   - [x] Tests des fonctions et des règles sur l'émulateur, dans un job `backend` de la CI
+   - [x] `firebase/CLAUDE.md`, `docs/Backend/README.md`, comportement du TTL vérifié dans la
+         documentation Firebase
+   - [ ] Déploiement sur le vrai projet (règles, fonctions) et suppression de l'ancienne fonction
+         `finalizeEmailUpdate` : sur demande de l'utilisateur
    - [ ] Emplacement du bucket Storage par défaut, consigné dans
          [ADR-0004](./adr/0004-firestore-et-le-serveur-source-de-verite.md)
-   - [ ] `firebase/CLAUDE.md`, et `docs/Backend/` complété (modèle de données, fonctions, règles)
 4. **Design system v2**
    - [ ] Tokens propres (surfaces sur quatre niveaux, contours, couleurs `on…`, espacements, états),
          sans `MaterialTheme` exposé ; contrastes WCAG AA
@@ -104,8 +112,12 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
 5. **Compte et profil**, reconçus : connexion, inscription, invité (`isAnonymous`), mot de passe
    oublié, lier un compte (avec vérification de l'e-mail), changer d'e-mail et de mot de passe,
    suppression, avatar, à propos. Erreurs typées, textes en anglais et en français, events one-shot.
+   L'app appelle `ensureProfile` après chaque connexion, et sait se brancher sur l'émulateur Firebase
+   en debug (y compris sans `private/`, sur `demo-escapy`).
 6. **Parties** : créer (un vrai sélecteur de durée), rejoindre (code, QR code qui porte un lien
    universel, saisie manuelle), salle d'attente, exclure, quitter, liste en temps réel sur l'accueil.
+   `minInstances` des fonctions de partie, avec son coût (une instance gardée chaude se facture
+   aussi au repos).
 7. **Partie en cours** : minuteur serveur (écart avec l'horloge du serveur estimé, voir
    [Common/02_CONVENTIONS.md](./Common/02_CONVENTIONS.md)), chat, intro, fin, victoire ou défaite.
 8. **Missions** : types, déclencheurs, soumission avec anti-force brute, mots-clés du chat.
@@ -126,9 +138,13 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
   ([ADR-0004](./adr/0004-firestore-et-le-serveur-source-de-verite.md)).
 - **Pas de Room** : le cache hors ligne de Firestore suffit.
 - **`minInstances` sur les fonctions de partie** (validation d'une réponse, indice, ajout de temps,
-  démarrage) : un démarrage à froid coûte de 1,3 à 2,3 s. Le coût se chiffre au lot 3.
-- **Le dossier `firebase/` rejoint ce dépôt** au lot 3 : app, règles et fonctions évoluent dans la
-  même pull request, sous la même CI.
+  démarrage) : un démarrage à froid coûte de 1,3 à 2,3 s. Le coût se chiffre avec ces fonctions, au
+  lot 6. Les fonctions du profil n'en ont pas.
+- **Le dossier `firebase/` est dans ce dépôt** : app, règles et fonctions évoluent dans la même pull
+  request, sous la même CI.
+- **Profil créé par une callable idempotente** (`ensureProfile`), pas par un déclencheur Auth ;
+  erreurs par une raison stable ; suppression du compte par une callable
+  ([ADR-0005](./adr/0005-le-contrat-des-callables.md)).
 - **Vocabulaire** : « partie » remplace « salon » (*lobby*) ; voir
   [Produit/01_VISION_ET_VOCABULAIRE.md](./Produit/01_VISION_ET_VOCABULAIRE.md).
 - **Identité** : `fr.skyle.escapy` sur Android et iOS, version 2.0. iOS 18.5 minimum, iPhone en
@@ -150,10 +166,9 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
   pourrait servir à elle seule, si on la veut en v1.
 - **Expiration des scénarios** : 24 ou 48 h (durée exacte à trancher), réglée côté serveur ; à vie pour les
   premiums, plus tard. Le TTL de Firestore supprime le document seul, sans ses sous-collections ni
-  les fichiers de Storage, avec un délai qui peut aller jusqu'à environ 24 h : à confirmer dans la
-  documentation au lot 3, avec une suppression en cascade des médias.
-- **Profil créé par une callable idempotente** (`ensureProfile`) plutôt que par un trigger Auth, qui
-  laisserait un utilisateur connecté sans profil le temps de s'exécuter : à confirmer au lot 3.
+  les fichiers de Storage, en général dans les 24 h (vérifié, voir
+  [ADR-0004](./adr/0004-firestore-et-le-serveur-source-de-verite.md)) : suppression en cascade des
+  médias par une fonction.
 - **Remontée des crashs** : Crashlytics n'est pas encore branché. Sur iOS, il passera par le code
   Kotlin et le paquet de liaison, jamais par un paquet SwiftPM ajouté à la main (voir
   [iosApp/CLAUDE.md](../iosApp/CLAUDE.md)).

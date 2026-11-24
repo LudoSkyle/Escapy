@@ -36,7 +36,7 @@ lisible et ne casse pas au premier refactor.
 | UseCase (`domain`) | fakes des Repositories de `data` | orchestration, conversion, exceptions typées levées |
 | Repository (`data`) | voir « Firebase dans les tests » | ce qui ne dépend pas d'un appel réel : repli sans Firebase, conversion des documents et des erreurs |
 | ViewModel (`shared`) | fakes des UseCases et des interfaces natives | état exposé, events émis, erreurs attrapées |
-| Règles Firestore et Storage, fonctions | émulateur Firebase, dans `firebase/` (lot 3) | qui peut lire et écrire quoi ; ce que fait chaque fonction |
+| Règles Firestore et Storage, fonctions | émulateur Firebase, `firebase/functions/test/` (vitest) | qui peut lire et écrire quoi ; ce que fait chaque fonction, ses refus compris |
 
 - **Tout UseCase, Repository et ViewModel est livré avec son fichier de test**, nommé comme son
   implémentation et suffixé `Test` (`WatchSessionUseCaseImplTest`), dans le même package du source

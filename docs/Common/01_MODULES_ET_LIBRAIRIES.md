@@ -14,8 +14,8 @@
 Le nom de package suit le module : `fr.skyle.escapy` pour `shared` et les hôtes,
 `fr.skyle.escapy.designsystem`, `fr.skyle.escapy.domain`, `fr.skyle.escapy.data`.
 
-Le dossier `firebase/` (règles, Cloud Functions) rejoindra le dépôt au lot 3 : il n'est pas un
-module Gradle (voir [Backend/README.md](../Backend/README.md)).
+Le dossier `firebase/` (règles, Cloud Functions en TypeScript) n'est pas un module Gradle : il a
+son propre outillage (npm) et ses règles (voir [firebase/CLAUDE.md](../../firebase/CLAUDE.md)).
 
 ### Graphe de dépendances
 
