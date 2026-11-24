@@ -65,8 +65,13 @@ paquet de liaison SwiftPM qui apporte Firebase. Ne couvre ni les écrans (dans `
   `CFBundleLocalizations` liste les langues de l'app (`en`, `fr`). Toute API qui demande une
   autorisation (caméra pour le QR code, micro pour un indice audio, photos) déclarera sa clé d'usage
   ici, traduite dans chaque langue (`<langue>.lproj/InfoPlist.strings`).
-- **Pas encore d'icône d'app iOS**, et l'écran de démarrage (`UILaunchScreen`) n'est que le fond
-  sombre : l'icône arrive avec le design system (lot 4).
+- **Icône et démarrage** : `iosApp/Assets.xcassets` porte `AppIcon` (une image de 1024 px, pleine
+  page, sans transparence : le trou de serrure de l'icône Android sur son fond), `LaunchBackground`
+  (le fond de l'app, `ESColors.background`) et `LaunchLogo` (le trou de serrure seul), que
+  `UILaunchScreen` de l'`Info.plist` affiche au démarrage.
+- **Catalogue du design system** : un build Debug lancé avec la variable d'environnement
+  `ESCAPY_CATALOG=1` (`SIMCTL_CHILD_ESCAPY_CATALOG=1 xcrun simctl launch booted fr.skyle.escapy`)
+  affiche les composants au lieu de l'app ; un build Release ne la lit jamais.
 - Pas encore de cible de tests d'interface : rien ne se lance avec `xcodebuild test`.
 
 ## Commandes

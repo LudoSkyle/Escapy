@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- While the app starts: the icon on the background of the app, which is dark only -->
+    <!-- While the app starts: the keyhole of the icon on the background of the app (ESColors.background) -->
     <style name="Theme.Escapy.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenBackground">@color/escapy_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/Theme.Escapy</item>
     </style>
 
     <style name="Theme.Escapy" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">@color/ic_launcher_background</item>
+        <item name="android:windowBackground">@color/escapy_background</item>
     </style>
 </resources>
