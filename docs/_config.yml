@@ -5,3 +5,14 @@ include:
 
 readme_index:
   enabled: false
+
+# The documentation of the project lives next to the public site: it is not published
+exclude:
+  - SOMMAIRE.md
+  - ROADMAP.md
+  - Common
+  - UI
+  - KMP
+  - Produit
+  - Backend
+  - adr
