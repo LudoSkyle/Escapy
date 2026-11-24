@@ -38,6 +38,9 @@ kermit = "2.2.0"
 
 # Tests
 junit = "4.13.2"
+robolectric = "4.18.1"
+# The androidx.compose.ui under Compose Multiplatform 1.12.2 on Android
+androidxComposeUi = "1.12.1"
 
 # Plugins
 agp = "9.5.2"
@@ -88,6 +91,11 @@ kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 test-kotlin = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 test-kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 test-junit = { module = "junit:junit", version.ref = "junit" }
+test-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+# The screens drawn in the test itself, with no app to launch
+test-composeMultiplatform-ui = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "composeMultiplatform" }
+# The activity runComposeUiTest starts on Android, declared in the manifest of the host tests
+test-androidx-compose-ui-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidxComposeUi" }
 
 # Gradle plugins, put on the build classpath by buildSrc
 plugin-android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
