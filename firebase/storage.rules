@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// No file yet: the images and sounds of the hints open their own paths, with their tests.
+// Tested in functions/test/storageRules.test.ts.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
