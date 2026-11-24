@@ -6,7 +6,9 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import fr.skyle.escapy.BuildConfig
 import fr.skyle.escapy.EscapyApp
+import fr.skyle.escapy.EscapyDesignSystemCatalog
 
 class MainActivity : ComponentActivity() {
 
@@ -20,8 +22,19 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
 
+        // A debug build started with --ez catalog true shows the design system instead of the app
+        val showsCatalog = BuildConfig.DEBUG && intent.getBooleanExtra(EXTRA_CATALOG, false)
+
         setContent {
-            EscapyApp()
+            if (showsCatalog) {
+                EscapyDesignSystemCatalog()
+            } else {
+                EscapyApp()
+            }
         }
+    }
+
+    private companion object {
+        const val EXTRA_CATALOG = "catalog"
     }
 }

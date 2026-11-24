@@ -1,0 +1,5 @@
+<resources>
+    <string name="hide_password">Masquer le mot de passe</string>
+    <string name="navigate_back">Retour</string>
+    <string name="show_password">Afficher le mot de passe</string>
+</resources>

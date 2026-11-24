@@ -1,28 +1,55 @@
 package fr.skyle.escapy.designsystem.core.screenstructure
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import fr.skyle.escapy.designsystem.core.snackbar.ESSnackbarHost
+import fr.skyle.escapy.designsystem.core.snackbar.ESSnackbarState
+import fr.skyle.escapy.designsystem.theme.ESTheme
 
-/** The frame of a screen: its background under the system bars, its content inside them. */
+/**
+ * The frame of a screen: its background under the system bars, a [topBar], a [bottomBar] fixed
+ * under the content, the messages of [snackbarState]. The [content] receives the padding that keeps
+ * it inside the bars, the system bars and the keyboard.
+ */
 @Composable
 fun ESScreenStructure(
+    style: ESScreenStructureDefaults.Style,
     modifier: Modifier = Modifier,
-    contentAlignment: Alignment = Alignment.TopStart,
-    content: @Composable BoxScope.() -> Unit,
+    topBar: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
+    snackbarState: ESSnackbarState? = null,
+    content: @Composable (PaddingValues) -> Unit,
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .safeDrawingPadding(),
-        contentAlignment = contentAlignment,
+    Scaffold(
+        modifier = modifier,
+        topBar = topBar,
+        bottomBar = bottomBar,
+        snackbarHost = {
+            if (snackbarState != null) {
+                ESSnackbarHost(state = snackbarState)
+            }
+        },
+        containerColor = style.backgroundColor,
+        contentColor = ESTheme.colors.textPrimary,
+        contentWindowInsets = WindowInsets.safeDrawing,
         content = content,
     )
+}
+
+object ESScreenStructureDefaults {
+
+    enum class Style {
+        STANDARD;
+
+        val backgroundColor: Color
+            @Composable
+            get() = when (this) {
+                STANDARD -> ESTheme.colors.background
+            }
+    }
 }
