@@ -1,9 +1,9 @@
 package fr.skyle.escapy.domain.usecase.session
 
 import fr.skyle.escapy.data.model.StoredSession
-import fr.skyle.escapy.data.repository.session.api.SessionRepository
+import fr.skyle.escapy.domain.fake.FakeSessionRepository
 import fr.skyle.escapy.domain.model.Session
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -12,33 +12,84 @@ import kotlin.test.assertEquals
 
 class WatchSessionUseCaseImplTest {
 
+    private val sessionRepository = FakeSessionRepository()
+
+    private val watchSessionUseCase = WatchSessionUseCaseImpl(
+        sessionRepository = sessionRepository,
+    )
+
     @Test
-    fun invoke_mapsEachStoredSession_anonymousAsGuest() = runTest {
+    fun `an anonymous user is a guest`() = runTest {
         // Given
-        val repository = FakeSessionRepository(
-            StoredSession.SignedOut,
-            StoredSession.SignedIn(userId = "guest", isAnonymous = true),
-            StoredSession.SignedIn(userId = "member", isAnonymous = false),
+        sessionRepository.sessions = flowOf(
+            StoredSession.SignedIn(
+                userId = "guest",
+                isAnonymous = true,
+            ),
         )
-        val useCase = WatchSessionUseCaseImpl(sessionRepository = repository)
 
         // When
-        val sessions = useCase().toList()
+        val session = watchSessionUseCase().first()
 
         // Then
         assertEquals(
-            listOf(
-                Session.SignedOut,
-                Session.SignedIn(userId = "guest", isGuest = true),
-                Session.SignedIn(userId = "member", isGuest = false),
+            expected = Session.SignedIn(
+                userId = "guest",
+                isGuest = true,
             ),
-            sessions,
+            actual = session,
         )
     }
 
-    private class FakeSessionRepository(
-        private vararg val sessions: StoredSession,
-    ) : SessionRepository {
-        override fun watchSession(): Flow<StoredSession> = flowOf(*sessions)
+    @Test
+    fun `a user with an account is a member`() = runTest {
+        // Given
+        sessionRepository.sessions = flowOf(
+            StoredSession.SignedIn(
+                userId = "member",
+                isAnonymous = false,
+            ),
+        )
+
+        // When
+        val session = watchSessionUseCase().first()
+
+        // Then
+        assertEquals(
+            expected = Session.SignedIn(
+                userId = "member",
+                isGuest = false,
+            ),
+            actual = session,
+        )
+    }
+
+    @Test
+    fun `each change of session is followed`() = runTest {
+        // Given
+        sessionRepository.sessions = flowOf(
+            StoredSession.SignedOut,
+            StoredSession.SignedIn(
+                userId = "guest",
+                isAnonymous = true,
+            ),
+            StoredSession.SignedOut,
+        )
+
+        // When
+        val sessions = watchSessionUseCase().toList()
+
+        // Then
+        assertEquals(
+            expected = listOf(
+                Session.SignedOut,
+                Session.SignedIn(
+                    userId = "guest",
+                    isGuest = true,
+                ),
+                Session.SignedOut,
+            ),
+            actual = sessions,
+        )
     }
 }

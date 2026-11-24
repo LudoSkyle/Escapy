@@ -23,7 +23,10 @@ internal class SessionRepositoryImpl(
                 if (user == null) {
                     StoredSession.SignedOut
                 } else {
-                    StoredSession.SignedIn(userId = user.uid, isAnonymous = user.isAnonymous)
+                    StoredSession.SignedIn(
+                        userId = user.uid,
+                        isAnonymous = user.isAnonymous,
+                    )
                 }
             }
             .distinctUntilChanged()

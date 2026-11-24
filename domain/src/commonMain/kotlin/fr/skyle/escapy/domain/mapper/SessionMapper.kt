@@ -6,5 +6,8 @@ import fr.skyle.escapy.domain.model.Session
 internal fun StoredSession.toSession(): Session =
     when (this) {
         StoredSession.SignedOut -> Session.SignedOut
-        is StoredSession.SignedIn -> Session.SignedIn(userId = userId, isGuest = isAnonymous)
+        is StoredSession.SignedIn -> Session.SignedIn(
+            userId = userId,
+            isGuest = isAnonymous,
+        )
     }
