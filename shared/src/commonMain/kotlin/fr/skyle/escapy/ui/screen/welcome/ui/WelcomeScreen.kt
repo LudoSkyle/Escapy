@@ -1,7 +1,8 @@
 package fr.skyle.escapy.ui.screen.welcome.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,18 +24,26 @@ fun WelcomeScreen() {
     ESScreenStructure(contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            ESText(text = stringResource(Res.string.app_name), style = ESTextStyle.Title)
-            ESText(text = stringResource(Res.string.welcome_coming_soon), textAlign = TextAlign.Center)
+            ESText(
+                text = stringResource(Res.string.app_name),
+                style = ESTextStyle.Title,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            ESText(
+                text = stringResource(Res.string.welcome_coming_soon),
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
 
 @Preview
 @Composable
-private fun WelcomeScreenPreview() {
+private fun PreviewWelcomeScreen() {
     ESTheme {
         WelcomeScreen()
     }

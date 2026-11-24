@@ -18,8 +18,8 @@ import org.jetbrains.compose.resources.stringResource
 fun HomeScreen() {
     ESScreenStructure(contentAlignment = Alignment.Center) {
         ESText(
-            text = stringResource(Res.string.home_coming_soon),
             modifier = Modifier.padding(24.dp),
+            text = stringResource(Res.string.home_coming_soon),
             textAlign = TextAlign.Center,
         )
     }
@@ -27,7 +27,7 @@ fun HomeScreen() {
 
 @Preview
 @Composable
-private fun HomeScreenPreview() {
+private fun PreviewHomeScreen() {
     ESTheme {
         HomeScreen()
     }

@@ -9,15 +9,22 @@ import kotlin.test.assertEquals
 
 class SessionRepositoryImplTest {
 
+    private val sessionRepository = SessionRepositoryImpl(
+        firebaseStatus = FirebaseStatus { false },
+    )
+
     @Test
-    fun watchSession_withoutFirebase_isSignedOutOnly() = runTest {
+    fun `without Firebase the session is signed out only`() = runTest {
         // Given
-        val repository = SessionRepositoryImpl(firebaseStatus = FirebaseStatus { false })
+        // No Firebase file: a fork or the CI
 
         // When
-        val sessions = repository.watchSession().toList()
+        val sessions = sessionRepository.watchSession().toList()
 
         // Then
-        assertEquals(listOf<StoredSession>(StoredSession.SignedOut), sessions)
+        assertEquals(
+            expected = listOf<StoredSession>(StoredSession.SignedOut),
+            actual = sessions,
+        )
     }
 }

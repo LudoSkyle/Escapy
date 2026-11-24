@@ -1,13 +1,10 @@
 package fr.skyle.escapy.ui.main
 
 import fr.skyle.escapy.domain.model.Session
-import fr.skyle.escapy.domain.usecase.session.WatchSessionUseCase
+import fr.skyle.escapy.fake.FakeWatchSessionUseCase
+import fr.skyle.escapy.ui.main.MainViewModel.MainUIState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -20,6 +17,8 @@ import kotlin.test.assertEquals
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelTest {
 
+    private val watchSessionUseCase = FakeWatchSessionUseCase()
+
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -31,49 +30,65 @@ class MainViewModelTest {
     }
 
     @Test
-    fun uiState_followsTheSession() = runTest {
+    fun `the app waits for the first session`() = runTest {
         // Given
-        val sessions = MutableSharedFlow<Session>()
-        val viewModel = MainViewModel(watchSessionUseCase = FakeWatchSessionUseCase(sessions))
-        val states = mutableListOf<MainUiState>()
-        val collector = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect(states::add) }
+        val viewModel = MainViewModel(
+            watchSessionUseCase = watchSessionUseCase,
+        )
 
         // When
-        sessions.emit(Session.SignedOut)
-        sessions.emit(Session.SignedIn(userId = "guest", isGuest = true))
-        sessions.emit(Session.SignedOut)
+        val state = viewModel.uiState.value
 
         // Then
         assertEquals(
-            listOf(
-                MainUiState.Loading,
-                MainUiState.Ready(isSignedIn = false),
-                MainUiState.Ready(isSignedIn = true),
-                MainUiState.Ready(isSignedIn = false),
-            ),
-            states,
+            expected = MainUIState.Loading,
+            actual = state,
         )
-        collector.cancel()
     }
 
     @Test
-    fun uiState_whenTheSessionFails_isSignedOut() = runTest {
+    fun `the app follows the sign-in and the sign-out`() = runTest {
         // Given
-        val failing = flow<Session> { throw IllegalStateException("No session") }
-        val viewModel = MainViewModel(watchSessionUseCase = FakeWatchSessionUseCase(failing))
-        val states = mutableListOf<MainUiState>()
+        val viewModel = MainViewModel(
+            watchSessionUseCase = watchSessionUseCase,
+        )
 
         // When
-        val collector = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect(states::add) }
+        watchSessionUseCase.sessions.emit(
+            Session.SignedIn(
+                userId = "guest",
+                isGuest = true,
+            ),
+        )
+        val signedIn = viewModel.uiState.value
+        watchSessionUseCase.sessions.emit(Session.SignedOut)
+        val signedOut = viewModel.uiState.value
 
         // Then
-        assertEquals(MainUiState.Ready(isSignedIn = false), states.last())
-        collector.cancel()
+        assertEquals(
+            expected = MainUIState.Ready(isSignedIn = true),
+            actual = signedIn,
+        )
+        assertEquals(
+            expected = MainUIState.Ready(isSignedIn = false),
+            actual = signedOut,
+        )
     }
 
-    private class FakeWatchSessionUseCase(
-        private val sessions: Flow<Session>,
-    ) : WatchSessionUseCase {
-        override fun invoke(): Flow<Session> = sessions
+    @Test
+    fun `a session that cannot be read is signed out`() = runTest {
+        // Given
+        watchSessionUseCase.failure = IllegalStateException("No session")
+
+        // When
+        val viewModel = MainViewModel(
+            watchSessionUseCase = watchSessionUseCase,
+        )
+
+        // Then
+        assertEquals(
+            expected = MainUIState.Ready(isSignedIn = false),
+            actual = viewModel.uiState.value,
+        )
     }
 }
