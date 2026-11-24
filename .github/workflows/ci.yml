@@ -91,7 +91,7 @@ jobs:
           restore-keys: swiftpm-
 
       - name: Test on the JVM and the iOS simulator, build the Android app
-        run: ./gradlew :data:allTests :domain:allTests :shared:allTests :androidApp:assembleDebug
+        run: ./gradlew :data:allTests :domain:allTests :designSystem:allTests :shared:allTests :androidApp:assembleDebug
 
       # The linkage package is generated from the Firebase modules of the Kotlin code and committed:
       # a module added or removed without it would fail the first build of the app
