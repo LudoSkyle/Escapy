@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name" translatable="false">Escapy</string>
+    <string name="welcome_coming_soon">Escape games at home, run by a game master. Coming soon.</string>
+    <string name="home_coming_soon">Your games will be here.</string>
+</resources>
