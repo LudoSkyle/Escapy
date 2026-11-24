@@ -2,7 +2,7 @@
 
 Status: Accepted — 2026-11-24
 
-> ADR **de projet**. Vaut pour l'app et pour le backend (`firebase/`, au lot 3).
+> ADR **de projet**. Vaut pour l'app et pour le backend (`firebase/`).
 
 ## Contexte
 
@@ -49,10 +49,10 @@ coût est le démarrage à froid de la fonction, quelle que soit la base.
   l'appareil et le serveur.
 - **Storage** : le bucket par défaut existe, en mode production (règles fermées). Les fichiers d'un
   indice seront lisibles par les membres de la partie et écrits par son maître du jeu. **Son
-  emplacement exact reste à consigner ici** (lot 3).
-- Les règles de Firestore et de Storage sont versionnées dans le dépôt et testées sur l'émulateur
-  (`@firebase/rules-unit-testing`), dans la CI, à partir du lot 3. D'ici là, elles refusent tout
-  accès client.
+  emplacement exact reste à consigner ici**.
+- Les règles de Firestore et de Storage sont versionnées dans le dépôt (`firebase/`) et testées sur
+  l'émulateur (`@firebase/rules-unit-testing`), dans la CI. Tout chemin est refusé tant qu'un lot ne
+  l'ouvre pas, avec ses tests.
 
 ## Conséquences
 
@@ -61,8 +61,11 @@ coût est le démarrage à froid de la fonction, quelle que soit la base.
 - Chaque action de jeu coûte un aller-retour à une fonction : `minInstances` sur les fonctions de
   partie (ADR-0003), et un écran qui montre l'attente sans préjuger du résultat.
 - Le cache hors ligne de Firestore tient lieu de base locale : pas de Room.
-- L'expiration par TTL ne supprime que le document, ni ses sous-collections ni ses fichiers, avec
-  un délai qui peut aller jusqu'à environ 24 h : un scénario reste un seul document, et une fonction
-  déclenchée par sa suppression nettoie ses fichiers (à confirmer au lot 3).
+- L'expiration par TTL ne supprime que le document, ni ses sous-collections ni ses fichiers, en
+  général dans les 24 h qui suivent l'heure d'expiration, qui doit être un horodatage ; d'ici là, le
+  document expiré reste lisible. Une suppression par TTL déclenche les écoutes et les fonctions
+  Firestore, et se facture comme une suppression (documentation Firebase, vérifiée le 2026-11-24).
+  Un scénario reste donc un seul document, une fonction déclenchée par sa suppression nettoie ses
+  fichiers, et l'app ne propose plus un scénario dont l'heure est passée.
 - Les principes sont repris dans [Backend/README.md](../Backend/README.md), et leur application côté
   app dans [KMP/01_MODULE_DATA.md](../KMP/01_MODULE_DATA.md).

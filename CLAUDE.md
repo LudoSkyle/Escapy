@@ -33,7 +33,7 @@ la tâche en cours, chacun est autonome.
 | Firebase côté app, Repositories | [docs/KMP/01_MODULE_DATA.md](./docs/KMP/01_MODULE_DATA.md) |
 | Logique métier, UseCase, exception typée | [docs/KMP/02_MODULE_DOMAIN.md](./docs/KMP/02_MODULE_DOMAIN.md) |
 | Tout ce qui diffère par plateforme | [docs/KMP/03_CODE_PLATEFORME.md](./docs/KMP/03_CODE_PLATEFORME.md) |
-| Règles Firestore, Cloud Functions, émulateur | [docs/Backend/README.md](./docs/Backend/README.md) |
+| Règles Firestore, Cloud Functions, émulateur | [firebase/CLAUDE.md](./firebase/CLAUDE.md), [docs/Backend/README.md](./docs/Backend/README.md) |
 | Toucher au projet Xcode, à l'`Info.plist`, au paquet de liaison SwiftPM | [iosApp/CLAUDE.md](./iosApp/CLAUDE.md) |
 
 Cinq règles à ne jamais perdre de vue :
@@ -55,8 +55,9 @@ Cinq règles à ne jamais perdre de vue :
 
 La réécriture en KMP/CMP avance lot par lot, par pull request. Le spike Firebase (lot 1) a validé
 le SDK de GitLive et Firestore. La fondation (lot 2) est en place : modules, build, Koin, navigation
-pilotée par la session, hôtes Android et iOS, thème provisoire, CI. Les écrans Bienvenue et Accueil
-ne sont encore que des emplacements. La suite arrive dans l'ordre de la
+pilotée par la session, hôtes Android et iOS, thème provisoire, CI. Le backend socle (lot 3) est
+dans `firebase/` : règles testées, création, modification et suppression du profil, émulateur. Les
+écrans Bienvenue et Accueil ne sont encore que des emplacements. La suite arrive dans l'ordre de la
 [feuille de route](./docs/ROADMAP.md).
 
 ## Commandes
@@ -65,6 +66,8 @@ ne sont encore que des emplacements. La suite arrive dans l'ordre de la
 ./gradlew :data:allTests :domain:allTests :shared:allTests   # tests (JVM et simulateur iOS)
 ./gradlew :androidApp:assembleDebug                          # app Android
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64        # framework iOS
+(cd firebase/functions && npm ci && npm test)                # backend sur les émulateurs Firebase
+./scripts/emulators.sh                                       # émulateurs Firebase pour l'app
 xcodebuild build -project iosApp/iosApp.xcodeproj -scheme iosApp \
   -destination 'platform=iOS Simulator,name=iPhone 17' CODE_SIGNING_ALLOWED=NO   # app iOS, comme la CI
 ```

@@ -117,11 +117,14 @@ internal expect val platformDataModule: Module
 - **Un délai s'impose avec `withTimeoutOrNull`**, jamais `withTimeout` dans un `try`/`catch` : le
   délai dépassé disparaîtrait sans message (voir
   [Common/02_CONVENTIONS.md](../Common/02_CONVENTIONS.md)).
-- Une erreur rendue par une fonction devient une exception typée. Le passage du code d'erreur de la
-  callable à l'exception (côté `data` ou `domain`) se fixe avec la première callable de l'app et
-  s'inscrit ici.
+- Une erreur rendue par une fonction devient une exception typée : la fonction refuse avec une raison
+  stable dans `details.reason` de la `FirebaseFunctionsException`, que `data` traduit en
+  `<Problème>Exception` ; une raison inconnue devient une erreur générique
+  ([ADR-0005](../adr/0005-le-contrat-des-callables.md), raisons dans
+  [Backend/README.md](../Backend/README.md)). Le code de cette traduction s'écrit avec la première
+  callable de l'app (lot 5).
 - Un premier appel après un temps de calme peut prendre 1 à 2 s (démarrage à froid) : l'écran montre
-  l'attente. Les fonctions de partie gardent une instance chaude (`minInstances`, lot 3).
+  l'attente. Les fonctions de partie gardent une instance chaude (`minInstances`, lot 6).
 
 ### Storage
 
@@ -132,6 +135,6 @@ internal expect val platformDataModule: Module
 
 ### Émulateur Firebase
 
-L'émulateur, et le script qui le lance, arrivent au lot 3 (voir
-[Backend/README.md](../Backend/README.md)). En le visant depuis Android, l'hôte est `localhost`,
+`scripts/emulators.sh` lance les émulateurs sur le projet `demo-escapy` (voir
+[Backend/README.md](../Backend/README.md)) ; l'app saura s'y brancher en debug au lot 5. En le visant depuis Android, l'hôte est `localhost`,
 avec `adb reverse` ; `10.0.2.2` est refusé.

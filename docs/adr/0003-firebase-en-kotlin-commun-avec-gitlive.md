@@ -70,7 +70,7 @@ Lecture :
 - **Plan B** : si GitLive bloque (bug sans contournement, abandon, retard sur une version de Kotlin
   ou du SDK iOS), `data` passe aux SDK natifs derrière les mêmes interfaces. Rien d'autre ne bouge.
 - **`minInstances` sur les fonctions de partie** (validation d'une réponse, envoi d'un indice, ajout
-  de temps, démarrage), pour éviter le démarrage à froid ; le coût se chiffre au lot 3. En attendant
+  de temps, démarrage), pour éviter le démarrage à froid ; le coût se chiffre avec ces fonctions, au lot 6. En attendant
   la réponse, l'écran montre que la demande est en cours.
 - **R8 sans règle** : `proguard-rules.pro` reste vide tant qu'une release minifiée fonctionne ;
   aucun code ne s'appuie sur un nom de classe, que R8 obfusque.

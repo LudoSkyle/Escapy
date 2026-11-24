@@ -119,8 +119,13 @@ Sans le sous-module (un fork, la CI) :
 ### Intégration continue
 
 GitHub Actions, `.github/workflows/ci.yml` : à chaque pull request, à chaque push sur `develop` et
-`main`, et à la main. Un nouveau push sur une pull request arrête le passage précédent. Sur un runner
-`macos-26` (le Xcode du projet, le SDK Android), Java 17 :
+`main`, et à la main. Un nouveau push sur une pull request arrête le passage précédent. Deux jobs.
+
+Le job `backend`, sur Ubuntu (Node 24, Java 17 pour l'émulateur Firestore) : `npm ci`,
+`npm run typecheck`, puis `npm test` dans `firebase/functions`, qui teste les fonctions et les règles
+sur les émulateurs Firebase, projet `demo-escapy` (voir [firebase/CLAUDE.md](../../firebase/CLAUDE.md)).
+
+Le job des apps, sur un runner `macos-26` (le Xcode du projet, le SDK Android), Java 17 :
 
 1. `:data:allTests`, `:domain:allTests`, `:shared:allTests` (JVM et simulateur iOS) et
    `:androidApp:assembleDebug` ;
