@@ -1,0 +1,25 @@
+{
+  "name": "escapy-functions",
+  "private": true,
+  "type": "commonjs",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "24"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "test": "npm run build && firebase --config ../firebase.json emulators:exec --project demo-escapy --only auth,firestore,functions,storage \"vitest run\""
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.1",
+    "firebase-functions": "^7.4.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.4.0",
+    "firebase-tools": "14.26.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.1"
+  }
+}
