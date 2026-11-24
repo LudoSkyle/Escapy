@@ -96,8 +96,8 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
    - [x] Tests des fonctions et des règles sur l'émulateur, dans un job `backend` de la CI
    - [x] `firebase/CLAUDE.md`, `docs/Backend/README.md`, comportement du TTL vérifié dans la
          documentation Firebase
-   - [ ] Déploiement sur le vrai projet (règles, fonctions) et suppression de l'ancienne fonction
-         `finalizeEmailUpdate` : sur demande de l'utilisateur
+   - [x] Déployé sur le vrai projet le 2026-11-24 : règles Firestore et Storage, index, les trois
+         fonctions ; l'ancienne fonction `finalizeEmailUpdate` supprimée
    - [ ] Emplacement du bucket Storage par défaut, consigné dans
          [ADR-0004](./adr/0004-firestore-et-le-serveur-source-de-verite.md)
 4. **Design system v2**
