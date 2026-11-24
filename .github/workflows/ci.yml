@@ -1,6 +1,7 @@
-# Every pull request, and every push to develop and main: the tests on the JVM and on the iOS simulator,
-# the Android app and the iOS app. Without the private submodule, which a fork cannot reach: the build
-# runs without the signing keys and the Firebase files (see docs/Common/04_BUILD.md).
+# Every pull request, and every push to develop and main: the backend (Cloud Functions and rules) on the
+# Firebase emulators, the tests on the JVM and on the iOS simulator, the Android app and the iOS app.
+# Without the private submodule, which a fork cannot reach: the build runs without the signing keys and
+# the Firebase files (see docs/Common/04_BUILD.md), and the emulators run on a demo project.
 name: CI
 
 on:
@@ -20,6 +21,47 @@ permissions:
   contents: read
 
 jobs:
+  backend:
+    name: Backend on the emulators
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: firebase/functions
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: firebase/functions/package-lock.json
+
+      # The Firestore emulator runs on Java
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache the emulators
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('firebase/functions/package-lock.json') }}
+
+      - name: Install
+        run: npm ci
+
+      - name: Check the types
+        run: npm run typecheck
+
+      # Builds the functions, starts the emulators on the demo project, runs the tests, stops them
+      - name: Test the functions and the rules
+        run: npm test
+
   test:
     name: Tests and builds
     # macOS for the iOS simulator, with the Xcode of the project and the Android SDK
