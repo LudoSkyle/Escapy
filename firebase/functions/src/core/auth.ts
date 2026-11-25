@@ -1,3 +1,4 @@
+import { getAuth } from "firebase-admin/auth";
 import { CallableRequest } from "firebase-functions/v2/https";
 import { failure } from "./errors";
 
@@ -8,6 +9,21 @@ export function requireUid(request: CallableRequest<unknown>): string {
     throw failure("unauthenticated", "UNAUTHENTICATED", "The call needs a signed-in user");
   }
   return uid;
+}
+
+/**
+ * Refuses a user whose account was deleted. Their ID token stays valid until it expires, up to an
+ * hour: a callable that creates data checks the account first, or would create it for nobody.
+ */
+export async function requireExistingAccount(uid: string): Promise<void> {
+  try {
+    await getAuth().getUser(uid);
+  } catch (error) {
+    if ((error as { code?: string })?.code === "auth/user-not-found") {
+      throw failure("unauthenticated", "UNAUTHENTICATED", "The account of this user was deleted");
+    }
+    throw error;
+  }
 }
 
 /** Whether the token comes from a guest, signed in without an email. */

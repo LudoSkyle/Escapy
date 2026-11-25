@@ -67,6 +67,19 @@ describe("ensureProfile", () => {
     // Then
     expect(second).toEqual(first);
   });
+
+  test("creates no profile for a deleted account whose token is still valid", async () => {
+    // Given
+    const { user } = await signInAnonymously(client.auth);
+    await client.call("deleteAccount");
+
+    // When
+    const result = await failureOf(client.call("ensureProfile"));
+
+    // Then
+    expect(result).toEqual({ code: "functions/unauthenticated", reason: "UNAUTHENTICATED" });
+    expect((await adminFirestore().collection("users").doc(user.uid).get()).exists).toBe(false);
+  });
 });
 
 describe("updateProfile", () => {

@@ -19,6 +19,9 @@ Les principes et le contrat des fonctions sont dans [../docs/Backend/README.md](
 - **Idempotence** : une callable peut être rappelée (réseau coupé, nouvel essai). Une création passe
   par `create()` (qui échoue si le document existe) ou une transaction, jamais par une lecture suivie
   d'une écriture. Une suppression se relance sans erreur.
+- **Compte supprimé** : le jeton d'un compte supprimé reste valable jusqu'à une heure. Une callable
+  qui crée des données pour l'utilisateur appelle d'abord `requireExistingAccount(uid)`
+  (`src/core/auth.ts`), sinon elle les créerait pour personne.
 - **Horodatage serveur** (`FieldValue.serverTimestamp()`) pour toute heure stockée.
 - **Aucune donnée personnelle superflue** : `users/{uid}` ne garde ni e-mail ni nom réel.
 - **Règles** : tout est refusé par défaut (`match /{document=**}`), et chaque chemin ouvert l'est par
