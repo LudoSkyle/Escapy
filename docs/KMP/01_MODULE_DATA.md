@@ -13,25 +13,48 @@ interprète.
 data/src/
 ├── commonMain/kotlin/fr/skyle/escapy/data/
 │   ├── di/
-│   │   └── DataModule.kt          (dataModule, expect platformDataModule)
+│   │   └── DataModule.kt          (dataModule, expect platformDataModule, FIREBASE_EMULATOR_PROPERTY)
+│   ├── document/                  (documents Firestore, @Serializable, internal : ProfileDocument)
+│   ├── exception/                 (exceptions de data, traduction des erreurs de Firebase)
 │   ├── firebase/
-│   │   └── FirebaseStatus.kt      (Firebase a-t-il démarré ?)
-│   ├── model/
-│   │   └── StoredSession.kt       (modèles exposés par les Repositories)
+│   │   └── FirebaseServices.kt    (FirebaseServices, FirebaseProvider, l'app des émulateurs)
+│   ├── function/                  (requêtes et réponses des callables, internal)
+│   ├── model/                     (modèles exposés : StoredSession, StoredProfile)
 │   └── repository/
-│       └── session/
-│           ├── api/
-│           │   └── SessionRepository.kt
-│           └── SessionRepositoryImpl.kt
+│       ├── auth/                  (AuthRepository : connexion, inscription, invité, réinitialisation, déconnexion)
+│       ├── profile/               (ProfileRepository : profil observé, ensureProfile)
+│       └── session/               (SessionRepository : la session observée)
 ├── androidMain/kotlin/fr/skyle/escapy/data/
-│   └── di/DataModule.android.kt   (FirebaseStatus d'après Firebase.apps(context))
+│   └── di/DataModule.android.kt   (FirebaseProvider : émulateurs, app par défaut, ou rien)
 └── iosMain/kotlin/fr/skyle/escapy/data/
-    └── di/DataModule.ios.kt       (FirebaseStatus d'après Firebase.apps())
+    └── di/DataModule.ios.kt       (idem)
 ```
 
-À venir, avec les lots qui en ont besoin : `document/` (les documents Firestore, `@Serializable`,
-`internal`), `function/` (requêtes et réponses des callables), `mapper/` (document → modèle exposé),
-`exception/`.
+### Accès à Firebase
+
+- **Un Repository ne touche jamais `Firebase.auth` ou `Firebase.firestore` directement.** Il reçoit
+  un `FirebaseProvider`, dont `services()` rend les services à appeler (`auth`, `firestore`,
+  `functions`), ou `null` quand Firebase n'a pas démarré.
+- Le `FirebaseProvider` de chaque plateforme choisit, une fois, à la première demande :
+  - l'**app des émulateurs** quand la propriété Koin `escapy.firebaseEmulator` vaut `true` (un build
+    debug qui l'a demandée, voir [Backend/README.md](../Backend/README.md)) ;
+  - sinon l'**app par défaut**, démarrée depuis le fichier Firebase du sous-module privé ;
+  - sinon **rien** : un build sans le sous-module (fork, CI) démarre déconnecté.
+- Sans Firebase, une observation rend un état vide (`SessionRepositoryImpl` rend `SignedOut`), une
+  action lève `FirebaseUnavailableException`.
+
+### Erreurs
+
+- Un appel à Firebase Auth passe par `authCall { }`, un appel à une callable par
+  `functionCall { }` : ils traduisent les erreurs de Firebase en exceptions de `data`
+  (`AuthFailureException` et son `AuthFailure`, `FunctionFailureException` et sa raison,
+  `NetworkUnavailableException`). Les codes de Firebase Auth sont les mêmes sur Android et iOS
+  (vérifié en provoquant chaque erreur sur les deux).
+- Mauvais mot de passe, e-mail inconnu et identifiants invalides sont **une seule** erreur,
+  `INVALID_CREDENTIALS` : avec la protection contre l'énumération des e-mails, le serveur ne les
+  distingue pas, et l'app ne doit pas laisser deviner si une adresse a un compte. Pour la même raison,
+  `sendPasswordReset` réussit pour une adresse inconnue.
+- La traduction des codes (`authFailureOf`, `functionReasonOf`) est une fonction pure, testée seule.
 
 ### Repositories
 
@@ -45,9 +68,8 @@ data/src/
 - Une action qui change l'état d'une partie **appelle une callable** ; elle n'écrit jamais elle-même
   dans Firestore. Seul l'envoi d'un message de chat écrit directement, ce que les règles permettent
   (voir [ADR-0004](../adr/0004-firestore-et-le-serveur-source-de-verite.md)).
-- **Sans Firebase, un Repository ne l'appelle pas.** `FirebaseStatus.isConfigured()` dit si Firebase
-  a démarré : un build sans le sous-module privé (fork, CI) n'a pas Firebase, et l'app démarre
-  déconnectée. `SessionRepositoryImpl` rend alors `SignedOut`.
+- **La session suit `idTokenChanged`**, pas `authStateChanged` : le jeton change aussi quand un
+  invité lie un e-mail, alors que l'utilisateur reste le même.
 
 `repository/session/api/SessionRepository.kt`
 
@@ -63,26 +85,25 @@ interface SessionRepository {
 
 ```kotlin
 internal class SessionRepositoryImpl(
-    private val firebaseStatus: FirebaseStatus,
+    private val firebaseProvider: FirebaseProvider,
 ) : SessionRepository {
 
     override fun watchSession(): Flow<StoredSession> {
-        if (!firebaseStatus.isConfigured()) {
-            return flowOf(StoredSession.SignedOut)
-        }
-
-        // Firebase.auth.authStateChanged, mapped to StoredSession, then distinctUntilChanged()
+        val auth = firebaseProvider.services()?.auth ?: return flowOf(StoredSession.SignedOut)
+        // auth.idTokenChanged, mapped to StoredSession, then distinctUntilChanged()
     }
 }
 ```
 
-`di/DataModule.kt`
+`di/DataModule.kt` (extrait)
 
 ```kotlin
 val dataModule = module {
     includes(platformDataModule)
 
-    single<SessionRepository> { SessionRepositoryImpl(firebaseStatus = get()) }
+    singleOf(::SessionRepositoryImpl) bind SessionRepository::class
+    singleOf(::AuthRepositoryImpl) bind AuthRepository::class
+    singleOf(::ProfileRepositoryImpl) bind ProfileRepository::class
 }
 
 // What each platform answers differently, such as whether Firebase started
@@ -121,8 +142,9 @@ internal expect val platformDataModule: Module
   stable dans `details.reason` de la `FirebaseFunctionsException`, que `data` traduit en
   `<Problème>Exception` ; une raison inconnue devient une erreur générique
   ([ADR-0005](../adr/0005-le-contrat-des-callables.md), raisons dans
-  [Backend/README.md](../Backend/README.md)). Le code de cette traduction s'écrit avec la première
-  callable de l'app (lot 5).
+  [Backend/README.md](../Backend/README.md)). Elle se fait en deux temps : `data` traduit les erreurs
+  de Firebase en ses exceptions (`exception/`, par `authCall` et `functionCall`), puis `domain` les
+  traduit en exceptions métier (`withDomainExceptions`).
 - Un premier appel après un temps de calme peut prendre 1 à 2 s (démarrage à froid) : l'écran montre
   l'attente. Les fonctions de partie gardent une instance chaude (`minInstances`, lot 6).
 
@@ -136,5 +158,5 @@ internal expect val platformDataModule: Module
 ### Émulateur Firebase
 
 `scripts/emulators.sh` lance les émulateurs sur le projet `demo-escapy` (voir
-[Backend/README.md](../Backend/README.md)) ; l'app saura s'y brancher en debug au lot 5. En le visant depuis Android, l'hôte est `localhost`,
+[Backend/README.md](../Backend/README.md)) ; un build debug s'y branche à la demande. En le visant depuis Android, l'hôte est `localhost`,
 avec `adb reverse` ; `10.0.2.2` est refusé.

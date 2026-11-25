@@ -10,12 +10,16 @@ et iOS, dans `shared/src/commonMain`.
 
 ### La session décide de la racine
 
-L'app a deux côtés : sans session (`Route.Welcome` : se connecter, s'inscrire, jouer en invité) et
-avec (`Route.Home` : rejoindre ou créer une partie). La session, lue par `MainViewModel` depuis
+L'app a deux côtés : sans session (`Route.Welcome` : se connecter, s'inscrire, jouer en invité ;
+puis `Route.SignIn`, `Route.SignUp`, `Route.ForgotPassword(email)`) et avec (`Route.Home` :
+rejoindre ou créer une partie). La session, lue par `MainViewModel` depuis
 Firebase Auth, décide de la racine du back stack :
 
-- tant que la première session n'est pas lue (elle vient du cache local de Firebase, très vite),
+- tant que la première session n'est pas lue, puis, connecté, tant que son profil n'est pas là (les
+  deux viennent des caches locaux de Firebase ; le profil est créé par le serveur la première fois),
   `EscapyApp` montre un `ESScreenStructure` vide ;
+- un profil qui ne se lit ni ne se crée (hors ligne à la première connexion) ouvre
+  `ProfileUnavailableScreen`, hors navigation : réessayer, ou se déconnecter ;
 - ensuite, `RootNavDisplay(isSignedIn = …)` part de `Route.Home` ou de `Route.Welcome`
   (`rootRoute(isSignedIn)`) ;
 - une connexion ou une déconnexion **remplace tout le back stack** par la nouvelle racine : le

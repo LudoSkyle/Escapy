@@ -118,11 +118,30 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
          Compose (`runComposeUiTest`), sur la JVM et le simulateur iOS
    - Vérifié sur un émulateur Android (API 31, police à 2×) et le simulateur iOS 26.2. Non vérifié :
      le remplissage automatique par un gestionnaire de mots de passe, sur les deux plateformes.
-5. **Compte et profil**, reconçus : connexion, inscription, invité (`isAnonymous`), mot de passe
-   oublié, lier un compte (avec vérification de l'e-mail), changer d'e-mail et de mot de passe,
-   suppression, avatar, à propos. Erreurs typées, textes en anglais et en français, events one-shot.
-   L'app appelle `ensureProfile` après chaque connexion, et sait se brancher sur l'émulateur Firebase
-   en debug (y compris sans `private/`, sur `demo-escapy`).
+5. **Compte et profil**, reconçus, en trois pull requests :
+   - 5a, **entrer dans l'app** :
+     - [x] Bienvenue, connexion, inscription (règles du mot de passe affichées une à une, lues par le
+           lecteur d'écran), invité, mot de passe oublié (sans dire si l'adresse a un compte)
+     - [x] Profil lu dans le cache de Firestore ; `ensureProfile` appelée seulement s'il manque, une
+           fois ; écran « Profil indisponible » (réessayer, se déconnecter)
+     - [x] Erreurs de Firebase traduites en exceptions typées, les mêmes sur Android et iOS (vérifié
+           en provoquant chaque erreur sur les deux) ; mauvais mot de passe et e-mail inconnu
+           confondus volontairement
+     - [x] Déconnexion depuis l'accueil, provisoire jusqu'à l'écran du profil ; un invité confirme
+     - [x] Build debug branché sur les émulateurs Firebase à la demande, dans une app Firebase à part
+           (projet `demo-escapy`), avec ou sans `private/`
+     - Vérifié de bout en bout contre les émulateurs sur le simulateur iOS et un émulateur Android
+       (API 31) ; Firebase démarre sur Android avec le vrai projet. Non vérifié : un vrai appareil, le
+       remplissage automatique par un gestionnaire de mots de passe.
+   - 5b, **le profil** : écran du profil (pseudo, les 50 avatars en Compose Resources, avec un test
+     qui les dessine tous), lier un compte invité à un e-mail (avec vérification de l'e-mail),
+     changer d'e-mail et de mot de passe, supprimer son compte (reconnexion si demandée), à propos.
+     **La déconnexion d'un invité supprime son compte** (`deleteAccount`) : sinon il resterait sur le
+     serveur, sans personne pour s'y reconnecter.
+   - 5c, **la connexion Google**, sur les deux plateformes : le jeton obtenu nativement (Credential
+     Manager sur Android, GoogleSignIn sur iOS) derrière une interface commune, puis
+     `GoogleAuthProvider.credential`. Demande d'activer le fournisseur Google dans la console Firebase,
+     et sans doute de nouveaux fichiers de configuration dans `private/`.
 6. **Parties** : créer (un vrai sélecteur de durée), rejoindre (code, QR code qui porte un lien
    universel, saisie manuelle), salle d'attente, exclure, quitter, liste en temps réel sur l'accueil.
    `minInstances` des fonctions de partie, avec son coût (une instance gardée chaude se facture
@@ -146,6 +165,7 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
   callable ; le client ne valide rien
   ([ADR-0004](./adr/0004-firestore-et-le-serveur-source-de-verite.md)).
 - **Pas de Room** : le cache hors ligne de Firestore suffit.
+- **Connexion Google en v1** (décidé le 2026-11-24), au lot 5c.
 - **`minInstances` sur les fonctions de partie** (validation d'une réponse, indice, ajout de temps,
   démarrage) : un démarrage à froid coûte de 1,3 à 2,3 s. Le coût se chiffre avec ces fonctions, au
   lot 6. Les fonctions du profil n'en ont pas.
@@ -168,9 +188,6 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
 
 ## Décisions ouvertes
 
-- **Connexion Google** : implémentée en v1 ou masquée. GitLive fournit
-  `GoogleAuthProvider.credential` en commun ; le jeton reste à obtenir nativement (Credential Manager
-  sur Android, GoogleSignIn sur iOS), derrière une interface commune.
 - **Présence en ligne** (« joueur connecté ») : Firestore ne la fournit pas. La Realtime Database
   pourrait servir à elle seule, si on la veut en v1.
 - **Expiration des scénarios** : 24 ou 48 h (durée exacte à trancher), réglée côté serveur ; à vie pour les

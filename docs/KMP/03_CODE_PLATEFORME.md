@@ -15,8 +15,11 @@ document dit où et comment écrire ce qui ne peut pas l'être.
 | Logs | Logcat en debug, rien en release | Écrivain par défaut de Kermit |
 | SDK Firebase natif | Dépendances Maven de GitLive | Paquet de liaison SwiftPM (voir [iosApp/CLAUDE.md](../../iosApp/CLAUDE.md)) |
 
-`FirebaseStatus` est une `fun interface` commune, `internal` à `data` ; chaque plateforme la fournit
-dans son `platformDataModule` (`DataModule.android.kt`, `DataModule.ios.kt`).
+`FirebaseProvider` est une `fun interface` commune, `internal` à `data` ; chaque plateforme la fournit
+dans son `platformDataModule` (`DataModule.android.kt`, `DataModule.ios.kt`) : elle seule sait
+lister et créer les apps Firebase (le `Context` sur Android). Le choix des émulateurs vient de l'hôte :
+`BuildConfig.USE_FIREBASE_EMULATOR` sur Android, la variable `ESCAPY_FIREBASE_EMULATOR` d'un binaire
+debug sur iOS, passés à `startEscapyKoin(useFirebaseEmulator = …)`.
 
 ### Avant d'écrire du code de plateforme
 

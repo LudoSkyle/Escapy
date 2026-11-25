@@ -63,7 +63,7 @@ lisible et ne casse pas au premier refactor.
   dépendant du réseau, et ne passerait pas en CI.
 - Ce qu'un Repository fait autour de Firebase (conversion d'un document en modèle exposé, d'une
   erreur en exception typée) s'écrit dans des fonctions `internal` sans Firebase, testées seules.
-- Le repli sans Firebase se teste avec un `FirebaseStatus` qui répond `false` : c'est le cas d'un
+- Le repli sans Firebase se teste avec un `FirebaseProvider` qui rend `null` : c'est le cas d'un
   fork et de la CI (`SessionRepositoryImplTest`).
 - Ce qui ne se vérifie qu'avec un vrai serveur (règles, fonctions, latence) se teste dans
   `firebase/` contre l'émulateur, ou se vérifie à la main sur les deux plateformes, et la vérification
@@ -148,9 +148,13 @@ Kotlin/Native impose quelques règles au code de `commonTest` :
 
 ### ViewModels
 
-- Un test de ViewModel pose `Dispatchers.setMain(UnconfinedTestDispatcher())` dans un `@BeforeTest`
-  et `Dispatchers.resetMain()` dans un `@AfterTest`, déclarés dans la classe de test elle-même
-  (`MainViewModelTest`).
+- Un test de ViewModel hérite de `MainDispatcherTest` (`shared/src/commonTest/.../test/`), qui pose
+  `Dispatchers.setMain(UnconfinedTestDispatcher())` à sa construction, avant que la sous-classe ne
+  construise son ViewModel, et le retire dans un `@AfterTest`. Les coroutines du ViewModel tournent
+  alors aussitôt, sur le fil du test.
+- Les doublures des UseCases de `shared` vivent dans `fake/` ; celles des actions héritent de
+  `FakeAction` : les appels reçus (`calls`), une erreur à lever (`failure`) et une barrière à
+  attendre (`gate`).
 - Ses events (`Channel`) se collectent dans une liste, comme un `Flow`.
 - Pour vérifier ce qui se passe pendant un appel en cours (une deuxième tentative pendant qu'une
   réponse est vérifiée), la doublure attend un `CompletableDeferred` que le test complète quand il

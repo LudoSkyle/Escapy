@@ -81,8 +81,20 @@ projet.
 - **En passant de l'émulateur au vrai projet**, se déconnecter d'abord : un utilisateur persisté par
   l'émulateur est renvoyé tel quel par `signInAnonymously`, puis son jeton est refusé par le vrai
   projet.
-- L'app ne sait pas encore se brancher sur l'émulateur : l'interrupteur arrive avec les premiers
-  écrans qui appellent le backend, au lot 5 (voir [ROADMAP.md](../ROADMAP.md)).
+- **L'app sur les émulateurs**, en debug seulement et à la demande :
+  `./gradlew :androidApp:installDebug -Pescapy.firebaseEmulator=true` sur Android, la variable
+  d'environnement `ESCAPY_FIREBASE_EMULATOR=1` sur iOS
+  (`SIMCTL_CHILD_ESCAPY_FIREBASE_EMULATOR=1 xcrun simctl launch booted fr.skyle.escapy`, ou le schéma
+  Xcode). L'app crée alors une app Firebase à part, nommée `emulator`, sur `demo-escapy` : avec ou
+  sans `private/`, sa session et son cache ne se mêlent jamais à ceux du vrai projet (voir
+  `FirebaseServices.kt`). Un build release ne le peut pas.
+- La clé API de cette app est fausse mais a le format d'une vraie : le SDK Functions d'Android
+  refuse une clé qui ne commence pas par `AIza`.
+- Un build debug Android autorise le texte en clair vers `localhost` seulement
+  (`androidApp/src/debug/res/xml/network_security_config.xml`), iOS le réseau local
+  (`NSAllowsLocalNetworking`).
+- Les e-mails envoyés par l'émulateur Auth (réinitialisation, vérification) ne partent pas : leurs
+  codes se lisent sur `http://localhost:9099/emulator/v1/projects/demo-escapy/oobCodes`.
 - Les mesures prises sur l'émulateur prouvent qu'une chaîne fonctionne ; elles ne disent rien de la
   latence réelle.
 

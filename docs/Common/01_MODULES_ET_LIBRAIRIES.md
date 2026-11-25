@@ -45,7 +45,7 @@ androidApp ──► shared ◄── iosApp (framework Shared)
 
 - `internal` par défaut. Est public uniquement ce qu'un autre module utilise.
 - `data` garde `internal` ses implémentations de Repository, ses documents Firestore et ses mappers,
-  et ce qui ne sert qu'à lui (`FirebaseStatus`). Sont publics : les interfaces de Repository, les
+  et ce qui ne sert qu'à lui (`FirebaseProvider`). Sont publics : les interfaces de Repository, les
   modèles qu'elles exposent, le module Koin.
 - `domain` garde `internal` ses implémentations de UseCase et ses mappers. Sont publics : les
   interfaces de UseCase, les modèles métier, les exceptions métier, le module Koin.
