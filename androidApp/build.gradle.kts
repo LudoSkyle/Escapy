@@ -60,8 +60,15 @@ android {
         debug {
             versionNameSuffix = "-debug"
             applicationIdSuffix = ".debug"
+            // The Firebase emulators of the Mac, on demand: -Pescapy.firebaseEmulator=true
+            buildConfigField(
+                "boolean",
+                "USE_FIREBASE_EMULATOR",
+                (findProperty("escapy.firebaseEmulator") == "true").toString(),
+            )
         }
         release {
+            buildConfigField("boolean", "USE_FIREBASE_EMULATOR", "false")
             isMinifyEnabled = true
             isShrinkResources = true
 

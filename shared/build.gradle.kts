@@ -11,6 +11,8 @@ kotlin {
             // Kermit logs with android.util.Log, which the JVM of the host tests does not implement:
             // a test that goes through a log would fail on that call alone
             isReturnDefaultValues = true
+            // Robolectric draws the screens on the JVM, with the strings and drawables of the module
+            isIncludeAndroidResources = true
         }
     }
 
@@ -59,6 +61,7 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.test.kotlin)
             implementation(libs.test.kotlinx.coroutines)
+            implementation(libs.test.composeMultiplatform.ui)
         }
 
         iosMain.dependencies {
@@ -68,6 +71,8 @@ kotlin {
 
         getByName("androidHostTest").dependencies {
             implementation(libs.test.junit)
+            implementation(libs.test.robolectric)
+            implementation(libs.test.androidx.compose.ui.manifest)
         }
     }
 }

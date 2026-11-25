@@ -8,6 +8,7 @@ import fr.skyle.escapy.designsystem.core.screenstructure.ESScreenStructure
 import fr.skyle.escapy.designsystem.core.screenstructure.ESScreenStructureDefaults
 import fr.skyle.escapy.designsystem.theme.ESTheme
 import fr.skyle.escapy.ui.main.MainViewModel.MainUIState
+import fr.skyle.escapy.ui.main.ProfileUnavailableScreen
 import fr.skyle.escapy.ui.main.MainViewModel
 import fr.skyle.escapy.ui.main.navigation.RootNavDisplay
 import org.koin.compose.viewmodel.koinViewModel
@@ -18,10 +19,16 @@ fun EscapyApp() {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     ESTheme {
-        when (val state = uiState) {
-            // The first session comes from the local cache of Firebase: a blank frame, briefly
+        when (uiState) {
+            // The session and the profile come from the local caches of Firebase: a blank frame, briefly,
+            // longer only the first time a profile is created
             MainUIState.Loading -> ESScreenStructure(style = ESScreenStructureDefaults.Style.STANDARD) {}
-            is MainUIState.Ready -> RootNavDisplay(isSignedIn = state.isSignedIn)
+            MainUIState.SignedOut -> RootNavDisplay(isSignedIn = false)
+            MainUIState.SignedIn -> RootNavDisplay(isSignedIn = true)
+            MainUIState.ProfileUnavailable -> ProfileUnavailableScreen(
+                onRetryClicked = viewModel::onRetryClicked,
+                onSignOutClicked = viewModel::onSignOutClicked,
+            )
         }
     }
 }
