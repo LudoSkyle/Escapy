@@ -29,8 +29,10 @@ client l'exige d'un membre. Un invité, lui, ne peut pas se reconnecter : il n'a
   `<Problème>Exception` ; une raison inconnue, ou une erreur sans raison, devient une erreur
   générique. Le message reste en anglais, pour les logs. Les raisons sont listées dans
   [Backend/README.md](../Backend/README.md).
-- **Le profil est créé par la callable `ensureProfile`**, que l'app appelle après chaque connexion
-  et attend avant d'ouvrir l'accueil. Elle crée le document par `create()`, qui échoue s'il existe :
+- **Le profil est créé par la callable `ensureProfile`**. L'app écoute `users/{uid}` (lisible par son
+  propriétaire, servi d'abord par le cache de Firestore) et n'appelle `ensureProfile` que si le
+  document manque, une fois ; elle attend le profil avant d'ouvrir l'accueil. Un lancement hors ligne
+  d'un compte déjà connu n'appelle donc pas le serveur. Elle crée le document par `create()`, qui échoue s'il existe :
   elle est idempotente, et deux appels simultanés gardent le même profil. Aucun déclencheur Auth.
 - **Le profil ne garde aucune donnée personnelle superflue** : ni e-mail (Firebase Auth l'a déjà),
   ni nom réel. Il n'y a donc pas d'e-mail à synchroniser quand il change.
@@ -49,7 +51,8 @@ client l'exige d'un membre. Un invité, lui, ne peut pas se reconnecter : il n'a
 
 - L'app ne compare jamais un message d'erreur : elle lit une raison, et une raison ajoutée côté
   serveur est une modification des deux côtés, dans la même pull request.
-- La première connexion coûte un appel à `ensureProfile` avant l'accueil, démarrage à froid compris.
+- La première connexion d'un compte coûte un appel à `ensureProfile` avant l'accueil, démarrage à
+  froid compris ; les suivantes lisent le profil dans le cache.
 - Un compte supprimé hors de l'app (console Firebase) laisse son profil : un déclencheur
   `onUserDeleted` pourra le nettoyer si le cas se présente.
 - Un invité perd tout en se déconnectant ou en supprimant son compte : l'app l'en avertit et lui

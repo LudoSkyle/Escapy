@@ -98,7 +98,7 @@ Sans le sous-module (un fork, la CI) :
 
 - le debug est signé avec la clé Android par défaut, la release n'est pas signée ;
 - Google Services ne s'applique pas, aucun fichier Firebase n'est copié : **Firebase est absent**, et
-  l'app démarre déconnectée. `FirebaseStatus` (`data`) le constate, et `SessionRepository` rend
+  l'app démarre déconnectée. `FirebaseProvider` (`data`) le constate, et `SessionRepository` rend
   `SignedOut` sans appeler Firebase ;
 - le build se configure, se teste et produit les deux apps quand même.
 
