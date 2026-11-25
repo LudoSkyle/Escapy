@@ -14,7 +14,10 @@ class EscapyApplication : Application() {
         // Logcat in debug only, until Crashlytics collects the logs of a release build
         Logger.setLogWriters(if (BuildConfig.DEBUG) listOf(platformLogWriter()) else emptyList())
 
-        startEscapyKoin(useFirebaseEmulator = BuildConfig.USE_FIREBASE_EMULATOR) {
+        startEscapyKoin(
+            useFirebaseEmulator = BuildConfig.USE_FIREBASE_EMULATOR,
+            appVersion = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+        ) {
             androidContext(this@EscapyApplication)
         }
     }

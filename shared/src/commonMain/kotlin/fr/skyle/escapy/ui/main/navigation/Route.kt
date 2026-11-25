@@ -23,4 +23,29 @@ sealed interface Route : NavKey {
     /** The first screen with a session: join or create a game. */
     @Serializable
     data object Home : Route
+
+    @Serializable
+    data object Profile : Route
+
+    /** Opened from the profile, with the username shown there. */
+    @Serializable
+    data class EditUsername(val currentUsername: String) : Route
+
+    @Serializable
+    data object EditAvatar : Route
+
+    @Serializable
+    data object LinkAccount : Route
+
+    @Serializable
+    data object ChangeEmail : Route
+
+    @Serializable
+    data object ChangePassword : Route
+
+    @Serializable
+    data object DeleteAccount : Route
+
+    @Serializable
+    data object About : Route
 }

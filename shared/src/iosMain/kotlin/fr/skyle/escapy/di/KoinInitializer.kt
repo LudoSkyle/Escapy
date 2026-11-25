@@ -1,5 +1,6 @@
 package fr.skyle.escapy.di
 
+import platform.Foundation.NSBundle
 import platform.Foundation.NSProcessInfo
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -9,8 +10,12 @@ import kotlin.experimental.ExperimentalNativeApi
  */
 @OptIn(ExperimentalNativeApi::class)
 fun initKoin() {
+    val info = NSBundle.mainBundle.infoDictionary
+    val version = info?.get("CFBundleShortVersionString") as? String ?: "?"
+    val build = info?.get("CFBundleVersion") as? String ?: "?"
     startEscapyKoin(
         useFirebaseEmulator = Platform.isDebugBinary &&
             NSProcessInfo.processInfo.environment["ESCAPY_FIREBASE_EMULATOR"] == "1",
+        appVersion = "$version ($build)",
     )
 }
