@@ -1,8 +1,6 @@
 package fr.skyle.escapy.data.repository.session
 
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.auth.auth
-import fr.skyle.escapy.data.firebase.FirebaseStatus
+import fr.skyle.escapy.data.firebase.FirebaseProvider
 import fr.skyle.escapy.data.model.StoredSession
 import fr.skyle.escapy.data.repository.session.api.SessionRepository
 import kotlinx.coroutines.flow.Flow
@@ -11,14 +9,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 internal class SessionRepositoryImpl(
-    private val firebaseStatus: FirebaseStatus,
+    private val firebaseProvider: FirebaseProvider,
 ) : SessionRepository {
 
     override fun watchSession(): Flow<StoredSession> {
-        if (!firebaseStatus.isConfigured()) {
-            return flowOf(StoredSession.SignedOut)
-        }
-        return Firebase.auth.authStateChanged
+        val auth = firebaseProvider.services()?.auth ?: return flowOf(StoredSession.SignedOut)
+        // The token changes on a sign-in, a sign-out, and when a guest links an email: the same user,
+        // which authStateChanged would not tell
+        return auth.idTokenChanged
             .map { user ->
                 if (user == null) {
                     StoredSession.SignedOut

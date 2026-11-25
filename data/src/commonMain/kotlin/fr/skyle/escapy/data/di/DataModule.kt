@@ -1,15 +1,26 @@
 package fr.skyle.escapy.data.di
 
+import fr.skyle.escapy.data.repository.auth.AuthRepositoryImpl
+import fr.skyle.escapy.data.repository.auth.api.AuthRepository
+import fr.skyle.escapy.data.repository.profile.ProfileRepositoryImpl
+import fr.skyle.escapy.data.repository.profile.api.ProfileRepository
 import fr.skyle.escapy.data.repository.session.SessionRepositoryImpl
 import fr.skyle.escapy.data.repository.session.api.SessionRepository
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val dataModule = module {
     includes(platformDataModule)
 
-    single<SessionRepository> { SessionRepositoryImpl(firebaseStatus = get()) }
+    singleOf(::SessionRepositoryImpl) bind SessionRepository::class
+    singleOf(::AuthRepositoryImpl) bind AuthRepository::class
+    singleOf(::ProfileRepositoryImpl) bind ProfileRepository::class
 }
 
-// What each platform answers differently, such as whether Firebase started
+// What each platform answers differently, such as which Firebase app to call
 internal expect val platformDataModule: Module
+
+/** The Koin property a debug host sets to "true" to use the Firebase emulators. */
+const val FIREBASE_EMULATOR_PROPERTY = "escapy.firebaseEmulator"
