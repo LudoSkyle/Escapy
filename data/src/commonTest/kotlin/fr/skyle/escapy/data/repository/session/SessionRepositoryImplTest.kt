@@ -1,6 +1,6 @@
 package fr.skyle.escapy.data.repository.session
 
-import fr.skyle.escapy.data.firebase.FirebaseStatus
+import fr.skyle.escapy.data.firebase.FirebaseProvider
 import fr.skyle.escapy.data.model.StoredSession
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 class SessionRepositoryImplTest {
 
     private val sessionRepository = SessionRepositoryImpl(
-        firebaseStatus = FirebaseStatus { false },
+        firebaseProvider = FirebaseProvider { null },
     )
 
     @Test

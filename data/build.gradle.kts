@@ -1,5 +1,6 @@
 plugins {
     id("escapy-kmp-library")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 kotlin {
@@ -14,6 +15,7 @@ kotlin {
         commonMain.dependencies {
             // Kotlinx
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.core)
 
             // Koin
             implementation(libs.koin.core)
