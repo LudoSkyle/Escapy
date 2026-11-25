@@ -137,6 +137,17 @@ describe("updateProfile", () => {
     expect(result).toEqual({ code: "functions/invalid-argument", reason: "AVATAR_INVALID" });
   });
 
+  test("leaves a field sent as null as it is", async () => {
+    // Given
+    const before = await client.call<Profile>("ensureProfile");
+
+    // When
+    const profile = await client.call<Profile>("updateProfile", { username: null, avatarId: 9 });
+
+    // Then
+    expect(profile).toEqual({ username: before.username, avatarId: 9 });
+  });
+
   test("refuses a call that changes nothing", async () => {
     // Given
     await client.call("ensureProfile");
