@@ -4,6 +4,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import fr.skyle.escapy.designsystem.core.text.ESText
 import fr.skyle.escapy.designsystem.theme.ESTheme
@@ -18,6 +19,8 @@ internal fun ESSnackbarHost(
         hostState = state.hostState,
     ) { data ->
         Snackbar(
+            // Detached from the edges of the screen, like the cards
+            modifier = Modifier.padding(ESTheme.spacing.m),
             shape = ESTheme.shapes.small,
             containerColor = ESTheme.colors.surfaceHighest,
             contentColor = ESTheme.colors.textPrimary,
