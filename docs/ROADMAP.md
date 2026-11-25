@@ -12,12 +12,12 @@ Chaque lot est livré par une pull request vers `develop` (voir la section Git d
 
 ### Compte et profil (lot 5)
 
-- [ ] Connexion par e-mail et mot de passe, inscription
-- [ ] Jouer en invité, sans compte, puis lier un compte à cet invité
-- [ ] Profil : pseudo, avatar (les 50 avatars, en Compose Resources)
-- [ ] Changer d'e-mail, changer de mot de passe
-- [ ] Supprimer son compte
-- [ ] À propos
+- [x] Connexion par e-mail et mot de passe, inscription
+- [x] Jouer en invité, sans compte, puis lier un compte à cet invité
+- [x] Profil : pseudo, avatar (les 50 avatars, en Compose Resources)
+- [x] Changer d'e-mail, changer de mot de passe
+- [x] Supprimer son compte
+- [x] À propos
 
 ### Parties (lot 6)
 
@@ -133,11 +133,29 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
      - Vérifié de bout en bout contre les émulateurs sur le simulateur iOS et un émulateur Android
        (API 31) ; Firebase démarre sur Android avec le vrai projet. Non vérifié : un vrai appareil, le
        remplissage automatique par un gestionnaire de mots de passe.
-   - 5b, **le profil** : écran du profil (pseudo, les 50 avatars en Compose Resources, avec un test
-     qui les dessine tous), lier un compte invité à un e-mail (avec vérification de l'e-mail),
-     changer d'e-mail et de mot de passe, supprimer son compte (reconnexion si demandée), à propos.
-     **La déconnexion d'un invité supprime son compte** (`deleteAccount`) : sinon il resterait sur le
-     serveur, sans personne pour s'y reconnecter.
+   - 5b, **le profil** :
+     - [x] Écran du profil, ouvert depuis l'accueil : pseudo, e-mail d'un membre, carte qui invite un
+           invité à lier un e-mail ; les 50 avatars en Compose Resources, avec un test qui les dessine
+           tous
+     - [x] Pseudo et avatar modifiés par `updateProfile`, le profil suivi en direct
+     - [x] Lier un compte invité à un e-mail (avec l'e-mail de vérification) : le profil passe en
+           membre sans rien perdre
+     - [x] Changer d'e-mail (lien envoyé à la nouvelle adresse, l'e-mail change une fois le lien
+           ouvert) et de mot de passe, après le mot de passe actuel, dont l'erreur dit « mot de passe
+           incorrect »
+     - [x] Supprimer son compte, après le mot de passe pour un membre et une confirmation ; à propos
+           (version, code source, politique de confidentialité)
+     - [x] **La déconnexion d'un invité supprime son compte** (`deleteAccount`) : sinon il resterait
+           sur le serveur, sans personne pour s'y reconnecter
+     - [x] Un profil supprimé n'est jamais recréé : `MainViewModel` n'appelle plus `ensureProfile`
+           pour un profil disparu après sa lecture, et `ensureProfile` refuse un compte supprimé, dont
+           le jeton reste valable jusqu'à une heure (le bug : le profil revenait juste après la
+           suppression)
+     - Vérifié de bout en bout contre les émulateurs sur le simulateur iOS 26.2 et un émulateur
+       Android (API 37), chaque écran sur au moins une plateforme, la suppression sur les deux. Après
+       un changement d'e-mail, Firebase révoque les sessions : l'app garde l'ancien e-mail affiché
+       jusqu'au prochain rafraîchissement du jeton, puis se déconnecte. Non déployé : le refus d'un
+       compte supprimé par `ensureProfile`.
    - 5c, **la connexion Google**, sur les deux plateformes : le jeton obtenu nativement (Credential
      Manager sur Android, GoogleSignIn sur iOS) derrière une interface commune, puis
      `GoogleAuthProvider.credential`. Demande d'activer le fournisseur Google dans la console Firebase,
