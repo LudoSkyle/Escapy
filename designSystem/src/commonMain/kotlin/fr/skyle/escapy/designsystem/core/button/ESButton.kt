@@ -15,6 +15,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.semantics.disabled
@@ -43,6 +45,8 @@ fun ESButton(
     isEnabled: Boolean = true,
     isLoading: Boolean = false,
     leadingIcon: Painter? = null,
+    // False for a logo in its own colors (Google): the icon is drawn as it is
+    isLeadingIconTinted: Boolean = true,
 ) {
     Button(
         modifier = modifier
@@ -79,6 +83,7 @@ fun ESButton(
                         modifier = Modifier.size(20.dp),
                         painter = leadingIcon,
                         contentDescription = null,
+                        tint = if (isLeadingIconTinted) LocalContentColor.current else Color.Unspecified,
                     )
 
                     Spacer(modifier = Modifier.width(ESTheme.spacing.xs))
