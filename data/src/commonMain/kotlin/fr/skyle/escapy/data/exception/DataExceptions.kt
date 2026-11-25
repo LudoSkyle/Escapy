@@ -9,6 +9,12 @@ enum class AuthFailure {
     INVALID_EMAIL,
     TOO_MANY_REQUESTS,
     RECENT_SIGN_IN_REQUIRED,
+    // The Google account already belongs to another account of Escapy: a guest cannot be linked to it
+    CREDENTIAL_ALREADY_IN_USE,
+    // An account already has this email, with another way to sign in (a password)
+    ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
+    // Signed in again with another account than the one of the session
+    USER_MISMATCH,
     UNKNOWN,
 }
 

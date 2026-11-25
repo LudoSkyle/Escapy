@@ -10,12 +10,16 @@ import fr.skyle.escapy.domain.usecase.account.DeleteAccountUseCase
 import fr.skyle.escapy.domain.usecase.account.DeleteAccountUseCaseImpl
 import fr.skyle.escapy.domain.usecase.account.LinkGuestAccountUseCase
 import fr.skyle.escapy.domain.usecase.account.LinkGuestAccountUseCaseImpl
+import fr.skyle.escapy.domain.usecase.account.LinkGuestWithGoogleUseCase
+import fr.skyle.escapy.domain.usecase.account.LinkGuestWithGoogleUseCaseImpl
 import fr.skyle.escapy.domain.usecase.auth.SendPasswordResetUseCase
 import fr.skyle.escapy.domain.usecase.auth.SendPasswordResetUseCaseImpl
 import fr.skyle.escapy.domain.usecase.auth.SignInAsGuestUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignInAsGuestUseCaseImpl
 import fr.skyle.escapy.domain.usecase.auth.SignInWithEmailUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignInWithEmailUseCaseImpl
+import fr.skyle.escapy.domain.usecase.auth.SignInWithGoogleUseCase
+import fr.skyle.escapy.domain.usecase.auth.SignInWithGoogleUseCaseImpl
 import fr.skyle.escapy.domain.usecase.auth.SignOutUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignOutUseCaseImpl
 import fr.skyle.escapy.domain.usecase.auth.SignUpWithEmailUseCase
@@ -43,6 +47,7 @@ val domainModule = module {
     // Authentication
     factoryOf(::SignInWithEmailUseCaseImpl) bind SignInWithEmailUseCase::class
     factoryOf(::SignUpWithEmailUseCaseImpl) bind SignUpWithEmailUseCase::class
+    factoryOf(::SignInWithGoogleUseCaseImpl) bind SignInWithGoogleUseCase::class
     factoryOf(::SignInAsGuestUseCaseImpl) bind SignInAsGuestUseCase::class
     factoryOf(::SendPasswordResetUseCaseImpl) bind SendPasswordResetUseCase::class
     factoryOf(::SignOutUseCaseImpl) bind SignOutUseCase::class
@@ -55,6 +60,7 @@ val domainModule = module {
 
     // Account
     factoryOf(::LinkGuestAccountUseCaseImpl) bind LinkGuestAccountUseCase::class
+    factoryOf(::LinkGuestWithGoogleUseCaseImpl) bind LinkGuestWithGoogleUseCase::class
     factoryOf(::ChangeEmailUseCaseImpl) bind ChangeEmailUseCase::class
     factoryOf(::ChangePasswordUseCaseImpl) bind ChangePasswordUseCase::class
     factoryOf(::DeleteAccountUseCaseImpl) bind DeleteAccountUseCase::class

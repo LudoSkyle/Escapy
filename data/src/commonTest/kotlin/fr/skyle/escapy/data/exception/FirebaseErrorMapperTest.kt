@@ -24,7 +24,12 @@ class FirebaseErrorMapperTest {
     @Test
     fun `each other code of Firebase Auth has its failure`() {
         assertEquals(expected = AuthFailure.EMAIL_ALREADY_IN_USE, actual = authFailureOf("ERROR_EMAIL_ALREADY_IN_USE"))
-        assertEquals(expected = AuthFailure.EMAIL_ALREADY_IN_USE, actual = authFailureOf("ERROR_CREDENTIAL_ALREADY_IN_USE"))
+        assertEquals(expected = AuthFailure.CREDENTIAL_ALREADY_IN_USE, actual = authFailureOf("ERROR_CREDENTIAL_ALREADY_IN_USE"))
+        assertEquals(
+            expected = AuthFailure.ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
+            actual = authFailureOf("ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL"),
+        )
+        assertEquals(expected = AuthFailure.USER_MISMATCH, actual = authFailureOf("ERROR_USER_MISMATCH"))
         assertEquals(expected = AuthFailure.WEAK_PASSWORD, actual = authFailureOf("ERROR_WEAK_PASSWORD"))
         assertEquals(expected = AuthFailure.INVALID_EMAIL, actual = authFailureOf("ERROR_INVALID_EMAIL"))
         assertEquals(expected = AuthFailure.TOO_MANY_REQUESTS, actual = authFailureOf("ERROR_TOO_MANY_REQUESTS"))

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import fr.skyle.escapy.domain.exception.InvalidCredentialsException
+import fr.skyle.escapy.domain.model.Reauthentication
 import fr.skyle.escapy.domain.model.Session
 import fr.skyle.escapy.domain.usecase.account.DeleteAccountUseCase
 import fr.skyle.escapy.domain.usecase.session.WatchSessionUseCase
@@ -20,8 +21,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * Deletes the account, after a confirmation, and the current password for a member: once deleted,
- * the session ends and the app opens the welcome screen.
+ * Deletes the account, after a confirmation, and the current password for a member, or a new sign-in
+ * with Google for a member who signs in with Google only: once deleted, the session ends and the app
+ * opens the welcome screen.
  */
 class DeleteAccountViewModel(
     private val watchSessionUseCase: WatchSessionUseCase,
@@ -41,8 +43,15 @@ class DeleteAccountViewModel(
                     Logger.e(throwable = exception) { "Failed to read the session" }
                 }
                 .collect { session ->
+                    val signedIn = session as? Session.SignedIn ?: return@collect
                     _uiState.update { uiState ->
-                        uiState.copy(isGuest = (session as? Session.SignedIn)?.isGuest == true)
+                        uiState.copy(
+                            method = when {
+                                signedIn.isGuest -> DeletionMethod.GUEST
+                                signedIn.hasPassword -> DeletionMethod.PASSWORD
+                                else -> DeletionMethod.GOOGLE
+                            },
+                        )
                     }
                 }
         }
@@ -56,7 +65,7 @@ class DeleteAccountViewModel(
 
     // The text being written stays in the screen, where each key is shown at once: given on deleting
     fun onDeleteClicked(currentPassword: String) {
-        if (!canDelete(isGuest = _uiState.value.isGuest, currentPassword = currentPassword)) return
+        if (!canDelete(method = _uiState.value.method, currentPassword = currentPassword)) return
         _uiState.update { uiState ->
             uiState.copy(isConfirmationShown = true)
         }
@@ -69,9 +78,34 @@ class DeleteAccountViewModel(
         }
     }
 
+    // A guest or a member with a password: the Route asks Google for a token instead for the others
     fun onDeletionConfirmed(currentPassword: String) {
-        val state = _uiState.value
-        if (state.isDeleting) return
+        delete(
+            reauthentication = when (_uiState.value.method) {
+                DeletionMethod.GUEST -> Reauthentication.None
+                DeletionMethod.PASSWORD -> Reauthentication.WithPassword(password = currentPassword)
+                DeletionMethod.GOOGLE -> return
+            },
+        )
+    }
+
+    fun onGoogleIdTokenReceived(idToken: String) {
+        delete(reauthentication = Reauthentication.WithGoogle(idToken = idToken))
+    }
+
+    fun onGoogleSignInFailed(exception: Exception) {
+        Logger.e(throwable = exception) { "Google gave no token" }
+
+        _uiState.update { uiState ->
+            uiState.copy(isConfirmationShown = false)
+        }
+        viewModelScope.launch {
+            _event.send(DeleteAccountEvent.ShowError(error = AccountError.UNKNOWN))
+        }
+    }
+
+    private fun delete(reauthentication: Reauthentication) {
+        if (_uiState.value.isDeleting) return
         viewModelScope.launch {
             _uiState.update { uiState ->
                 uiState.copy(isDeleting = true)
@@ -79,7 +113,7 @@ class DeleteAccountViewModel(
 
             try {
                 // The session changes: the app opens the welcome screen
-                deleteAccountUseCase(currentPassword = if (state.isGuest) null else currentPassword)
+                deleteAccountUseCase(reauthentication = reauthentication)
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: InvalidCredentialsException) {
@@ -101,8 +135,15 @@ class DeleteAccountViewModel(
         }
     }
 
+    enum class DeletionMethod {
+        // Nothing to confirm with: the server does not ask a guest to sign in again
+        GUEST,
+        PASSWORD,
+        GOOGLE,
+    }
+
     data class DeleteAccountUIState(
-        val isGuest: Boolean = false,
+        val method: DeletionMethod = DeletionMethod.PASSWORD,
         val passwordError: AccountError? = null,
         val isConfirmationShown: Boolean = false,
         val isDeleting: Boolean = false,
@@ -113,8 +154,8 @@ class DeleteAccountViewModel(
     }
 
     companion object {
-        // A guest has no password to give
-        fun canDelete(isGuest: Boolean, currentPassword: String): Boolean =
-            isGuest || currentPassword.isNotEmpty()
+        // Only a member with a password has one to give
+        fun canDelete(method: DeletionMethod, currentPassword: String): Boolean =
+            method != DeletionMethod.PASSWORD || currentPassword.isNotEmpty()
     }
 }

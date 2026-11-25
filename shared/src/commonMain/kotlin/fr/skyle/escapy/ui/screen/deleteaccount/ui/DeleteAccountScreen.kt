@@ -21,11 +21,13 @@ import fr.skyle.escapy.resources.delete_account_action
 import fr.skyle.escapy.resources.delete_account_confirmation_message
 import fr.skyle.escapy.resources.delete_account_confirmation_title
 import fr.skyle.escapy.resources.delete_account_title
+import fr.skyle.escapy.resources.delete_account_google_hint
 import fr.skyle.escapy.resources.delete_account_warning
 import fr.skyle.escapy.resources.field_current_password
 import fr.skyle.escapy.ui.core.error.currentPasswordMessage
 import fr.skyle.escapy.ui.core.form.AccountFormLayout
 import fr.skyle.escapy.ui.screen.deleteaccount.ui.DeleteAccountViewModel.DeleteAccountUIState
+import fr.skyle.escapy.ui.screen.deleteaccount.ui.DeleteAccountViewModel.DeletionMethod
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -53,21 +55,34 @@ fun DeleteAccountScreen(
             style = ESTheme.typography.body,
         )
 
-        if (!uiState.isGuest) {
-            Spacer(modifier = Modifier.height(ESTheme.spacing.m))
+        when (uiState.method) {
+            DeletionMethod.GUEST -> Unit
+            DeletionMethod.GOOGLE -> {
+                Spacer(modifier = Modifier.height(ESTheme.spacing.s))
 
-            ESTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = currentPassword,
-                onValueChange = onCurrentPasswordChanged,
-                label = stringResource(Res.string.field_current_password),
-                kind = ESTextFieldDefaults.Kind.PASSWORD,
-                style = ESTextFieldDefaults.Style.STANDARD,
-                isEnabled = !uiState.isDeleting,
-                errorMessage = uiState.passwordError?.currentPasswordMessage(),
-                imeAction = ImeAction.Done,
-                onImeAction = onDeleteClicked,
-            )
+                ESText(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(Res.string.delete_account_google_hint),
+                    style = ESTheme.typography.body,
+                    color = ESTheme.colors.textSecondary,
+                )
+            }
+            DeletionMethod.PASSWORD -> {
+                Spacer(modifier = Modifier.height(ESTheme.spacing.m))
+
+                ESTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = currentPassword,
+                    onValueChange = onCurrentPasswordChanged,
+                    label = stringResource(Res.string.field_current_password),
+                    kind = ESTextFieldDefaults.Kind.PASSWORD,
+                    style = ESTextFieldDefaults.Style.STANDARD,
+                    isEnabled = !uiState.isDeleting,
+                    errorMessage = uiState.passwordError?.currentPasswordMessage(),
+                    imeAction = ImeAction.Done,
+                    onImeAction = onDeleteClicked,
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(ESTheme.spacing.l))
@@ -78,7 +93,7 @@ fun DeleteAccountScreen(
             onClick = onDeleteClicked,
             style = ESButtonDefaults.Style.DESTRUCTIVE,
             size = ESButtonDefaults.Size.LARGE,
-            isEnabled = DeleteAccountViewModel.canDelete(isGuest = uiState.isGuest, currentPassword = currentPassword),
+            isEnabled = DeleteAccountViewModel.canDelete(method = uiState.method, currentPassword = currentPassword),
         )
     }
 

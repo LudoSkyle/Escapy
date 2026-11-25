@@ -6,6 +6,7 @@ import co.touchlab.kermit.Logger
 import fr.skyle.escapy.domain.exception.EmailAlreadyInUseException
 import fr.skyle.escapy.domain.exception.InvalidEmailException
 import fr.skyle.escapy.domain.usecase.account.LinkGuestAccountUseCase
+import fr.skyle.escapy.domain.usecase.account.LinkGuestWithGoogleUseCase
 import fr.skyle.escapy.domain.validation.PasswordPolicy
 import fr.skyle.escapy.ui.core.error.AccountError
 import fr.skyle.escapy.ui.core.error.toAccountError
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 /** Gives the guest account an email and a password: everything in it is kept. */
 class LinkAccountViewModel(
     private val linkGuestAccountUseCase: LinkGuestAccountUseCase,
+    private val linkGuestWithGoogleUseCase: LinkGuestWithGoogleUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LinkAccountUIState())
@@ -37,7 +39,7 @@ class LinkAccountViewModel(
 
     // The text being written stays in the screen, where each key is shown at once: given on sending
     fun onLinkClicked(email: String, password: String) {
-        if (!canLink(email = email, password = password) || _uiState.value.isLinking) return
+        if (!canLink(email = email, password = password) || _uiState.value.isBusy) return
         viewModelScope.launch {
             _uiState.update { uiState ->
                 uiState.copy(isLinking = true)
@@ -71,12 +73,53 @@ class LinkAccountViewModel(
         }
     }
 
+    // The Route asks Google for the token natively, then gives it here
+    fun onGoogleIdTokenReceived(idToken: String) {
+        if (_uiState.value.isBusy) return
+        viewModelScope.launch {
+            _uiState.update { uiState ->
+                uiState.copy(isLinkingWithGoogle = true)
+            }
+
+            try {
+                linkGuestWithGoogleUseCase(idToken = idToken)
+
+                _uiState.update { uiState ->
+                    uiState.copy(isLinkedWithGoogle = true)
+                }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                Logger.w(throwable = exception) { "Failed to link the guest account to Google" }
+
+                _event.send(LinkAccountEvent.ShowError(error = exception.toAccountError()))
+            } finally {
+                _uiState.update { uiState ->
+                    uiState.copy(isLinkingWithGoogle = false)
+                }
+            }
+        }
+    }
+
+    fun onGoogleSignInFailed(exception: Exception) {
+        Logger.e(throwable = exception) { "Google gave no token" }
+
+        viewModelScope.launch {
+            _event.send(LinkAccountEvent.ShowError(error = AccountError.UNKNOWN))
+        }
+    }
+
     data class LinkAccountUIState(
         val emailError: AccountError? = null,
         val isLinking: Boolean = false,
+        val isLinkingWithGoogle: Boolean = false,
         // The email the account is linked to, once linked: the screen says a verification email left
         val linkedTo: String? = null,
-    )
+        val isLinkedWithGoogle: Boolean = false,
+    ) {
+        val isBusy: Boolean
+            get() = isLinking || isLinkingWithGoogle
+    }
 
     sealed interface LinkAccountEvent {
         data class ShowError(val error: AccountError) : LinkAccountEvent

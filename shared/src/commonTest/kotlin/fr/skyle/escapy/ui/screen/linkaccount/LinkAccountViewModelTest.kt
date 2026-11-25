@@ -1,20 +1,28 @@
 package fr.skyle.escapy.ui.screen.linkaccount
 
 import fr.skyle.escapy.domain.exception.EmailAlreadyInUseException
+import fr.skyle.escapy.domain.exception.GoogleAccountAlreadyInUseException
 import fr.skyle.escapy.fake.FakeLinkGuestAccountUseCase
+import fr.skyle.escapy.fake.FakeLinkGuestWithGoogleUseCase
 import fr.skyle.escapy.test.MainDispatcherTest
 import fr.skyle.escapy.ui.core.error.AccountError
 import fr.skyle.escapy.ui.screen.linkaccount.ui.LinkAccountViewModel
+import fr.skyle.escapy.ui.screen.linkaccount.ui.LinkAccountViewModel.LinkAccountEvent
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class LinkAccountViewModelTest : MainDispatcherTest() {
 
     private val linkGuestAccountUseCase = FakeLinkGuestAccountUseCase()
+    private val linkGuestWithGoogleUseCase = FakeLinkGuestWithGoogleUseCase()
 
     private val viewModel = LinkAccountViewModel(
         linkGuestAccountUseCase = linkGuestAccountUseCase,
+        linkGuestWithGoogleUseCase = linkGuestWithGoogleUseCase,
     )
 
     @Test
@@ -54,5 +62,34 @@ class LinkAccountViewModelTest : MainDispatcherTest() {
             expected = AccountError.EMAIL_ALREADY_IN_USE,
             actual = viewModel.uiState.value.emailError,
         )
+    }
+
+    @Test
+    fun `once linked to Google the screen says so`() = runTest {
+        // When
+        viewModel.onGoogleIdTokenReceived(idToken = "token")
+
+        // Then
+        assertEquals(
+            expected = listOf("token"),
+            actual = linkGuestWithGoogleUseCase.calls,
+        )
+        assertTrue(viewModel.uiState.value.isLinkedWithGoogle)
+    }
+
+    @Test
+    fun `a Google account that already has an account is told`() = runTest {
+        // Given
+        linkGuestWithGoogleUseCase.failure = GoogleAccountAlreadyInUseException()
+
+        // When
+        viewModel.onGoogleIdTokenReceived(idToken = "token")
+
+        // Then
+        assertEquals(
+            expected = LinkAccountEvent.ShowError(error = AccountError.GOOGLE_ACCOUNT_ALREADY_IN_USE),
+            actual = viewModel.event.first(),
+        )
+        assertFalse(viewModel.uiState.value.isLinkedWithGoogle)
     }
 }

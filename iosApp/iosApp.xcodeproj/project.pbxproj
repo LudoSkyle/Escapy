@@ -90,6 +90,7 @@
 				4B44A75E2FD10EFE3C97FCF5 /* Compile Kotlin Framework */,
 				297B59D9CE634556D6007C40 /* Sources */,
 				98CA2F31D4A763B6A6A54574 /* Copy the Firebase file */,
+				0E759F0586557FD36C293569 /* Add the URL scheme of Google Sign-In */,
 				1623B02D10928C8101C1F806 /* Resources */,
 				EF8A6E9BFD470986D9D5C9B5 /* Frameworks */,
 			);
@@ -153,6 +154,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		0E759F0586557FD36C293569 /* Add the URL scheme of Google Sign-In */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Add the URL scheme of Google Sign-In";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "source=\"$SRCROOT/../private/firebase/GoogleService-Info.plist\"\nplist=\"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\nscheme=$(/usr/libexec/PlistBuddy -c \"Print :REVERSED_CLIENT_ID\" \"$source\" 2>/dev/null || true)\n/usr/libexec/PlistBuddy -c \"Delete :CFBundleURLTypes\" \"$plist\" 2>/dev/null || true\nif [ -n \"$scheme\" ]; then\n  /usr/libexec/PlistBuddy -c \"Add :CFBundleURLTypes array\" \"$plist\"\n  /usr/libexec/PlistBuddy -c \"Add :CFBundleURLTypes:0 dict\" \"$plist\"\n  /usr/libexec/PlistBuddy -c \"Add :CFBundleURLTypes:0:CFBundleURLSchemes array\" \"$plist\"\n  /usr/libexec/PlistBuddy -c \"Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string $scheme\" \"$plist\"\nfi\n";
+		};
 		4B44A75E2FD10EFE3C97FCF5 /* Compile Kotlin Framework */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;

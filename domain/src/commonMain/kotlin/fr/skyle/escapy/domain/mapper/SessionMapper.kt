@@ -10,5 +10,6 @@ internal fun StoredSession.toSession(): Session =
             userId = userId,
             isGuest = isAnonymous,
             email = email,
+            hasPassword = hasPassword,
         )
     }

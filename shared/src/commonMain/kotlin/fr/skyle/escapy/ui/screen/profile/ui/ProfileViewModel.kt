@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import fr.skyle.escapy.domain.model.Profile
+import fr.skyle.escapy.domain.model.Reauthentication
 import fr.skyle.escapy.domain.model.Session
 import fr.skyle.escapy.domain.usecase.account.DeleteAccountUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignOutUseCase
@@ -48,6 +49,7 @@ class ProfileViewModel(
                             uiState.copy(
                                 isGuest = session.isGuest,
                                 email = session.email,
+                                hasPassword = session.hasPassword,
                             )
                         }
                         watchProfileUseCase(userId = session.userId)
@@ -99,7 +101,7 @@ class ProfileViewModel(
                 // A guest account nobody can sign in to again is deleted, not left on the server.
                 // The session changes: the app opens the welcome screen
                 if (_uiState.value.isGuest) {
-                    deleteAccountUseCase(currentPassword = null)
+                    deleteAccountUseCase(reauthentication = Reauthentication.None)
                 } else {
                     signOutUseCase()
                 }
@@ -124,9 +126,14 @@ class ProfileViewModel(
         val profile: Profile? = null,
         val isGuest: Boolean = false,
         val email: String? = null,
+        val hasPassword: Boolean = false,
         val isGuestSignOutDialogShown: Boolean = false,
         val isSigningOut: Boolean = false,
-    )
+    ) {
+        // A member with no password signs in with Google only
+        val isSignedInWithGoogleOnly: Boolean
+            get() = !isGuest && !hasPassword
+    }
 
     sealed interface ProfileEvent {
         data class ShowError(val error: AccountError) : ProfileEvent

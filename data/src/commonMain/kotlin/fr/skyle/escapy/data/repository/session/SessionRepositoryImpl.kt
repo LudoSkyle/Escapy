@@ -25,9 +25,15 @@ internal class SessionRepositoryImpl(
                         userId = user.uid,
                         isAnonymous = user.isAnonymous,
                         email = user.email,
+                        hasPassword = user.providerData.any { info -> info.providerId == PASSWORD_PROVIDER_ID },
                     )
                 }
             }
             .distinctUntilChanged()
+    }
+
+    private companion object {
+        // The id of the email and password sign-in in the providers of a user, on both platforms
+        const val PASSWORD_PROVIDER_ID = "password"
     }
 }
