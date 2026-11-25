@@ -154,8 +154,9 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
      - Vérifié de bout en bout contre les émulateurs sur le simulateur iOS 26.2 et un émulateur
        Android (API 37), chaque écran sur au moins une plateforme, la suppression sur les deux. Après
        un changement d'e-mail, Firebase révoque les sessions : l'app garde l'ancien e-mail affiché
-       jusqu'au prochain rafraîchissement du jeton, puis se déconnecte. Non déployé : le refus d'un
-       compte supprimé par `ensureProfile`.
+       jusqu'au prochain rafraîchissement du jeton, puis se déconnecte. Le refus d'un compte supprimé
+       par `ensureProfile` est déployé sur le vrai projet le 2026-11-25 ; `updateProfile`, qui laisse
+       un champ `null` tel quel, ne l'est pas (l'app n'envoie jamais `null`).
    - 5c, **la connexion Google**, sur les deux plateformes : le jeton obtenu nativement (Credential
      Manager sur Android, GoogleSignIn sur iOS) derrière une interface commune, puis
      `GoogleAuthProvider.credential`. Demande d'activer le fournisseur Google dans la console Firebase,
