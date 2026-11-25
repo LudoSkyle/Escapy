@@ -11,10 +11,11 @@ export const updateProfile = onCall(async (request): Promise<ProfileResponse> =>
   const data = requestData(request);
 
   const changes: Record<string, unknown> = {};
-  if (data.username !== undefined) {
+  // A field absent or null is left as it is
+  if (data.username !== undefined && data.username !== null) {
     changes.username = validateUsername(data.username);
   }
-  if (data.avatarId !== undefined) {
+  if (data.avatarId !== undefined && data.avatarId !== null) {
     changes.avatarId = validateAvatarId(data.avatarId);
   }
   if (Object.keys(changes).length === 0) {
