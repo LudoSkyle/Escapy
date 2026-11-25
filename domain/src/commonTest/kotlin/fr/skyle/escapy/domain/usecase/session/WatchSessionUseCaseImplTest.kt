@@ -26,6 +26,7 @@ class WatchSessionUseCaseImplTest {
                 userId = "guest",
                 isAnonymous = true,
                 email = null,
+                hasPassword = false,
             ),
         )
 
@@ -50,6 +51,7 @@ class WatchSessionUseCaseImplTest {
                 userId = "member",
                 isAnonymous = false,
                 email = "member@escapy.app",
+                hasPassword = true,
             ),
         )
 
@@ -62,6 +64,34 @@ class WatchSessionUseCaseImplTest {
                 userId = "member",
                 isGuest = false,
                 email = "member@escapy.app",
+                hasPassword = true,
+            ),
+            actual = session,
+        )
+    }
+
+    @Test
+    fun `a member who signs in with Google only has no password`() = runTest {
+        // Given
+        sessionRepository.sessions = flowOf(
+            StoredSession.SignedIn(
+                userId = "member",
+                isAnonymous = false,
+                email = "member@gmail.com",
+                hasPassword = false,
+            ),
+        )
+
+        // When
+        val session = watchSessionUseCase().first()
+
+        // Then
+        assertEquals(
+            expected = Session.SignedIn(
+                userId = "member",
+                isGuest = false,
+                email = "member@gmail.com",
+                hasPassword = false,
             ),
             actual = session,
         )
@@ -76,6 +106,7 @@ class WatchSessionUseCaseImplTest {
                 userId = "guest",
                 isAnonymous = true,
                 email = null,
+                hasPassword = false,
             ),
             StoredSession.SignedOut,
         )

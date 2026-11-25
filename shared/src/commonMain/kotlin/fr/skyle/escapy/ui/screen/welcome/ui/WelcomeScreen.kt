@@ -26,8 +26,10 @@ import fr.skyle.escapy.designsystem.core.text.ESText
 import fr.skyle.escapy.designsystem.theme.ESTheme
 import fr.skyle.escapy.resources.Res
 import fr.skyle.escapy.resources.app_name
+import fr.skyle.escapy.resources.ic_google
 import fr.skyle.escapy.resources.logo_keyhole
 import fr.skyle.escapy.resources.welcome_continue_as_guest
+import fr.skyle.escapy.resources.welcome_continue_with_google
 import fr.skyle.escapy.resources.welcome_sign_in
 import fr.skyle.escapy.resources.welcome_sign_up
 import fr.skyle.escapy.resources.welcome_tagline
@@ -37,11 +39,17 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun WelcomeScreen(
     isSigningInAsGuest: Boolean,
+    isSigningInWithGoogle: Boolean,
+    // False without the Google configuration (a fork, the CI): the button is not shown
+    isGoogleAvailable: Boolean,
     snackbarState: ESSnackbarState,
     onSignInClicked: () -> Unit,
     onSignUpClicked: () -> Unit,
+    onContinueWithGoogleClicked: () -> Unit,
     onContinueAsGuestClicked: () -> Unit,
 ) {
+    val isSigningIn = isSigningInAsGuest || isSigningInWithGoogle
+
     ESScreenStructure(
         style = ESScreenStructureDefaults.Style.STANDARD,
         snackbarState = snackbarState,
@@ -88,8 +96,24 @@ fun WelcomeScreen(
                 onClick = onSignInClicked,
                 style = ESButtonDefaults.Style.PRIMARY,
                 size = ESButtonDefaults.Size.LARGE,
-                isEnabled = !isSigningInAsGuest,
+                isEnabled = !isSigningIn,
             )
+
+            if (isGoogleAvailable) {
+                Spacer(modifier = Modifier.height(ESTheme.spacing.s))
+
+                ESButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(Res.string.welcome_continue_with_google),
+                    onClick = onContinueWithGoogleClicked,
+                    style = ESButtonDefaults.Style.SECONDARY,
+                    size = ESButtonDefaults.Size.LARGE,
+                    isEnabled = !isSigningInAsGuest,
+                    isLoading = isSigningInWithGoogle,
+                    leadingIcon = painterResource(Res.drawable.ic_google),
+                    isLeadingIconTinted = false,
+                )
+            }
 
             Spacer(modifier = Modifier.height(ESTheme.spacing.s))
 
@@ -99,7 +123,7 @@ fun WelcomeScreen(
                 onClick = onSignUpClicked,
                 style = ESButtonDefaults.Style.SECONDARY,
                 size = ESButtonDefaults.Size.LARGE,
-                isEnabled = !isSigningInAsGuest,
+                isEnabled = !isSigningIn,
             )
 
             Spacer(modifier = Modifier.height(ESTheme.spacing.xs))
@@ -110,6 +134,7 @@ fun WelcomeScreen(
                 onClick = onContinueAsGuestClicked,
                 style = ESButtonDefaults.Style.TEXT,
                 size = ESButtonDefaults.Size.MEDIUM,
+                isEnabled = !isSigningInWithGoogle,
                 isLoading = isSigningInAsGuest,
             )
         }
@@ -122,9 +147,12 @@ private fun PreviewWelcomeScreen() {
     ESTheme {
         WelcomeScreen(
             isSigningInAsGuest = false,
+            isSigningInWithGoogle = false,
+            isGoogleAvailable = true,
             snackbarState = rememberESSnackbarState(),
             onSignInClicked = {},
             onSignUpClicked = {},
+            onContinueWithGoogleClicked = {},
             onContinueAsGuestClicked = {},
         )
     }

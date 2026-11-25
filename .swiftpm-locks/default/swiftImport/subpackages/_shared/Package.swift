@@ -13,11 +13,19 @@ let package = Package(
     )
   ],
   dependencies: [
+    .package(
+      url: "https://github.com/google/GoogleSignIn-iOS.git",
+      from: "10.1.0"
+    )
   ],
   targets: [
     .target(
       name: "_shared",
       dependencies: [
+        .product(
+          name: "GoogleSignIn",
+          package: "GoogleSignIn-iOS"
+        )
       ]
     )
   ]

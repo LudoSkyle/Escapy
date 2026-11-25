@@ -4,8 +4,10 @@ import fr.skyle.escapy.data.exception.AuthFailure
 import fr.skyle.escapy.data.exception.AuthFailureException
 import fr.skyle.escapy.data.exception.FirebaseUnavailableException
 import fr.skyle.escapy.data.exception.FunctionFailureException
+import fr.skyle.escapy.domain.exception.AccountExistsWithPasswordException
 import fr.skyle.escapy.domain.exception.AccountUnavailableException
 import fr.skyle.escapy.domain.exception.EmailAlreadyInUseException
+import fr.skyle.escapy.domain.exception.GoogleAccountAlreadyInUseException
 import fr.skyle.escapy.domain.exception.InvalidCredentialsException
 import fr.skyle.escapy.domain.exception.InvalidEmailException
 import fr.skyle.escapy.domain.exception.InvalidUsernameException
@@ -13,6 +15,7 @@ import fr.skyle.escapy.domain.exception.NetworkUnavailableException
 import fr.skyle.escapy.domain.exception.RecentSignInRequiredException
 import fr.skyle.escapy.domain.exception.TooManyAttemptsException
 import fr.skyle.escapy.domain.exception.WeakPasswordException
+import fr.skyle.escapy.domain.exception.WrongGoogleAccountException
 import fr.skyle.escapy.domain.validation.PasswordRule
 import kotlinx.coroutines.CancellationException
 import fr.skyle.escapy.data.exception.NetworkUnavailableException as DataNetworkUnavailableException
@@ -28,6 +31,9 @@ internal fun Throwable.toDomainException(): Throwable =
             AuthFailure.WEAK_PASSWORD -> WeakPasswordException(missingRules = setOf(PasswordRule.MIN_LENGTH), cause = this)
             AuthFailure.TOO_MANY_REQUESTS -> TooManyAttemptsException(cause = this)
             AuthFailure.RECENT_SIGN_IN_REQUIRED -> RecentSignInRequiredException(cause = this)
+            AuthFailure.CREDENTIAL_ALREADY_IN_USE -> GoogleAccountAlreadyInUseException(cause = this)
+            AuthFailure.ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL -> AccountExistsWithPasswordException(cause = this)
+            AuthFailure.USER_MISMATCH -> WrongGoogleAccountException(cause = this)
             AuthFailure.UNKNOWN -> AccountUnavailableException(cause = this)
         }
         is DataNetworkUnavailableException -> NetworkUnavailableException(cause = this)

@@ -30,7 +30,7 @@ class ProfileViewModelTest : MainDispatcherTest() {
     @Test
     fun `the profile and the email of the session are shown`() = runTest {
         // When
-        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "member", isGuest = false, email = "member@escapy.app"))
+        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "member", isGuest = false, email = "member@escapy.app", hasPassword = true))
         watchProfileUseCase.profiles.emit(Profile(username = "Player_ABC234", avatarId = 7))
 
         // Then
@@ -47,7 +47,7 @@ class ProfileViewModelTest : MainDispatcherTest() {
     @Test
     fun `a member signs out without deleting anything`() = runTest {
         // Given
-        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "member", isGuest = false, email = "member@escapy.app"))
+        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "member", isGuest = false, email = "member@escapy.app", hasPassword = true))
 
         // When
         viewModel.onSignOutClicked()

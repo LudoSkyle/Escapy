@@ -1,9 +1,13 @@
 package fr.skyle.escapy.domain.usecase.account
 
+import fr.skyle.escapy.data.exception.AuthFailure
+import fr.skyle.escapy.data.exception.AuthFailureException
 import fr.skyle.escapy.data.exception.FunctionFailureException
 import fr.skyle.escapy.domain.exception.RecentSignInRequiredException
+import fr.skyle.escapy.domain.exception.WrongGoogleAccountException
 import fr.skyle.escapy.domain.fake.FakeAccountRepository
 import fr.skyle.escapy.domain.fake.FakeAuthRepository
+import fr.skyle.escapy.domain.model.Reauthentication
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,7 +26,7 @@ class DeleteAccountUseCaseImplTest {
     @Test
     fun `a member signs in again before the deletion`() = runTest {
         // When
-        deleteAccountUseCase(currentPassword = "Escapy-2026")
+        deleteAccountUseCase(reauthentication = Reauthentication.WithPassword(password = "Escapy-2026"))
 
         // Then
         assertEquals(
@@ -32,9 +36,36 @@ class DeleteAccountUseCaseImplTest {
     }
 
     @Test
+    fun `a member of Google signs in again with Google before the deletion`() = runTest {
+        // When
+        deleteAccountUseCase(reauthentication = Reauthentication.WithGoogle(idToken = "token"))
+
+        // Then
+        assertEquals(
+            expected = listOf("reauthenticateGoogle:token", "deleteAccount"),
+            actual = authRepository.calls,
+        )
+    }
+
+    @Test
+    fun `another Google account is refused before the deletion`() = runTest {
+        // Given
+        authRepository.failure = AuthFailureException(failure = AuthFailure.USER_MISMATCH)
+
+        // When / Then
+        assertFailsWith<WrongGoogleAccountException> {
+            deleteAccountUseCase(reauthentication = Reauthentication.WithGoogle(idToken = "token"))
+        }
+        assertEquals(
+            expected = listOf("reauthenticateGoogle:token"),
+            actual = authRepository.calls,
+        )
+    }
+
+    @Test
     fun `a guest is deleted without a password`() = runTest {
         // When
-        deleteAccountUseCase(currentPassword = null)
+        deleteAccountUseCase(reauthentication = Reauthentication.None)
 
         // Then
         assertEquals(
@@ -50,7 +81,7 @@ class DeleteAccountUseCaseImplTest {
 
         // When / Then
         assertFailsWith<RecentSignInRequiredException> {
-            deleteAccountUseCase(currentPassword = null)
+            deleteAccountUseCase(reauthentication = Reauthentication.None)
         }
     }
 }

@@ -10,5 +10,7 @@ sealed interface StoredSession {
         val isAnonymous: Boolean,
         // Null for a guest
         val email: String?,
+        // False for a guest, and for an account that signs in with Google only
+        val hasPassword: Boolean,
     ) : StoredSession
 }

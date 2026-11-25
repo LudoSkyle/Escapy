@@ -1,13 +1,16 @@
 package fr.skyle.escapy.fake
 
 import fr.skyle.escapy.domain.model.Profile
+import fr.skyle.escapy.domain.model.Reauthentication
 import fr.skyle.escapy.domain.usecase.account.ChangeEmailUseCase
 import fr.skyle.escapy.domain.usecase.account.ChangePasswordUseCase
 import fr.skyle.escapy.domain.usecase.account.DeleteAccountUseCase
 import fr.skyle.escapy.domain.usecase.account.LinkGuestAccountUseCase
+import fr.skyle.escapy.domain.usecase.account.LinkGuestWithGoogleUseCase
 import fr.skyle.escapy.domain.usecase.auth.SendPasswordResetUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignInAsGuestUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignInWithEmailUseCase
+import fr.skyle.escapy.domain.usecase.auth.SignInWithGoogleUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignOutUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignUpWithEmailUseCase
 import fr.skyle.escapy.domain.usecase.profile.EnsureProfileUseCase
@@ -42,6 +45,10 @@ class FakeSignInWithEmailUseCase : FakeAction(), SignInWithEmailUseCase {
 
 class FakeSignUpWithEmailUseCase : FakeAction(), SignUpWithEmailUseCase {
     override suspend fun invoke(email: String, password: String) = record(email)
+}
+
+class FakeSignInWithGoogleUseCase : FakeAction(), SignInWithGoogleUseCase {
+    override suspend fun invoke(idToken: String) = record(idToken)
 }
 
 class FakeSignInAsGuestUseCase : FakeAction(), SignInAsGuestUseCase {
@@ -88,6 +95,10 @@ class FakeLinkGuestAccountUseCase : FakeAction(), LinkGuestAccountUseCase {
     override suspend fun invoke(email: String, password: String) = record(email)
 }
 
+class FakeLinkGuestWithGoogleUseCase : FakeAction(), LinkGuestWithGoogleUseCase {
+    override suspend fun invoke(idToken: String) = record(idToken)
+}
+
 class FakeChangeEmailUseCase : FakeAction(), ChangeEmailUseCase {
     override suspend fun invoke(currentPassword: String, newEmail: String) = record(newEmail)
 }
@@ -97,5 +108,12 @@ class FakeChangePasswordUseCase : FakeAction(), ChangePasswordUseCase {
 }
 
 class FakeDeleteAccountUseCase : FakeAction(), DeleteAccountUseCase {
-    override suspend fun invoke(currentPassword: String?) = record(currentPassword ?: "guest")
+    override suspend fun invoke(reauthentication: Reauthentication) =
+        record(
+            when (reauthentication) {
+                Reauthentication.None -> "guest"
+                is Reauthentication.WithPassword -> reauthentication.password
+                is Reauthentication.WithGoogle -> "google:${reauthentication.idToken}"
+            },
+        )
 }

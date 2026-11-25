@@ -48,6 +48,7 @@ import fr.skyle.escapy.resources.profile_change_password
 import fr.skyle.escapy.resources.profile_delete_account
 import fr.skyle.escapy.resources.profile_edit_username
 import fr.skyle.escapy.resources.profile_general
+import fr.skyle.escapy.resources.profile_google_account
 import fr.skyle.escapy.resources.profile_guest_warning
 import fr.skyle.escapy.resources.profile_link_account
 import fr.skyle.escapy.resources.profile_privacy_policy
@@ -144,6 +145,14 @@ fun ProfileScreen(
                         color = ESTheme.colors.textSecondary,
                     )
                 }
+
+                if (uiState.isSignedInWithGoogleOnly) {
+                    ESText(
+                        text = stringResource(Res.string.profile_google_account),
+                        style = ESTheme.typography.bodySmall,
+                        color = ESTheme.colors.textSecondary,
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(ESTheme.spacing.l))
@@ -170,7 +179,8 @@ fun ProfileScreen(
                         )
                     }
                 }
-            } else {
+            } else if (uiState.hasPassword) {
+                // Google keeps the email and the password of an account that signs in with it only
                 SectionTitle(text = stringResource(Res.string.profile_account))
 
                 ESCard(
@@ -271,6 +281,7 @@ private fun PreviewProfileScreen() {
             uiState = ProfileUIState(
                 profile = Profile(username = "Player_ABC234", avatarId = 7),
                 email = "player@escapy.app",
+                hasPassword = true,
             ),
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},

@@ -20,6 +20,15 @@ class WeakPasswordException(
 /** Too many attempts in a short time: the server blocks them for a while. */
 class TooManyAttemptsException(cause: Throwable? = null) : Exception("Too many attempts", cause)
 
+/** The Google account already belongs to another account of Escapy: a guest cannot be linked to it. */
+class GoogleAccountAlreadyInUseException(cause: Throwable? = null) : Exception("Google account already in use", cause)
+
+/** The email of the Google account already has an account of Escapy, which signs in with a password. */
+class AccountExistsWithPasswordException(cause: Throwable? = null) : Exception("Account exists with a password", cause)
+
+/** Signed in again with another Google account than the one of the session. */
+class WrongGoogleAccountException(cause: Throwable? = null) : Exception("Wrong Google account", cause)
+
 /** The server could not be reached: no network, or the server is down. */
 class NetworkUnavailableException(cause: Throwable? = null) : Exception("Network unavailable", cause)
 

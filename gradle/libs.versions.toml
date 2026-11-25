@@ -25,6 +25,9 @@ lifecycleMultiplatform = "2.11.0" # androidx.lifecycle 2.11.0 on Android
 # AndroidX
 activityCompose = "1.13.0"
 coreSplashscreen = "1.2.0"
+# Credential Manager and its Google ID option: the native sign-in of Google on Android
+credentials = "1.6.0"
+googleId = "1.2.1"
 
 # Koin
 koin = "4.2.2"
@@ -32,6 +35,9 @@ koin = "4.2.2"
 # Firebase Kotlin SDK: 3.x is the only line built with Kotlin 2.4 and firebase-ios-sdk 13 (SwiftPM),
 # pinned while in beta (see docs/adr/0003-firebase-en-kotlin-commun-avec-gitlive.md)
 gitliveFirebase = "3.0.0-beta1"
+# Google Sign-In for iOS, imported into iosMain by SwiftPM; its dependencies must stay within the
+# ranges firebase-ios-sdk resolves (app-check, gtm-session-fetcher, GoogleUtilities)
+googleSignInIos = "10.1.0"
 
 # Logs
 kermit = "2.2.0"
@@ -71,6 +77,10 @@ kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 # AndroidX
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
+# Credential Manager below Android 14, through Google Play services
+androidx-credentials-playServicesAuth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
+googleId = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleId" }
 
 # Koin
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }

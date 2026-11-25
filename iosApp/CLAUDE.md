@@ -24,6 +24,14 @@ paquet de liaison SwiftPM qui apporte Firebase. Ne couvre ni les écrans (dans `
   `Shared` et copie les Compose Resources dans l'app. Elle a besoin de
   `ENABLE_USER_SCRIPT_SANDBOXING = NO`. Le framework doit rester statique : Firebase n'est lié qu'une
   fois, par l'app.
+- **GoogleSignIn** est déclaré dans `shared/build.gradle.kts` (`swiftPMDependencies`, version au
+  catalogue) et appelé en Kotlin depuis `iosMain` (`swiftPMImport.fr.skyle.escapy.shared.*`) : il
+  arrive dans l'app par le même paquet de liaison. Ses dépendances (app-check, gtm-session-fetcher,
+  GoogleUtilities) doivent rester dans les plages que résout `firebase-ios-sdk`.
+- **Schéma d'URL de Google** : la phase « Add the URL scheme of Google Sign-In » ajoute au
+  `Info.plist` construit le `REVERSED_CLIENT_ID` du fichier Firebase de `private/`, et ne l'ajoute
+  pas sans lui : aucun identifiant du projet dans le dépôt. `iOSApp.swift` transmet les URL reçues à
+  `handleGoogleSignInUrl`.
 - **Firebase arrive uniquement par le paquet de liaison SwiftPM**, `KotlinMultiplatformLinkedPackage`,
   généré par le plugin Kotlin à partir des modules GitLive du code Kotlin, et déclaré dans
   `project.yml` (`packages:` et `dependencies:` de la cible). **Ne jamais redéclarer Firebase dans
@@ -51,8 +59,8 @@ paquet de liaison SwiftPM qui apporte Firebase. Ne couvre ni les écrans (dans `
   `shared/src/iosMain`) ne démarre Firebase que si le fichier est dans l'app : sans lui (fork, CI),
   l'app démarre déconnectée et n'appelle jamais Firebase.
 - **Un build non signé n'a pas accès au trousseau.** Avec `CODE_SIGNING_ALLOWED=NO`, comme en CI,
-  Firebase Auth ne garde pas la session d'un lancement à l'autre. Pour lancer l'app, on laisse Xcode
-  signer localement (le simulateur signe sans équipe).
+  Firebase Auth ne peut pas enregistrer l'utilisateur (erreur de trousseau -34018) et la connexion
+  échoue. Pour lancer l'app, on laisse Xcode signer localement (le simulateur signe sans équipe).
 - **Signature** : aucune équipe Apple dans le dépôt (`CODE_SIGN_STYLE: Automatic`). Pour un iPhone,
   l'équipe (`DEVELOPMENT_TEAM = ...`, un Apple ID gratuit suffit) se déclare dans
   `Configuration/Local.xcconfig`, ignoré par git, inclus par `Configuration/Escapy.xcconfig`.

@@ -64,3 +64,18 @@ targets:
           else
             rm -f "$destination"
           fi
+      # GoogleSignIn needs the reversed iOS client of the Firebase file as a URL scheme of the app:
+      # added to the built Info.plist, so that no identifier of the project is in the public repository
+      - name: Add the URL scheme of Google Sign-In
+        basedOnDependencyAnalysis: false
+        script: |
+          source="$SRCROOT/../private/firebase/GoogleService-Info.plist"
+          plist="$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          scheme=$(/usr/libexec/PlistBuddy -c "Print :REVERSED_CLIENT_ID" "$source" 2>/dev/null || true)
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleURLTypes" "$plist" 2>/dev/null || true
+          if [ -n "$scheme" ]; then
+            /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" "$plist"
+            /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" "$plist"
+            /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$plist"
+            /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string $scheme" "$plist"
+          fi

@@ -12,6 +12,10 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                // The answer of the sign-in of Google, when it comes back through the URL scheme
+                .onOpenURL { url in
+                    _ = GoogleSignInLauncher_iosKt.handleGoogleSignInUrl(url: url)
+                }
         }
     }
 }

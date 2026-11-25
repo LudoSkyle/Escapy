@@ -3,6 +3,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
+// The namespace of the Kotlin bindings of the SwiftPM packages: swiftPMImport.fr.skyle.escapy.shared
+group = "fr.skyle.escapy"
+
 kotlin {
     android {
         namespace = "fr.skyle.escapy.shared"
@@ -25,6 +28,18 @@ kotlin {
             // Static: the Firebase iOS SDK is linked once, by the app, through Swift Package Manager
             isStatic = true
         }
+    }
+
+    swiftPMDependencies {
+        // Only the module the code calls: the modules GoogleSignIn depends on need no Kotlin bindings
+        discoverClangModulesImplicitly.set(false)
+        // The native sign-in of Google, which gives the ID token Firebase signs in with
+        swiftPackage(
+            url = url("https://github.com/google/GoogleSignIn-iOS.git"),
+            version = from(libs.versions.googleSignInIos.get()),
+            products = listOf(product("GoogleSignIn")),
+            importedClangModules = listOf("GoogleSignIn"),
+        )
     }
 
     sourceSets {
@@ -62,6 +77,13 @@ kotlin {
             implementation(libs.test.kotlin)
             implementation(libs.test.kotlinx.coroutines)
             implementation(libs.test.composeMultiplatform.ui)
+        }
+
+        androidMain.dependencies {
+            // Google sign-in
+            implementation(libs.androidx.credentials)
+            implementation(libs.androidx.credentials.playServicesAuth)
+            implementation(libs.googleId)
         }
 
         iosMain.dependencies {
