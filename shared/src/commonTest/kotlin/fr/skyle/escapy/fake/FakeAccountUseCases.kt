@@ -1,12 +1,18 @@
 package fr.skyle.escapy.fake
 
 import fr.skyle.escapy.domain.model.Profile
+import fr.skyle.escapy.domain.usecase.account.ChangeEmailUseCase
+import fr.skyle.escapy.domain.usecase.account.ChangePasswordUseCase
+import fr.skyle.escapy.domain.usecase.account.DeleteAccountUseCase
+import fr.skyle.escapy.domain.usecase.account.LinkGuestAccountUseCase
 import fr.skyle.escapy.domain.usecase.auth.SendPasswordResetUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignInAsGuestUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignInWithEmailUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignOutUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignUpWithEmailUseCase
 import fr.skyle.escapy.domain.usecase.profile.EnsureProfileUseCase
+import fr.skyle.escapy.domain.usecase.profile.UpdateAvatarUseCase
+import fr.skyle.escapy.domain.usecase.profile.UpdateUsernameUseCase
 import fr.skyle.escapy.domain.usecase.profile.WatchProfileUseCase
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
@@ -62,4 +68,34 @@ class FakeWatchProfileUseCase : WatchProfileUseCase {
     val profiles = MutableSharedFlow<Profile?>()
 
     override fun invoke(userId: String): Flow<Profile?> = profiles
+}
+
+class FakeUpdateUsernameUseCase : FakeAction(), UpdateUsernameUseCase {
+    override suspend fun invoke(username: String): Profile {
+        record(username)
+        return Profile(username = username, avatarId = 7)
+    }
+}
+
+class FakeUpdateAvatarUseCase : FakeAction(), UpdateAvatarUseCase {
+    override suspend fun invoke(avatarId: Int): Profile {
+        record(avatarId.toString())
+        return Profile(username = "Player_ABC234", avatarId = avatarId)
+    }
+}
+
+class FakeLinkGuestAccountUseCase : FakeAction(), LinkGuestAccountUseCase {
+    override suspend fun invoke(email: String, password: String) = record(email)
+}
+
+class FakeChangeEmailUseCase : FakeAction(), ChangeEmailUseCase {
+    override suspend fun invoke(currentPassword: String, newEmail: String) = record(newEmail)
+}
+
+class FakeChangePasswordUseCase : FakeAction(), ChangePasswordUseCase {
+    override suspend fun invoke(currentPassword: String, newPassword: String) = record("change")
+}
+
+class FakeDeleteAccountUseCase : FakeAction(), DeleteAccountUseCase {
+    override suspend fun invoke(currentPassword: String?) = record(currentPassword ?: "guest")
 }

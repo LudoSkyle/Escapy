@@ -10,6 +10,14 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.serialization.NavBackStackSerializer
 import androidx.navigation3.ui.NavDisplay
+import fr.skyle.escapy.ui.screen.about.entry.aboutRouteEntry
+import fr.skyle.escapy.ui.screen.changeemail.entry.changeEmailRouteEntry
+import fr.skyle.escapy.ui.screen.changepassword.entry.changePasswordRouteEntry
+import fr.skyle.escapy.ui.screen.deleteaccount.entry.deleteAccountRouteEntry
+import fr.skyle.escapy.ui.screen.editavatar.entry.editAvatarRouteEntry
+import fr.skyle.escapy.ui.screen.editusername.entry.editUsernameRouteEntry
+import fr.skyle.escapy.ui.screen.linkaccount.entry.linkAccountRouteEntry
+import fr.skyle.escapy.ui.screen.profile.entry.profileRouteEntry
 import fr.skyle.escapy.ui.screen.forgotpassword.entry.forgotPasswordRouteEntry
 import fr.skyle.escapy.ui.screen.home.entry.homeRouteEntry
 import fr.skyle.escapy.ui.screen.signin.entry.signInRouteEntry
@@ -56,7 +64,23 @@ fun RootNavDisplay(
 
             forgotPasswordRouteEntry(backStack = backStack)
 
-            homeRouteEntry()
+            homeRouteEntry(backStack = backStack)
+
+            profileRouteEntry(backStack = backStack)
+
+            editUsernameRouteEntry(backStack = backStack)
+
+            editAvatarRouteEntry(backStack = backStack)
+
+            linkAccountRouteEntry(backStack = backStack)
+
+            changeEmailRouteEntry(backStack = backStack)
+
+            changePasswordRouteEntry(backStack = backStack)
+
+            deleteAccountRouteEntry(backStack = backStack)
+
+            aboutRouteEntry(backStack = backStack)
         },
     )
 }
