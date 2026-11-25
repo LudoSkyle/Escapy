@@ -23,7 +23,8 @@ import kotlinx.coroutines.launch
 
 /**
  * The state of the whole app. A session opens the screens of a signed-in user once its profile
- * exists: read from the cache of Firestore, or created by the server the first time.
+ * exists: read from the cache of Firestore, or created by the server the first time. A profile
+ * that disappears once read is never created again: its account is being deleted.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel(
@@ -65,10 +66,16 @@ class MainViewModel(
         channelFlow {
             send(MainUIState.Loading)
             var isEnsureRequested = false
+            var isProfileRead = false
             try {
                 watchProfileUseCase(userId = userId).collect { profile ->
                     when {
-                        profile != null -> send(MainUIState.SignedIn)
+                        profile != null -> {
+                            isProfileRead = true
+                            send(MainUIState.SignedIn)
+                        }
+                        // Gone after it was read: the account is being deleted, the session ends next
+                        isProfileRead -> Unit
                         // Missing the first time only: the server creates it, and the listener sees it
                         !isEnsureRequested -> {
                             isEnsureRequested = true

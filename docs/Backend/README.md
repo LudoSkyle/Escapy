@@ -44,7 +44,7 @@ Toutes exigent un utilisateur connecté (sinon `unauthenticated`, raison `UNAUTH
 
 | Fonction | Données | Réponse | Rôle |
 |---|---|---|---|
-| `ensureProfile` | aucune | `{ username, avatarId }` | Crée le profil s'il n'existe pas, et le rend. Appelée par l'app après chaque connexion ; sans risque si elle est rappelée, ou appelée deux fois à la fois. Le pseudo par défaut est `Player_` suivi de six caractères, l'avatar est tiré au hasard |
+| `ensureProfile` | aucune | `{ username, avatarId }` | Crée le profil s'il n'existe pas, et le rend. Appelée par l'app après chaque connexion ; sans risque si elle est rappelée, ou appelée deux fois à la fois. Le pseudo par défaut est `Player_` suivi de six caractères, l'avatar est tiré au hasard. Refuse un compte supprimé, dont le jeton reste valable jusqu'à une heure : l'app voit le profil disparaître pendant la suppression |
 | `updateProfile` | `{ username?, avatarId? }` | `{ username, avatarId }` | Change le pseudo, l'avatar, ou les deux |
 | `deleteAccount` | aucune | `{ deleted: true }` | Supprime les données de l'utilisateur, puis son compte. Un membre doit s'être connecté il y a moins de 5 minutes ; un invité, qui n'a pas de mot de passe, n'en a pas besoin |
 
@@ -59,7 +59,7 @@ raison en exception typée (voir [ADR-0005](../adr/0005-le-contrat-des-callables
 
 | Raison | Code | Quand |
 |---|---|---|
-| `UNAUTHENTICATED` | `unauthenticated` | Aucun utilisateur connecté |
+| `UNAUTHENTICATED` | `unauthenticated` | Aucun utilisateur connecté, ou son compte supprimé (`ensureProfile`) |
 | `INVALID_REQUEST` | `invalid-argument` | Les données de l'appel ne sont pas un objet |
 | `USERNAME_INVALID` | `invalid-argument` | Pseudo trop court, trop long, ou avec un caractère refusé |
 | `AVATAR_INVALID` | `invalid-argument` | Avatar hors de 1 à 50, ou pas un entier |

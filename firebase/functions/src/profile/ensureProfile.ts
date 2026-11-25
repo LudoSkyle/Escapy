@@ -1,6 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { onCall } from "firebase-functions/v2/https";
-import { requireUid } from "../core/auth";
+import { requireExistingAccount, requireUid } from "../core/auth";
 import { db, isAlreadyExists, USERS } from "../core/firestore";
 import { defaultUsername, ProfileResponse, randomAvatarId, toProfileResponse } from "./profile";
 
@@ -10,6 +10,8 @@ import { defaultUsername, ProfileResponse, randomAvatarId, toProfileResponse } f
  */
 export const ensureProfile = onCall(async (request): Promise<ProfileResponse> => {
   const uid = requireUid(request);
+  // Called by the app when the profile is missing: it is, too, right after the account is deleted
+  await requireExistingAccount(uid);
   const profile = db().collection(USERS).doc(uid);
 
   try {

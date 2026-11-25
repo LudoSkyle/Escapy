@@ -95,6 +95,26 @@ class MainViewModelTest : MainDispatcherTest() {
     }
 
     @Test
+    fun `a profile deleted after it was read is not created again`() = runTest {
+        // Given
+        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "user", isGuest = false))
+        watchProfileUseCase.profiles.emit(profile)
+
+        // When
+        watchProfileUseCase.profiles.emit(null)
+
+        // Then
+        assertEquals(
+            expected = emptyList(),
+            actual = ensureProfileUseCase.calls,
+        )
+        assertEquals(
+            expected = MainUIState.SignedIn,
+            actual = viewModel.uiState.value,
+        )
+    }
+
+    @Test
     fun `a profile that cannot be created makes it unavailable until a retry`() = runTest {
         // Given
         ensureProfileUseCase.failure = IllegalStateException("No network")
