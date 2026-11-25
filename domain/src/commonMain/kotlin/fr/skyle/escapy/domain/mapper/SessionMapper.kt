@@ -9,5 +9,6 @@ internal fun StoredSession.toSession(): Session =
         is StoredSession.SignedIn -> Session.SignedIn(
             userId = userId,
             isGuest = isAnonymous,
+            email = email,
         )
     }

@@ -24,6 +24,7 @@ internal class SessionRepositoryImpl(
                     StoredSession.SignedIn(
                         userId = user.uid,
                         isAnonymous = user.isAnonymous,
+                        email = user.email,
                     )
                 }
             }

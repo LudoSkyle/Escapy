@@ -8,7 +8,9 @@ import fr.skyle.escapy.domain.exception.AccountUnavailableException
 import fr.skyle.escapy.domain.exception.EmailAlreadyInUseException
 import fr.skyle.escapy.domain.exception.InvalidCredentialsException
 import fr.skyle.escapy.domain.exception.InvalidEmailException
+import fr.skyle.escapy.domain.exception.InvalidUsernameException
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
+import fr.skyle.escapy.domain.exception.RecentSignInRequiredException
 import fr.skyle.escapy.domain.exception.TooManyAttemptsException
 import fr.skyle.escapy.domain.exception.WeakPasswordException
 import fr.skyle.escapy.domain.validation.PasswordRule
@@ -25,11 +27,16 @@ internal fun Throwable.toDomainException(): Throwable =
             // Firebase checks a length only: the rule it enforces is the length of the policy
             AuthFailure.WEAK_PASSWORD -> WeakPasswordException(missingRules = setOf(PasswordRule.MIN_LENGTH), cause = this)
             AuthFailure.TOO_MANY_REQUESTS -> TooManyAttemptsException(cause = this)
-            AuthFailure.RECENT_SIGN_IN_REQUIRED, AuthFailure.UNKNOWN -> AccountUnavailableException(cause = this)
+            AuthFailure.RECENT_SIGN_IN_REQUIRED -> RecentSignInRequiredException(cause = this)
+            AuthFailure.UNKNOWN -> AccountUnavailableException(cause = this)
         }
         is DataNetworkUnavailableException -> NetworkUnavailableException(cause = this)
         is FirebaseUnavailableException -> AccountUnavailableException(cause = this)
-        is FunctionFailureException -> AccountUnavailableException(cause = this)
+        is FunctionFailureException -> when (reason) {
+            "USERNAME_INVALID" -> InvalidUsernameException(cause = this)
+            "RECENT_SIGN_IN_REQUIRED" -> RecentSignInRequiredException(cause = this)
+            else -> AccountUnavailableException(cause = this)
+        }
         else -> this
     }
 

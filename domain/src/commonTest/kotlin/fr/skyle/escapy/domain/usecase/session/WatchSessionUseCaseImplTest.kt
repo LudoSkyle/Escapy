@@ -25,6 +25,7 @@ class WatchSessionUseCaseImplTest {
             StoredSession.SignedIn(
                 userId = "guest",
                 isAnonymous = true,
+                email = null,
             ),
         )
 
@@ -48,6 +49,7 @@ class WatchSessionUseCaseImplTest {
             StoredSession.SignedIn(
                 userId = "member",
                 isAnonymous = false,
+                email = "member@escapy.app",
             ),
         )
 
@@ -59,6 +61,7 @@ class WatchSessionUseCaseImplTest {
             expected = Session.SignedIn(
                 userId = "member",
                 isGuest = false,
+                email = "member@escapy.app",
             ),
             actual = session,
         )
@@ -72,6 +75,7 @@ class WatchSessionUseCaseImplTest {
             StoredSession.SignedIn(
                 userId = "guest",
                 isAnonymous = true,
+                email = null,
             ),
             StoredSession.SignedOut,
         )

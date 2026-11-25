@@ -8,5 +8,7 @@ sealed interface StoredSession {
     data class SignedIn(
         val userId: String,
         val isAnonymous: Boolean,
+        // Null for a guest
+        val email: String?,
     ) : StoredSession
 }

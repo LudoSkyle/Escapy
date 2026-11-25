@@ -1,5 +1,7 @@
 package fr.skyle.escapy.data.repository.auth
 
+import dev.gitlive.firebase.auth.EmailAuthProvider
+import dev.gitlive.firebase.auth.FirebaseUser
 import fr.skyle.escapy.data.exception.AuthFailure
 import fr.skyle.escapy.data.exception.AuthFailureException
 import fr.skyle.escapy.data.exception.FirebaseUnavailableException
@@ -47,4 +49,37 @@ internal class AuthRepositoryImpl(
         val auth = firebaseProvider.services()?.auth ?: return
         authCall { auth.signOut() }
     }
+
+    override suspend fun linkGuestWithEmail(email: String, password: String) {
+        val user = currentUser()
+        authCall {
+            user.linkWithCredential(EmailAuthProvider.credential(email = email.trim(), password = password))
+            user.sendEmailVerification()
+        }
+    }
+
+    override suspend fun reauthenticate(password: String) {
+        val user = currentUser()
+        authCall {
+            // The email of the account, as it is now: it may have changed on another device
+            user.reload()
+            val email = user.email ?: throw AuthFailureException(failure = AuthFailure.UNKNOWN)
+            user.reauthenticate(EmailAuthProvider.credential(email = email, password = password))
+            // A token of this new sign-in, for the functions that check its time
+            user.getIdToken(forceRefresh = true)
+        }
+    }
+
+    override suspend fun changeEmail(newEmail: String) {
+        val user = currentUser()
+        authCall { user.verifyBeforeUpdateEmail(newEmail = newEmail.trim()) }
+    }
+
+    override suspend fun changePassword(newPassword: String) {
+        val user = currentUser()
+        authCall { user.updatePassword(password = newPassword) }
+    }
+
+    private fun currentUser(): FirebaseUser =
+        services().auth.currentUser ?: throw AuthFailureException(failure = AuthFailure.UNKNOWN)
 }

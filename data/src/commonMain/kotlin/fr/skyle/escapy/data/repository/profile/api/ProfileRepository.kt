@@ -13,4 +13,7 @@ interface ProfileRepository {
 
     /** Creates the profile of the signed-in user if it does not exist, and returns it. */
     suspend fun ensureProfile(): StoredProfile
+
+    /** Changes the username, the avatar, or both, checked by the server. */
+    suspend fun updateProfile(username: String? = null, avatarId: Int? = null): StoredProfile
 }
