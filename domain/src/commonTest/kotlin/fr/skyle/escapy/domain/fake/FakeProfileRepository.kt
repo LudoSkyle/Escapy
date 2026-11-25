@@ -19,4 +19,17 @@ class FakeProfileRepository : ProfileRepository {
         ensureFailure?.let { exception -> throw exception }
         return ensuredProfile
     }
+
+    var updateFailure: Exception? = null
+
+    val updates = mutableListOf<Pair<String?, Int?>>()
+
+    override suspend fun updateProfile(username: String?, avatarId: Int?): StoredProfile {
+        updates += username to avatarId
+        updateFailure?.let { exception -> throw exception }
+        return StoredProfile(
+            username = username ?: ensuredProfile.username,
+            avatarId = avatarId ?: ensuredProfile.avatarId,
+        )
+    }
 }

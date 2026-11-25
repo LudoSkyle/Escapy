@@ -23,5 +23,11 @@ class TooManyAttemptsException(cause: Throwable? = null) : Exception("Too many a
 /** The server could not be reached: no network, or the server is down. */
 class NetworkUnavailableException(cause: Throwable? = null) : Exception("Network unavailable", cause)
 
+/** The server asks a member to sign in again before this action: their sign-in is too old. */
+class RecentSignInRequiredException(cause: Throwable? = null) : Exception("Recent sign-in required", cause)
+
+/** The username is too short, too long, or has a forbidden character. */
+class InvalidUsernameException(cause: Throwable? = null) : Exception("Invalid username", cause)
+
 /** The account cannot be used: a build without Firebase, or a refusal the app does not know. */
 class AccountUnavailableException(cause: Throwable? = null) : Exception("Account unavailable", cause)

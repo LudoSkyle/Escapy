@@ -7,6 +7,7 @@ import fr.skyle.escapy.data.firebase.FirebaseProvider
 import fr.skyle.escapy.data.firebase.FirebaseServices
 import fr.skyle.escapy.data.function.EmptyRequest
 import fr.skyle.escapy.data.function.ProfileResponse
+import fr.skyle.escapy.data.function.UpdateProfileRequest
 import fr.skyle.escapy.data.model.StoredProfile
 import fr.skyle.escapy.data.repository.profile.api.ProfileRepository
 import kotlinx.coroutines.flow.Flow
@@ -33,9 +34,20 @@ internal class ProfileRepositoryImpl(
         return response.toStoredProfile()
     }
 
+    override suspend fun updateProfile(username: String?, avatarId: Int?): StoredProfile {
+        val callable = services().functions.httpsCallable(UPDATE_PROFILE)
+        val request = UpdateProfileRequest(username = username, avatarId = avatarId)
+        val response = functionCall {
+            // A field left null is not sent: the function changes only what it receives
+            callable.invoke(request) { encodeDefaults = false }.data<ProfileResponse>()
+        }
+        return response.toStoredProfile()
+    }
+
     private companion object {
         const val USERS = "users"
         const val ENSURE_PROFILE = "ensureProfile"
+        const val UPDATE_PROFILE = "updateProfile"
     }
 }
 

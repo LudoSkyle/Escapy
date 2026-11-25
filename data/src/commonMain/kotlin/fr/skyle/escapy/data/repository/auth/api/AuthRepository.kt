@@ -17,4 +17,18 @@ interface AuthRepository {
     suspend fun sendPasswordReset(email: String)
 
     suspend fun signOut()
+
+    /**
+     * Turns the guest account into an account with an email and a password, keeping everything in
+     * it, then sends the email to verify the address.
+     */
+    suspend fun linkGuestWithEmail(email: String, password: String)
+
+    /** Signs in again with the password, for a change of email or password, or a deletion. */
+    suspend fun reauthenticate(password: String)
+
+    /** Sends a link to [newEmail]: the address of the account changes once it is opened. */
+    suspend fun changeEmail(newEmail: String)
+
+    suspend fun changePassword(newPassword: String)
 }

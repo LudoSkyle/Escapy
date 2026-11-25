@@ -23,4 +23,12 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun sendPasswordReset(email: String) = record("reset:$email")
 
     override suspend fun signOut() = record("signOut")
+
+    override suspend fun linkGuestWithEmail(email: String, password: String) = record("link:$email")
+
+    override suspend fun reauthenticate(password: String) = record("reauthenticate")
+
+    override suspend fun changeEmail(newEmail: String) = record("changeEmail:$newEmail")
+
+    override suspend fun changePassword(newPassword: String) = record("changePassword")
 }
