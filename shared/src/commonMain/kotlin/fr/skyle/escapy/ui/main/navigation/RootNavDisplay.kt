@@ -10,7 +10,10 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.serialization.NavBackStackSerializer
 import androidx.navigation3.ui.NavDisplay
+import fr.skyle.escapy.ui.screen.forgotpassword.entry.forgotPasswordRouteEntry
 import fr.skyle.escapy.ui.screen.home.entry.homeRouteEntry
+import fr.skyle.escapy.ui.screen.signin.entry.signInRouteEntry
+import fr.skyle.escapy.ui.screen.signup.entry.signUpRouteEntry
 import fr.skyle.escapy.ui.screen.welcome.entry.welcomeRouteEntry
 
 /**
@@ -45,7 +48,13 @@ fun RootNavDisplay(
             rememberViewModelStoreNavEntryDecorator(),
         ),
         entryProvider = entryProvider {
-            welcomeRouteEntry()
+            welcomeRouteEntry(backStack = backStack)
+
+            signInRouteEntry(backStack = backStack)
+
+            signUpRouteEntry(backStack = backStack)
+
+            forgotPasswordRouteEntry(backStack = backStack)
 
             homeRouteEntry()
         },

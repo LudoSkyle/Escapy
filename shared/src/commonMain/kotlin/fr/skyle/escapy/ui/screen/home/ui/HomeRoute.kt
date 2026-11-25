@@ -1,9 +1,20 @@
 package fr.skyle.escapy.ui.screen.home.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.compose.viewmodel.koinViewModel
 
-// No ViewModel yet: joining and creating a game arrive with their own lots
 @Composable
-fun HomeRoute() {
-    HomeScreen()
+fun HomeRoute(
+    viewModel: HomeViewModel = koinViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    HomeScreen(
+        uiState = uiState,
+        onSignOutClicked = viewModel::onSignOutClicked,
+        onGuestSignOutConfirmed = viewModel::onGuestSignOutConfirmed,
+        onGuestSignOutDismissed = viewModel::onGuestSignOutDismissed,
+    )
 }

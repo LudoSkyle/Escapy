@@ -1,77 +1,126 @@
 package fr.skyle.escapy.ui.main
 
+import fr.skyle.escapy.domain.model.Profile
 import fr.skyle.escapy.domain.model.Session
+import fr.skyle.escapy.fake.FakeEnsureProfileUseCase
+import fr.skyle.escapy.fake.FakeSignOutUseCase
+import fr.skyle.escapy.fake.FakeWatchProfileUseCase
 import fr.skyle.escapy.fake.FakeWatchSessionUseCase
+import fr.skyle.escapy.test.MainDispatcherTest
 import fr.skyle.escapy.ui.main.MainViewModel.MainUIState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class MainViewModelTest {
+class MainViewModelTest : MainDispatcherTest() {
 
     private val watchSessionUseCase = FakeWatchSessionUseCase()
+    private val watchProfileUseCase = FakeWatchProfileUseCase()
+    private val ensureProfileUseCase = FakeEnsureProfileUseCase()
+    private val signOutUseCase = FakeSignOutUseCase()
 
-    @BeforeTest
-    fun setUp() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
-    }
+    private val viewModel = MainViewModel(
+        watchSessionUseCase = watchSessionUseCase,
+        watchProfileUseCase = watchProfileUseCase,
+        ensureProfileUseCase = ensureProfileUseCase,
+        signOutUseCase = signOutUseCase,
+    )
 
-    @AfterTest
-    fun tearDown() {
-        Dispatchers.resetMain()
+    private val profile = Profile(
+        username = "Player_ABC234",
+        avatarId = 7,
+    )
+
+    @Test
+    fun `the app waits for the first session`() {
+        assertEquals(
+            expected = MainUIState.Loading,
+            actual = viewModel.uiState.value,
+        )
     }
 
     @Test
-    fun `the app waits for the first session`() = runTest {
-        // Given
-        val viewModel = MainViewModel(
-            watchSessionUseCase = watchSessionUseCase,
-        )
-
+    fun `without a session the app is signed out`() = runTest {
         // When
-        val state = viewModel.uiState.value
+        watchSessionUseCase.sessions.emit(Session.SignedOut)
+
+        // Then
+        assertEquals(
+            expected = MainUIState.SignedOut,
+            actual = viewModel.uiState.value,
+        )
+    }
+
+    @Test
+    fun `a session with its profile in the cache is signed in without calling the server`() = runTest {
+        // When
+        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "user", isGuest = false))
+        val waiting = viewModel.uiState.value
+        watchProfileUseCase.profiles.emit(profile)
 
         // Then
         assertEquals(
             expected = MainUIState.Loading,
-            actual = state,
+            actual = waiting,
+        )
+        assertEquals(
+            expected = MainUIState.SignedIn,
+            actual = viewModel.uiState.value,
+        )
+        assertEquals(
+            expected = emptyList(),
+            actual = ensureProfileUseCase.calls,
         )
     }
 
     @Test
-    fun `the app follows the sign-in and the sign-out`() = runTest {
+    fun `a missing profile is created once then the app is signed in`() = runTest {
         // Given
-        val viewModel = MainViewModel(
-            watchSessionUseCase = watchSessionUseCase,
-        )
+        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "user", isGuest = true))
 
         // When
-        watchSessionUseCase.sessions.emit(
-            Session.SignedIn(
-                userId = "guest",
-                isGuest = true,
-            ),
-        )
-        val signedIn = viewModel.uiState.value
-        watchSessionUseCase.sessions.emit(Session.SignedOut)
-        val signedOut = viewModel.uiState.value
+        watchProfileUseCase.profiles.emit(null)
+        watchProfileUseCase.profiles.emit(null)
+        watchProfileUseCase.profiles.emit(profile)
 
         // Then
         assertEquals(
-            expected = MainUIState.Ready(isSignedIn = true),
-            actual = signedIn,
+            expected = listOf("ensure"),
+            actual = ensureProfileUseCase.calls,
         )
         assertEquals(
-            expected = MainUIState.Ready(isSignedIn = false),
-            actual = signedOut,
+            expected = MainUIState.SignedIn,
+            actual = viewModel.uiState.value,
+        )
+    }
+
+    @Test
+    fun `a profile that cannot be created makes it unavailable until a retry`() = runTest {
+        // Given
+        ensureProfileUseCase.failure = IllegalStateException("No network")
+        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "user", isGuest = false))
+        watchProfileUseCase.profiles.emit(null)
+        val unavailable = viewModel.uiState.value
+
+        // When
+        ensureProfileUseCase.failure = null
+        viewModel.onRetryClicked()
+        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "user", isGuest = false))
+        watchProfileUseCase.profiles.emit(null)
+        watchProfileUseCase.profiles.emit(profile)
+
+        // Then
+        assertEquals(
+            expected = MainUIState.ProfileUnavailable,
+            actual = unavailable,
+        )
+        assertEquals(
+            expected = listOf("ensure", "ensure"),
+            actual = ensureProfileUseCase.calls,
+        )
+        assertEquals(
+            expected = MainUIState.SignedIn,
+            actual = viewModel.uiState.value,
         )
     }
 
@@ -81,14 +130,29 @@ class MainViewModelTest {
         watchSessionUseCase.failure = IllegalStateException("No session")
 
         // When
-        val viewModel = MainViewModel(
+        val failingViewModel = MainViewModel(
             watchSessionUseCase = watchSessionUseCase,
+            watchProfileUseCase = watchProfileUseCase,
+            ensureProfileUseCase = ensureProfileUseCase,
+            signOutUseCase = signOutUseCase,
         )
 
         // Then
         assertEquals(
-            expected = MainUIState.Ready(isSignedIn = false),
-            actual = viewModel.uiState.value,
+            expected = MainUIState.SignedOut,
+            actual = failingViewModel.uiState.value,
+        )
+    }
+
+    @Test
+    fun `the user can sign out from an unavailable profile`() = runTest {
+        // When
+        viewModel.onSignOutClicked()
+
+        // Then
+        assertEquals(
+            expected = listOf("signOut"),
+            actual = signOutUseCase.calls,
         )
     }
 }

@@ -36,6 +36,13 @@
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
+	<!-- The Firebase emulators of the Mac, in clear text, for a debug build launched with
+	     ESCAPY_FIREBASE_EMULATOR=1: local addresses only -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<!-- While the app starts: the keyhole of the icon on the background of the app -->
