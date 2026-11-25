@@ -21,8 +21,9 @@ data/src/
 │   ├── function/                  (requêtes et réponses des callables, internal)
 │   ├── model/                     (modèles exposés : StoredSession, StoredProfile)
 │   └── repository/
-│       ├── auth/                  (AuthRepository : connexion, inscription, invité, réinitialisation, déconnexion)
-│       ├── profile/               (ProfileRepository : profil observé, ensureProfile)
+│       ├── account/               (AccountRepository : suppression du compte, puis déconnexion)
+│       ├── auth/                  (AuthRepository : connexion, inscription, invité, liaison, réauthentification, e-mail, mot de passe, déconnexion)
+│       ├── profile/               (ProfileRepository : profil observé, ensureProfile, updateProfile)
 │       └── session/               (SessionRepository : la session observée)
 ├── androidMain/kotlin/fr/skyle/escapy/data/
 │   └── di/DataModule.android.kt   (FirebaseProvider : émulateurs, app par défaut, ou rien)

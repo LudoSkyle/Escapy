@@ -58,8 +58,10 @@ le SDK de GitLive et Firestore. La fondation (lot 2) est en place : modules, bui
 pilotée par la session, hôtes Android et iOS, thème provisoire, CI. Le backend socle (lot 3) est
 dans `firebase/` : règles testées, création, modification et suppression du profil, émulateur. Le
 design system v2 (lot 4) est en place : tokens, composants des écrans du compte, icônes, catalogue.
-Les écrans Bienvenue et Accueil ne sont encore que des emplacements. La suite arrive dans l'ordre de la
-[feuille de route](./docs/ROADMAP.md).
+Le compte (lots 5a et 5b) est en place : connexion, inscription, invité, mot de passe oublié, profil
+(pseudo, avatar), liaison d'un invité à un e-mail, changement d'e-mail et de mot de passe,
+suppression du compte, à propos. Reste la connexion Google (5c) ; l'accueil n'est encore qu'un
+emplacement. La suite arrive dans l'ordre de la [feuille de route](./docs/ROADMAP.md).
 
 ## Commandes
 
