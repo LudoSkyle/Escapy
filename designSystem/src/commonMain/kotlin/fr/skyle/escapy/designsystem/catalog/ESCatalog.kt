@@ -33,6 +33,8 @@ import fr.skyle.escapy.designsystem.core.iconbutton.ESIconButton
 import fr.skyle.escapy.designsystem.core.iconbutton.ESIconButtonDefaults
 import fr.skyle.escapy.designsystem.core.progress.ESProgressIndicator
 import fr.skyle.escapy.designsystem.core.progress.ESProgressIndicatorDefaults
+import fr.skyle.escapy.designsystem.core.row.ESRow
+import fr.skyle.escapy.designsystem.core.row.ESRowDefaults
 import fr.skyle.escapy.designsystem.core.screenstructure.ESScreenStructure
 import fr.skyle.escapy.designsystem.core.screenstructure.ESScreenStructureDefaults
 import fr.skyle.escapy.designsystem.core.snackbar.rememberESSnackbarState
@@ -177,6 +179,21 @@ fun ESCatalog() {
                     )
 
                     Spacer(modifier = Modifier.height(ESTheme.spacing.s))
+
+                    ESDivider()
+
+                    ESRow(
+                        label = "Change the email",
+                        supportingText = "player@escapy.app",
+                        onClick = {},
+                        style = ESRowDefaults.Style.STANDARD,
+                    )
+
+                    ESRow(
+                        label = "Delete the account",
+                        onClick = {},
+                        style = ESRowDefaults.Style.DESTRUCTIVE,
+                    )
 
                     ESDivider()
 
