@@ -11,7 +11,19 @@ export type FailureReason =
   | "AVATAR_INVALID"
   | "NOTHING_TO_UPDATE"
   | "PROFILE_NOT_FOUND"
-  | "RECENT_SIGN_IN_REQUIRED";
+  | "RECENT_SIGN_IN_REQUIRED"
+  | "GAME_TITLE_INVALID"
+  | "GAME_DURATION_INVALID"
+  | "MAX_PLAYERS_INVALID"
+  | "TOO_MANY_GAMES"
+  | "JOIN_CODE_INVALID"
+  | "TOO_MANY_ATTEMPTS"
+  | "GAME_NOT_FOUND"
+  | "GAME_NOT_JOINABLE"
+  | "GAME_FULL"
+  | "PLAYER_EXCLUDED"
+  | "NOT_GAME_MASTER"
+  | "GAME_MASTER_CANNOT_LEAVE";
 
 export function failure(code: FunctionsErrorCode, reason: FailureReason, message: string): HttpsError {
   return new HttpsError(code, message, { reason });

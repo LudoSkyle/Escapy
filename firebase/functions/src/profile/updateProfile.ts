@@ -3,6 +3,7 @@ import { onCall } from "firebase-functions/v2/https";
 import { requestData, requireUid } from "../core/auth";
 import { failure } from "../core/errors";
 import { db, isNotFound, USERS } from "../core/firestore";
+import { copyMemberToGames } from "../game/gameData";
 import { ProfileResponse, toProfileResponse, validateAvatarId, validateUsername } from "./profile";
 
 /** Changes the username, the avatar, or both, of the user who calls, and returns the profile. */
@@ -33,5 +34,8 @@ export const updateProfile = onCall(async (request): Promise<ProfileResponse> =>
   }
 
   const snapshot = await profile.get();
-  return toProfileResponse(snapshot.data()!);
+  const response = toProfileResponse(snapshot.data()!);
+  // The other members of a game see the name and avatar copied into it
+  await copyMemberToGames(uid, response);
+  return response;
 });
