@@ -192,7 +192,9 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
      - [x] Vérifié de bout en bout contre les émulateurs, le maître du jeu sur le simulateur iOS 27.2
            et le joueur sur un émulateur Android (API 36) : créer, rejoindre par le code (tapé en
            minuscules), un code inconnu, les joueurs en direct, exclure (le joueur le voit, son code
-           est refusé), quitter, annuler (le joueur le voit), la liste de l'accueil à jour. Non
+           est refusé), quitter, annuler (le joueur le voit), la liste de l'accueil à jour ; puis le
+           joueur sur iOS, face à un maître du jeu joué par un script : exclu, partie annulée,
+           quitter, le champ du code et un code inconnu. Non
            vérifiés à la main, couverts par les tests : une partie pleine, la limite des codes
            essayés, la suppression du compte et le nettoyage des parties abandonnées
      - Lancer la partie arrive au lot 7, avec le minuteur. Aucune fonction n'a d'instance chaude
