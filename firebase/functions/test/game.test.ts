@@ -31,6 +31,11 @@ function game(gameId: string) {
   return adminFirestore().collection("games").doc(gameId);
 }
 
+/** The entry of a game in the list of a user, for their home screen. */
+async function userGame(uid: string, gameId: string) {
+  return (await adminFirestore().collection("users").doc(uid).collection("games").doc(gameId).get()).data();
+}
+
 describe("games", () => {
   let clients: TestClient[] = [];
 
@@ -74,6 +79,11 @@ describe("games", () => {
       });
       const code = (await adminFirestore().collection("joinCodes").doc(created.joinCode).get()).data();
       expect(code?.gameId).toBe(created.gameId);
+      expect(await userGame(master.uid, created.gameId)).toMatchObject({
+        title: "Le manoir",
+        isMaster: true,
+        master: { username: profile.username, avatarId: profile.avatarId },
+      });
     });
 
     test("cleans the title and leaves the game without a maximum by default", async () => {
@@ -166,6 +176,9 @@ describe("games", () => {
       const playerDocument = (await game(created.gameId).collection("players").doc(player.uid).get()).data();
       expect(playerDocument).toMatchObject({ username: profile.username, avatarId: profile.avatarId });
       expect(playerDocument?.joinedAt).toBeInstanceOf(Timestamp);
+      const entry = await userGame(player.uid, created.gameId);
+      expect(entry).toMatchObject({ title: "Le manoir", isMaster: false, master: stored.master });
+      expect(entry?.createdAt).toEqual(stored.createdAt);
     });
 
     test("changes nothing for a member who joins again, nor for the game master", async () => {
@@ -259,6 +272,7 @@ describe("games", () => {
       // Then
       expect((await game(created.gameId).get()).data()).toMatchObject({ memberIds: [master.uid], playerCount: 0 });
       expect((await game(created.gameId).collection("players").doc(player.uid).get()).exists).toBe(false);
+      expect(await userGame(player.uid, created.gameId)).toBeUndefined();
     });
 
     test("is no error for a game already left, or deleted", async () => {
@@ -303,6 +317,7 @@ describe("games", () => {
 
       // Then
       expect((await game(created.gameId).get()).data()).toMatchObject({ memberIds: [master.uid], playerCount: 0 });
+      expect(await userGame(player.uid, created.gameId)).toBeUndefined();
       expect(await failureOf(player.call("joinGame", { code: created.joinCode }))).toEqual({
         code: "functions/permission-denied",
         reason: "PLAYER_EXCLUDED",
@@ -354,6 +369,8 @@ describe("games", () => {
       expect((await game(created.gameId).get()).exists).toBe(false);
       expect((await game(created.gameId).collection("players").get()).empty).toBe(true);
       expect((await adminFirestore().collection("joinCodes").doc(created.joinCode).get()).exists).toBe(false);
+      expect(await userGame(master.uid, created.gameId)).toBeUndefined();
+      expect(await userGame(player.uid, created.gameId)).toBeUndefined();
       expect(await failureOf(player.call("joinGame", { code: created.joinCode }))).toEqual({
         code: "functions/not-found",
         reason: "GAME_NOT_FOUND",
@@ -414,6 +431,7 @@ describe("games", () => {
       expect((await game(own.gameId).get()).exists).toBe(false);
       expect((await adminFirestore().collection("joinCodes").doc(own.joinCode).get()).exists).toBe(false);
       expect((await game(other.gameId).get()).data()).toMatchObject({ memberIds: [master.uid], playerCount: 0 });
+      expect((await adminFirestore().collection("users").doc(player.uid).collection("games").get()).empty).toBe(true);
     });
 
     test("a new name or avatar shows in the games of the user", async () => {
@@ -429,6 +447,8 @@ describe("games", () => {
 
       // Then
       expect((await game(created.gameId).get()).data()?.master).toEqual({ username: "Maître", avatarId: 7 });
+      expect((await userGame(master.uid, created.gameId))?.master).toEqual({ username: "Maître", avatarId: 7 });
+      expect((await userGame(player.uid, created.gameId))?.master).toEqual({ username: "Maître", avatarId: 7 });
       expect((await game(created.gameId).collection("players").doc(player.uid).get()).data()).toMatchObject({
         username: "Joueuse",
         avatarId: 8,

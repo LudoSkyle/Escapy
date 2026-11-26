@@ -4,7 +4,7 @@ import { requestData, requireExistingAccount, requireUid } from "../core/auth";
 import { failure } from "../core/errors";
 import { db, GAMES, JOIN_ATTEMPTS, JOIN_CODES, PLAYERS } from "../core/firestore";
 import { hasRoomLeft, JOIN_FAILURES_LIMIT, JOIN_FAILURES_WINDOW_MINUTES, validateJoinCode } from "./game";
-import { accessOf, readMember } from "./gameData";
+import { accessOf, readMember, userGameData, userGameOf } from "./gameData";
 
 export interface JoinGameResponse {
   gameId: string;
@@ -49,6 +49,7 @@ export const joinGame = onCall(async (request): Promise<JoinGameResponse> => {
       throw failure("failed-precondition", "GAME_FULL", "The game has no room left");
     }
     transaction.create(game.collection(PLAYERS).doc(uid), { ...player, joinedAt: FieldValue.serverTimestamp() });
+    transaction.set(userGameOf(uid, game.id), userGameData(data, false));
     transaction.update(game, {
       memberIds: FieldValue.arrayUnion(uid),
       playerCount: FieldValue.increment(1),

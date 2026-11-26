@@ -101,8 +101,8 @@
     <string name="home_join_code_help">6 characters, given by the game master</string>
     <string name="home_my_games">My games</string>
     <string name="home_no_games">No game yet. Join one with its code, or create your own.</string>
-    <string name="game_summary_master">You run it · %1$s</string>
-    <string name="game_summary_player">Run by %1$s · %2$s</string>
+    <string name="game_summary_master">You run it</string>
+    <string name="game_summary_player">Run by %1$s</string>
     <plurals name="game_players">
         <item quantity="one">%1$d player</item>
         <item quantity="other">%1$d players</item>

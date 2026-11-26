@@ -4,6 +4,7 @@ import dev.gitlive.firebase.firestore.Direction
 import dev.gitlive.firebase.firestore.DocumentSnapshot
 import fr.skyle.escapy.data.document.GameDocument
 import fr.skyle.escapy.data.document.MemberDocument
+import fr.skyle.escapy.data.document.UserGameDocument
 import fr.skyle.escapy.data.exception.FirebaseUnavailableException
 import fr.skyle.escapy.data.exception.functionCall
 import fr.skyle.escapy.data.exception.withFirestoreErrors
@@ -15,6 +16,7 @@ import fr.skyle.escapy.data.function.GameRequest
 import fr.skyle.escapy.data.function.JoinGameRequest
 import fr.skyle.escapy.data.function.KickPlayerRequest
 import fr.skyle.escapy.data.model.StoredGame
+import fr.skyle.escapy.data.model.StoredGameEntry
 import fr.skyle.escapy.data.model.StoredMember
 import fr.skyle.escapy.data.repository.game.api.GameRepository
 import kotlinx.coroutines.flow.Flow
@@ -28,13 +30,15 @@ internal class GameRepositoryImpl(
     private fun services(): FirebaseServices =
         firebaseProvider.services() ?: throw FirebaseUnavailableException()
 
-    override fun watchGamesOf(userId: String): Flow<List<StoredGame>> =
-        // The query the rules accept: a user lists the games they are a member of only
-        services().firestore.collection(GAMES)
-            .where { MEMBER_IDS contains userId }
+    override fun watchGamesOf(userId: String): Flow<List<StoredGameEntry>> =
+        // Their own list, which the functions keep: a query on the games would keep one the user lost
+        // access to, left in its cache by the Android SDK
+        services().firestore.collection(USERS).document(userId).collection(USER_GAMES)
             .orderBy(CREATED_AT, Direction.DESCENDING)
             .snapshots
-            .map { snapshot -> snapshot.documents.map { document -> document.toStoredGame() } }
+            .map { snapshot ->
+                snapshot.documents.map { document -> document.data<UserGameDocument>().toStoredGameEntry(gameId = document.id) }
+            }
             .distinctUntilChanged()
             .withFirestoreErrors()
 
@@ -85,7 +89,8 @@ internal class GameRepositoryImpl(
     private companion object {
         const val GAMES = "games"
         const val PLAYERS = "players"
-        const val MEMBER_IDS = "memberIds"
+        const val USERS = "users"
+        const val USER_GAMES = "games"
         const val CREATED_AT = "createdAt"
         const val JOINED_AT = "joinedAt"
         const val CREATE_GAME = "createGame"
@@ -110,6 +115,15 @@ private fun DocumentSnapshot.toStoredGame(): StoredGame {
         joinCode = document.joinCode,
     )
 }
+
+private fun UserGameDocument.toStoredGameEntry(gameId: String): StoredGameEntry =
+    StoredGameEntry(
+        gameId = gameId,
+        title = title,
+        isMaster = isMaster,
+        masterUsername = master.username,
+        masterAvatarId = master.avatarId,
+    )
 
 private fun MemberDocument.toStoredMember(userId: String): StoredMember =
     StoredMember(

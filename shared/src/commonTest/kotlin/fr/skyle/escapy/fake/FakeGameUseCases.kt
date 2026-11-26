@@ -3,6 +3,7 @@ package fr.skyle.escapy.fake
 import fr.skyle.escapy.domain.model.Game
 import fr.skyle.escapy.domain.model.GameMember
 import fr.skyle.escapy.domain.model.GameState
+import fr.skyle.escapy.domain.model.GameSummary
 import fr.skyle.escapy.domain.usecase.game.CancelGameUseCase
 import fr.skyle.escapy.domain.usecase.game.CreateGameUseCase
 import fr.skyle.escapy.domain.usecase.game.JoinGameUseCase
@@ -15,9 +16,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 class FakeWatchMyGamesUseCase : WatchMyGamesUseCase {
 
-    val games = MutableSharedFlow<List<Game>>()
+    val games = MutableSharedFlow<List<GameSummary>>()
 
-    override fun invoke(): Flow<List<Game>> = games
+    override fun invoke(): Flow<List<GameSummary>> = games
 }
 
 class FakeWatchGameUseCase : WatchGameUseCase {
@@ -66,3 +67,6 @@ fun game(isMaster: Boolean): Game =
         playerCount = 1,
         joinCode = "ABC234",
     )
+
+fun gameSummary(isMaster: Boolean): GameSummary =
+    GameSummary(gameId = "game", title = "Le manoir", isMaster = isMaster, masterUsername = "Maître", masterAvatarId = 3)

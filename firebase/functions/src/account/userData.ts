@@ -11,5 +11,6 @@ export async function deleteUserData(uid: string): Promise<void> {
   await removeUserFromGames(uid);
   // delete() succeeds when the document is already gone
   await db().collection(JOIN_ATTEMPTS).doc(uid).delete();
-  await db().collection(USERS).doc(uid).delete();
+  // The profile with its subcollections, such as the list of their games
+  await db().recursiveDelete(db().collection(USERS).doc(uid));
 }

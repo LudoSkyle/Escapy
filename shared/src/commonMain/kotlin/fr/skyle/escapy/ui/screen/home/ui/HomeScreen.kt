@@ -34,8 +34,7 @@ import fr.skyle.escapy.designsystem.core.textfield.ESTextField
 import fr.skyle.escapy.designsystem.core.textfield.ESTextFieldDefaults
 import fr.skyle.escapy.designsystem.core.topappbar.ESTopAppBar
 import fr.skyle.escapy.designsystem.theme.ESTheme
-import fr.skyle.escapy.domain.model.Game
-import fr.skyle.escapy.domain.model.GameMember
+import fr.skyle.escapy.domain.model.GameSummary
 import fr.skyle.escapy.domain.validation.GameRules
 import fr.skyle.escapy.resources.Res
 import fr.skyle.escapy.resources.action_create_game
@@ -51,7 +50,6 @@ import fr.skyle.escapy.resources.home_no_games
 import fr.skyle.escapy.resources.ic_person
 import fr.skyle.escapy.resources.profile_title
 import fr.skyle.escapy.ui.core.error.message
-import fr.skyle.escapy.ui.core.game.playersText
 import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel.HomeUIState
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -163,7 +161,7 @@ fun HomeScreen(
 
 @Composable
 private fun HomeGames(
-    games: List<Game>?,
+    games: List<GameSummary>?,
     onGameClicked: (gameId: String) -> Unit,
 ) {
     when {
@@ -194,15 +192,14 @@ private fun HomeGames(
                     ESDivider()
                 }
 
-                val players = playersText(playerCount = game.playerCount, maxPlayers = game.maxPlayers)
                 ESRow(
                     label = game.title,
                     supportingText = if (game.isMaster) {
-                        stringResource(Res.string.game_summary_master, players)
+                        stringResource(Res.string.game_summary_master)
                     } else {
-                        stringResource(Res.string.game_summary_player, game.master.username, players)
+                        stringResource(Res.string.game_summary_player, game.masterUsername)
                     },
-                    onClick = { onGameClicked(game.id) },
+                    onClick = { onGameClicked(game.gameId) },
                     style = ESRowDefaults.Style.STANDARD,
                 )
             }
@@ -249,13 +246,11 @@ private fun PreviewHomeScreenWithoutGames() {
     }
 }
 
-private fun previewGame(id: String, title: String, isMaster: Boolean): Game =
-    Game(
-        id = id,
+private fun previewGame(id: String, title: String, isMaster: Boolean): GameSummary =
+    GameSummary(
+        gameId = id,
         title = title,
-        durationMinutes = 60,
-        maxPlayers = if (isMaster) 6 else null,
-        master = GameMember(userId = "master", username = "Maître", avatarId = 3, isCurrentUser = isMaster),
-        playerCount = 2,
-        joinCode = "ABC234",
+        isMaster = isMaster,
+        masterUsername = "Maître",
+        masterAvatarId = 3,
     )

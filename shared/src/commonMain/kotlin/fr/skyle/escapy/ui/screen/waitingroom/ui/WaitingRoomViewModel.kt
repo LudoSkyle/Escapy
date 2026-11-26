@@ -12,6 +12,8 @@ import fr.skyle.escapy.domain.usecase.game.WatchGameUseCase
 import fr.skyle.escapy.ui.core.error.GameError
 import fr.skyle.escapy.ui.core.error.toGameError
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,17 +41,19 @@ class WaitingRoomViewModel(
     private val _event = Channel<WaitingRoomEvent>(Channel.BUFFERED)
     val event = _event.receiveAsFlow()
 
-    // Set once the user leaves or cancels: the game then goes for them too, which is no news to tell
-    private var isClosing = false
+    private var watching: Job? = null
 
     init {
-        viewModelScope.launch {
+        watch()
+    }
+
+    private fun watch() {
+        watching = viewModelScope.launch {
             watchGameUseCase(gameId = gameId)
                 .catch { exception ->
                     Logger.e(throwable = exception) { "Failed to read the game" }
                 }
                 .collect { state ->
-                    if (isClosing && state !is GameState.Available) return@collect
                     _uiState.update { uiState ->
                         uiState.copy(
                             state = state,
@@ -156,9 +160,13 @@ class WaitingRoomViewModel(
         }
     }
 
-    /** Runs what takes the user out of the game, then closes the screen; tells a failure instead. */
+    /**
+     * Runs what takes the user out of the game, then closes the screen; tells a failure instead. The
+     * game stops being observed first: the user going is no news to tell them, and an observation
+     * refused meanwhile would leave the Android SDK late on the others (see docs/KMP/01_MODULE_DATA.md).
+     */
     private suspend fun close(failureMessage: String, action: suspend () -> Unit) {
-        isClosing = true
+        watching?.cancelAndJoin()
         try {
             action()
 
@@ -168,7 +176,7 @@ class WaitingRoomViewModel(
         } catch (exception: Exception) {
             Logger.w(throwable = exception) { failureMessage }
 
-            isClosing = false
+            watch()
             _event.send(WaitingRoomEvent.ShowError(error = exception.toGameError()))
         }
     }

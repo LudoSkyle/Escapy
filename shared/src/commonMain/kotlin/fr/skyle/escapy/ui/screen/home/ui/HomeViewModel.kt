@@ -3,7 +3,7 @@ package fr.skyle.escapy.ui.screen.home.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
-import fr.skyle.escapy.domain.model.Game
+import fr.skyle.escapy.domain.model.GameSummary
 import fr.skyle.escapy.domain.usecase.game.JoinGameUseCase
 import fr.skyle.escapy.domain.usecase.game.WatchMyGamesUseCase
 import fr.skyle.escapy.domain.validation.GameRules
@@ -12,10 +12,12 @@ import fr.skyle.escapy.ui.core.error.toGameError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -25,28 +27,27 @@ class HomeViewModel(
     private val joinGameUseCase: JoinGameUseCase,
 ) : ViewModel() {
 
+    // What the user does here; the games come from their own observation
     private val _uiState = MutableStateFlow(HomeUIState())
-    val uiState: StateFlow<HomeUIState> = _uiState.asStateFlow()
+
+    /**
+     * The games are observed only while the screen is shown, and read again when it shows again: the
+     * Android SDK may leave a game the user just lost access to in an observation that stays open
+     * meanwhile, until its next change (see docs/KMP/01_MODULE_DATA.md).
+     */
+    private val games: StateFlow<List<GameSummary>?> = watchMyGamesUseCase()
+        .catch { exception ->
+            Logger.e(throwable = exception) { "Failed to read the games" }
+            emit(emptyList())
+        }
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = null)
+
+    val uiState: StateFlow<HomeUIState> = combine(_uiState, games) { uiState, games ->
+        uiState.copy(games = games)
+    }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = HomeUIState())
 
     private val _event = Channel<HomeEvent>(Channel.BUFFERED)
     val event = _event.receiveAsFlow()
-
-    init {
-        viewModelScope.launch {
-            watchMyGamesUseCase()
-                .catch { exception ->
-                    Logger.e(throwable = exception) { "Failed to read the games" }
-                    _uiState.update { uiState ->
-                        uiState.copy(games = emptyList())
-                    }
-                }
-                .collect { games ->
-                    _uiState.update { uiState ->
-                        uiState.copy(games = games)
-                    }
-                }
-        }
-    }
 
     fun onJoinCodeEdited() {
         _uiState.update { uiState ->
@@ -89,7 +90,7 @@ class HomeViewModel(
 
     data class HomeUIState(
         // Null until the first read
-        val games: List<Game>? = null,
+        val games: List<GameSummary>? = null,
         val joinCodeError: GameError? = null,
         val isJoining: Boolean = false,
     )

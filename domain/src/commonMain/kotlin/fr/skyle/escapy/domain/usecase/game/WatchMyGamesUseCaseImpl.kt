@@ -4,8 +4,8 @@ import fr.skyle.escapy.data.model.StoredSession
 import fr.skyle.escapy.data.repository.game.api.GameRepository
 import fr.skyle.escapy.data.repository.session.api.SessionRepository
 import fr.skyle.escapy.domain.mapper.toDomainException
-import fr.skyle.escapy.domain.mapper.toGame
-import fr.skyle.escapy.domain.model.Game
+import fr.skyle.escapy.domain.mapper.toGameSummary
+import fr.skyle.escapy.domain.model.GameSummary
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -20,7 +20,7 @@ internal class WatchMyGamesUseCaseImpl(
     private val gameRepository: GameRepository,
 ) : WatchMyGamesUseCase {
 
-    override fun invoke(): Flow<List<Game>> =
+    override fun invoke(): Flow<List<GameSummary>> =
         sessionRepository.watchSession()
             .map { session -> (session as? StoredSession.SignedIn)?.userId }
             .distinctUntilChanged()
@@ -29,7 +29,7 @@ internal class WatchMyGamesUseCaseImpl(
                     flowOf(emptyList())
                 } else {
                     gameRepository.watchGamesOf(userId = userId)
-                        .map { games -> games.map { game -> game.toGame(currentUserId = userId) } }
+                        .map { entries -> entries.map { entry -> entry.toGameSummary() } }
                 }
             }
             .catch { exception -> throw exception.toDomainException() }
