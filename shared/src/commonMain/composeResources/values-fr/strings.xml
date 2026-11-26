@@ -47,7 +47,6 @@
     <string name="forgot_password_send">Envoyer le lien</string>
     <string name="forgot_password_sent">Si un compte utilise %1$s, un e-mail avec un lien pour choisir un nouveau mot de passe est en route. Pensez à regarder dans vos indésirables.</string>
     <string name="forgot_password_title">Mot de passe oublié</string>
-    <string name="home_coming_soon">Vos parties seront ici.</string>
     <string name="link_account_action">Lier l’e-mail</string>
     <string name="link_account_done">Votre compte est maintenant lié à %1$s : tout ce qu’il contient est conservé. Un e-mail pour vérifier cette adresse est en route.</string>
     <string name="link_account_done_google">Votre compte est maintenant lié à votre compte Google : tout ce qu’il contient est conservé.</string>
@@ -90,4 +89,65 @@
     <string name="welcome_sign_in">Se connecter</string>
     <string name="welcome_sign_up">Créer un compte</string>
     <string name="welcome_tagline">L’escape game à la maison, mené par un maître du jeu.</string>
+
+    <!-- Parties -->
+    <string name="action_create_game">Créer une partie</string>
+    <string name="action_join">Rejoindre</string>
+    <string name="action_back_to_home">Retour à l’accueil</string>
+    <string name="field_join_code">Code de la partie</string>
+    <string name="field_game_title">Titre</string>
+    <string name="home_join_title">Rejoindre une partie</string>
+    <string name="home_join_code_help">6 caractères, donnés par le maître du jeu</string>
+    <string name="home_my_games">Mes parties</string>
+    <string name="home_no_games">Aucune partie pour l’instant. Rejoignez-en une avec son code, ou créez la vôtre.</string>
+    <string name="game_summary_master">Vous la menez · %1$s</string>
+    <string name="game_summary_player">Menée par %1$s · %2$s</string>
+    <plurals name="game_players">
+        <item quantity="one">%1$d joueur</item>
+        <item quantity="other">%1$d joueurs</item>
+    </plurals>
+    <plurals name="game_players_of_max">
+        <item quantity="one">%1$d joueur sur %2$d</item>
+        <item quantity="other">%1$d joueurs sur %2$d</item>
+    </plurals>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="duration_hours_minutes">%1$d h %2$02d</string>
+    <string name="create_game_title_help">De 3 à 40 caractères</string>
+    <string name="create_game_duration">Durée</string>
+    <string name="create_game_shorter">Plus courte</string>
+    <string name="create_game_longer">Plus longue</string>
+    <string name="create_game_max_players">Joueurs au maximum</string>
+    <string name="create_game_max_players_help">Sans compter le maître du jeu</string>
+    <string name="create_game_no_limit">Sans limite</string>
+    <string name="create_game_fewer_players">Moins de joueurs</string>
+    <string name="create_game_more_players">Plus de joueurs</string>
+    <string name="action_create">Créer la partie</string>
+    <string name="waiting_room_code_help">Donnez ce code aux joueurs : ils le saisissent sur leur accueil.</string>
+    <string name="waiting_room_master">Maître du jeu</string>
+    <string name="waiting_room_players">Joueurs</string>
+    <string name="waiting_room_you">%1$s (vous)</string>
+    <string name="waiting_room_no_players">En attente des joueurs…</string>
+    <string name="waiting_room_start_by_master">La partie commencera quand le maître du jeu la lancera.</string>
+    <string name="waiting_room_deleted">Le maître du jeu a annulé cette partie.</string>
+    <string name="waiting_room_excluded">Le maître du jeu a mis fin à votre participation à cette partie.</string>
+    <string name="error_excluded_from_game">Le maître du jeu ne vous laisse plus entrer dans cette partie.</string>
+    <string name="action_kick_player">Exclure %1$s</string>
+    <string name="kick_player_dialog_title">Exclure %1$s ?</string>
+    <string name="kick_player_dialog_message">%1$s quitte la partie, et son code ne lui permettra plus d’entrer.</string>
+    <string name="action_kick">Exclure</string>
+    <string name="action_leave_game">Quitter la partie</string>
+    <string name="leave_game_dialog_title">Quitter la partie ?</string>
+    <string name="leave_game_dialog_message">Vous pourrez la rejoindre à nouveau avec son code tant qu’elle attend des joueurs.</string>
+    <string name="action_leave">Quitter</string>
+    <string name="action_cancel_game">Annuler la partie</string>
+    <string name="cancel_game_dialog_title">Annuler la partie ?</string>
+    <string name="cancel_game_dialog_message">La partie est supprimée pour tout le monde, et son code ne fonctionnera plus.</string>
+    <string name="action_keep_game">La garder</string>
+    <string name="error_join_code_invalid">Un code a 6 lettres et chiffres.</string>
+    <string name="error_game_not_found">Aucune partie n’a ce code. Vérifiez-le auprès du maître du jeu.</string>
+    <string name="error_game_full">Cette partie est complète.</string>
+    <string name="error_game_not_joinable">Cette partie n’attend plus de joueurs.</string>
+    <string name="error_game_title_invalid">Le titre a de 3 à 40 caractères.</string>
+    <string name="error_too_many_games">Vous menez déjà 5 parties. Annulez-en une pour en créer une autre.</string>
 </resources>

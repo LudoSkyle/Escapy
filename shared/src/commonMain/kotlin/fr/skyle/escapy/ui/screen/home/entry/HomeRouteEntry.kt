@@ -13,6 +13,12 @@ fun EntryProviderScope<Route>.homeRouteEntry(
             navigateToProfile = {
                 backStack.add(Route.Profile)
             },
+            navigateToCreateGame = {
+                backStack.add(Route.CreateGame)
+            },
+            navigateToGame = { gameId ->
+                backStack.add(Route.WaitingRoom(gameId = gameId))
+            },
         )
     }
 }

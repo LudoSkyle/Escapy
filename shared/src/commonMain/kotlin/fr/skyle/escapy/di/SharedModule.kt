@@ -5,14 +5,17 @@ import fr.skyle.escapy.ui.main.MainViewModel
 import fr.skyle.escapy.ui.screen.about.ui.AboutViewModel
 import fr.skyle.escapy.ui.screen.changeemail.ui.ChangeEmailViewModel
 import fr.skyle.escapy.ui.screen.changepassword.ui.ChangePasswordViewModel
+import fr.skyle.escapy.ui.screen.creategame.ui.CreateGameViewModel
 import fr.skyle.escapy.ui.screen.deleteaccount.ui.DeleteAccountViewModel
 import fr.skyle.escapy.ui.screen.editavatar.ui.EditAvatarViewModel
 import fr.skyle.escapy.ui.screen.editusername.ui.EditUsernameViewModel
+import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel
 import fr.skyle.escapy.ui.screen.linkaccount.ui.LinkAccountViewModel
 import fr.skyle.escapy.ui.screen.profile.ui.ProfileViewModel
 import fr.skyle.escapy.ui.screen.forgotpassword.ui.ForgotPasswordViewModel
 import fr.skyle.escapy.ui.screen.signin.ui.SignInViewModel
 import fr.skyle.escapy.ui.screen.signup.ui.SignUpViewModel
+import fr.skyle.escapy.ui.screen.waitingroom.ui.WaitingRoomViewModel
 import fr.skyle.escapy.ui.screen.welcome.ui.WelcomeViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -33,6 +36,18 @@ val sharedModule = module {
     viewModelOf(::ChangeEmailViewModel)
     viewModelOf(::ChangePasswordViewModel)
     viewModelOf(::DeleteAccountViewModel)
+    viewModelOf(::HomeViewModel)
+    viewModelOf(::CreateGameViewModel)
+    // The game the screen opened, given by its route
+    viewModel { parameters ->
+        WaitingRoomViewModel(
+            gameId = parameters.get(),
+            watchGameUseCase = get(),
+            leaveGameUseCase = get(),
+            kickPlayerUseCase = get(),
+            cancelGameUseCase = get(),
+        )
+    }
     // The version the host gave when it started
     viewModel { AboutViewModel(appVersion = getProperty(APP_VERSION_PROPERTY)) }
 }
