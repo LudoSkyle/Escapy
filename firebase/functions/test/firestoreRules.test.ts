@@ -85,15 +85,10 @@ describe("games", () => {
     }
   });
 
-  test("a user lists the games they are a member of, by the query of the home screen", async () => {
+  test("nobody lists the games, not even those they are a member of", async () => {
     const bob = testEnv.authenticatedContext("bob").firestore();
-    await assertSucceeds(getDocs(query(collection(bob, "games"), where("memberIds", "array-contains", "bob"))));
-  });
-
-  test("a user lists neither all the games nor those of another user", async () => {
-    const carol = testEnv.authenticatedContext("carol").firestore();
-    await assertFails(getDocs(collection(carol, "games")));
-    await assertFails(getDocs(query(collection(carol, "games"), where("memberIds", "array-contains", "bob"))));
+    await assertFails(getDocs(collection(bob, "games")));
+    await assertFails(getDocs(query(collection(bob, "games"), where("memberIds", "array-contains", "bob"))));
   });
 
   test("a user who is not a member reads neither the game nor its players", async () => {

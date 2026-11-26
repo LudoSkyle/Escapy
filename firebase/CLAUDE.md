@@ -45,6 +45,10 @@ Les principes et le contrat des fonctions sont dans [../docs/Backend/README.md](
   `.firebaserc` n'a pas d'alias `default` : un `firebase deploy` sans `--project prod` échoue. Une
   fonction se supprime par `firebase functions:delete <nom> --project prod`, explicitement, jamais
   par `--force`.
+- **Index** : une requête composée (égalité et plage, `array-contains` et tri) demande un index dans
+  `firestore.indexes.json`, que l'émulateur n'exige pas ; il se déploie avec les règles
+  (`--only firestore`). Une fonction planifiée (`onSchedule`) demande Cloud Scheduler, que le premier
+  déploiement active sur le projet.
 - `firebase-tools` est épinglé (14.26.0) dans les dépendances de développement : l'émulateur
   Firestore de la version suivante peut exiger un Java plus récent que le Java 17 du projet.
 
@@ -55,7 +59,7 @@ Les principes et le contrat des fonctions sont dans [../docs/Backend/README.md](
 cd firebase/functions && npm ci               # installer
 cd firebase/functions && npm run typecheck    # types, tests compris
 cd firebase/functions && npm test             # build, émulateurs, tests, arrêt
-cd firebase/functions && npx firebase --config ../firebase.json deploy --only firestore:rules,storage,functions --project prod   # sur demande seulement
+cd firebase/functions && npx firebase --config ../firebase.json deploy --only firestore,storage,functions --project prod   # sur demande seulement : règles et index Firestore compris
 ```
 
 L'interface de l'émulateur s'ouvre sur http://localhost:4000.
