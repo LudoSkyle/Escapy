@@ -17,6 +17,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun HomeRoute(
     navigateToProfile: () -> Unit,
     navigateToCreateGame: () -> Unit,
+    navigateToScanCode: () -> Unit,
     navigateToGame: (gameId: String) -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
@@ -47,6 +48,7 @@ fun HomeRoute(
             viewModel.onJoinCodeEdited()
         },
         onJoinClicked = { viewModel.onJoinClicked(code = joinCode) },
+        onScanClicked = navigateToScanCode,
         onCreateGameClicked = navigateToCreateGame,
         onGameClicked = navigateToGame,
     )

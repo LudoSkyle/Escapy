@@ -17,6 +17,9 @@ fun EntryProviderScope<Route>.homeRouteEntry(
             navigateToCreateGame = {
                 backStack.navigateTo(route = Route.CreateGame)
             },
+            navigateToScanCode = {
+                backStack.navigateTo(route = Route.ScanCode)
+            },
             navigateToGame = { gameId ->
                 backStack.navigateTo(route = Route.WaitingRoom(gameId = gameId))
             },

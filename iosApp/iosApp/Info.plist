@@ -21,6 +21,8 @@
 		<string>en</string>
 		<string>fr</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Escapy uses the camera to read the QR code of a game.</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>

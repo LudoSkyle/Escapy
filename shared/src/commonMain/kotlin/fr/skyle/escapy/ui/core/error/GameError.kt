@@ -18,6 +18,7 @@ import fr.skyle.escapy.resources.error_game_not_joinable
 import fr.skyle.escapy.resources.error_game_title_invalid
 import fr.skyle.escapy.resources.error_join_code_invalid
 import fr.skyle.escapy.resources.error_network
+import fr.skyle.escapy.resources.error_not_a_game_qr_code
 import fr.skyle.escapy.resources.error_too_many_attempts
 import fr.skyle.escapy.resources.error_too_many_games
 import fr.skyle.escapy.resources.error_unknown
@@ -33,6 +34,8 @@ enum class GameError {
     GAME_NOT_JOINABLE,
     EXCLUDED_FROM_GAME,
     TOO_MANY_ATTEMPTS,
+    // A QR code read by the camera that holds no code of a game: never sent to the server
+    NOT_A_GAME_QR_CODE,
     NETWORK,
     UNKNOWN;
 
@@ -67,6 +70,7 @@ internal fun GameError.message(): String =
             GameError.GAME_NOT_JOINABLE -> Res.string.error_game_not_joinable
             GameError.EXCLUDED_FROM_GAME -> Res.string.error_excluded_from_game
             GameError.TOO_MANY_ATTEMPTS -> Res.string.error_too_many_attempts
+            GameError.NOT_A_GAME_QR_CODE -> Res.string.error_not_a_game_qr_code
             GameError.NETWORK -> Res.string.error_network
             GameError.UNKNOWN -> Res.string.error_unknown
         },

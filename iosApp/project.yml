@@ -1,5 +1,7 @@
 name: iosApp
 options:
+  # The version the project was made with: a newer XcodeGen would write its own, a change for nothing
+  xcodeVersion: "14.3"
   deploymentTarget:
     iOS: "18.5"
   createIntermediateGroups: true
