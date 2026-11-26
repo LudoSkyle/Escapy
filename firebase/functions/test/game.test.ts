@@ -377,6 +377,25 @@ describe("games", () => {
       });
     });
 
+    test("leaves no entry behind when a player joins while the game is cancelled", async () => {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        // Given
+        const master = await user();
+        const player = await user();
+        const created = await master.call<Created>("createGame", NEW_GAME);
+
+        // When
+        await Promise.allSettled([
+          master.call("cancelGame", { gameId: created.gameId }),
+          player.call("joinGame", { code: created.joinCode }),
+        ]);
+
+        // Then
+        expect((await game(created.gameId).get()).exists).toBe(false);
+        expect(await userGame(player.uid, created.gameId)).toBeUndefined();
+      }
+    });
+
     test("refuses a player, and is no error once the game is deleted", async () => {
       // Given
       const master = await user();
