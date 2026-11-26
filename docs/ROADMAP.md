@@ -173,10 +173,35 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
            Android (API 36) : connexion, profil, liaison d'un invité et suppression sur les deux ; un
            compte Google déjà pris, sur iOS. Le refus d'un autre compte Google à la suppression n'est
            couvert que par les tests
-6. **Parties** : créer (un vrai sélecteur de durée), rejoindre (code, QR code qui porte un lien
-   universel, saisie manuelle), salle d'attente, exclure, quitter, liste en temps réel sur l'accueil.
-   `minInstances` des fonctions de partie, avec son coût (une instance gardée chaude se facture
-   aussi au repos).
+6. **Parties**, en trois pull requests :
+   - 6a, **créer, rejoindre par code, salle d'attente** :
+     - [x] `createGame`, `joinGame`, `leaveGame`, `kickPlayer`, `cancelGame` : code de 6 caractères
+           sans caractère ambigu, dans un index d'unicité illisible ; maximum de 2 à 20 joueurs ou
+           aucun (20 au plus) ; 5 parties menées à la fois ; 10 codes inconnus en 10 minutes
+           bloquent un utilisateur ; un joueur exclu ne revient plus
+     - [x] `deleteStaleGames` supprime les parties encore en attente 24 h après leur création ; la
+           suppression du compte (et la déconnexion d'un invité) supprime les parties qu'on mène et
+           fait quitter les autres ; `updateProfile` recopie le nom et l'avatar dans ses parties
+     - [x] Règles et index : une partie et ses joueurs lus par ses membres seulement, une partie
+           supprimée lue absente, la liste des parties de chacun (`users/{uid}/games`) tenue par
+           les fonctions ; testés sur l'émulateur (qui n'exige pas les index)
+     - [x] Accueil : rejoindre par le code, créer une partie, mes parties en direct ; créer (titre,
+           durée de 15 min à 3 h par pas de 5, maximum de joueurs) ; salle d'attente (code, maître
+           du jeu, joueurs en direct, exclure, quitter, annuler, la fin dite au joueur)
+     - [x] `ESStepper` et le type `CODE` d'`ESTextField` dans le design system
+     - [x] Vérifié de bout en bout contre les émulateurs, le maître du jeu sur le simulateur iOS 27.2
+           et le joueur sur un émulateur Android (API 36) : créer, rejoindre par le code (tapé en
+           minuscules), un code inconnu, les joueurs en direct, exclure (le joueur le voit, son code
+           est refusé), quitter, annuler (le joueur le voit), la liste de l'accueil à jour. Non
+           vérifiés à la main, couverts par les tests : une partie pleine, la limite des codes
+           essayés, la suppression du compte et le nettoyage des parties abandonnées
+     - Lancer la partie arrive au lot 7, avec le minuteur. Aucune fonction n'a d'instance chaude
+       (`minInstances`) : créer ou rejoindre se fait avant de jouer ; la décision et son coût
+       viennent avec les fonctions de la partie en cours.
+   - 6b, **le QR code** : affiché par le maître du jeu, scanné dans l'app (caméra sur Android et
+     iOS).
+   - 6c, **les liens qui ouvrent l'app** (App Links, liens universels) : demande un domaine, et sur
+     iOS un compte Apple payant (Associated Domains).
 7. **Partie en cours** : minuteur serveur (écart avec l'horloge du serveur estimé, voir
    [Common/02_CONVENTIONS.md](./Common/02_CONVENTIONS.md)), chat, intro, fin, victoire ou défaite.
 8. **Missions** : types, déclencheurs, soumission avec anti-force brute, mots-clés du chat.
@@ -199,7 +224,9 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
 - **Connexion Google en v1** (décidé le 2026-11-24), au lot 5c.
 - **`minInstances` sur les fonctions de partie** (validation d'une réponse, indice, ajout de temps,
   démarrage) : un démarrage à froid coûte de 1,3 à 2,3 s. Le coût se chiffre avec ces fonctions, au
-  lot 6. Les fonctions du profil n'en ont pas.
+  lot 7. Les fonctions du profil et celles du lot 6 (créer, rejoindre, quitter) n'en ont pas.
+- **Lot 6 découpé en 6a, 6b et 6c** (décidé le 2026-11-26) ; le maître du jeu choisit un maximum de
+  joueurs de 2 à 20, ou aucun.
 - **Le dossier `firebase/` est dans ce dépôt** : app, règles et fonctions évoluent dans la même pull
   request, sous la même CI.
 - **Profil créé par une callable idempotente** (`ensureProfile`), pas par un déclencheur Auth ;

@@ -17,17 +17,23 @@ juste.
 domain/src/commonMain/kotlin/fr/skyle/escapy/domain/
 ├── di/
 │   └── DomainModule.kt
-├── mapper/
-│   └── SessionMapper.kt               (StoredSession -> Session)
-├── model/
-│   └── Session.kt
+├── exception/                         (exceptions métier : AccountExceptions.kt, GameExceptions.kt)
+├── mapper/                            (StoredSession -> Session, StoredGame -> Game, exceptions de data -> métier)
+├── model/                             (Session, Profile, Game, GameMember, GameState…)
+├── validation/                        (PasswordPolicy, GameRules : les bornes que le serveur impose)
 └── usecase/
+    ├── account/  auth/  profile/
+    ├── game/                          (WatchMyGames, WatchGame, CreateGame, JoinGame, LeaveGame, KickPlayer, CancelGame)
     └── session/
         ├── WatchSessionUseCase.kt
         └── WatchSessionUseCaseImpl.kt
 ```
 
-À venir : `exception/`, pour les exceptions métier.
+- **`GameRules`** reprend les bornes du serveur (durée, maximum de joueurs, longueur du code) : un
+  écran ne propose que ce que le serveur accepte, il ne décide de rien.
+- **`WatchGameUseCase`** rend un `GameState` : la partie et ses joueurs, puis `Deleted` (annulée) ou
+  `Excluded` (le joueur n'y a plus accès), qui termine le flux. Un membre d'une partie y est marqué
+  `isCurrentUser`, et `Game.isMaster` dit si l'utilisateur la mène.
 
 ### Modèles
 

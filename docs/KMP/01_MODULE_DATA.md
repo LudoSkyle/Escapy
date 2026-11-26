@@ -14,15 +14,16 @@ data/src/
 ├── commonMain/kotlin/fr/skyle/escapy/data/
 │   ├── di/
 │   │   └── DataModule.kt          (dataModule, expect platformDataModule, FIREBASE_EMULATOR_PROPERTY)
-│   ├── document/                  (documents Firestore, @Serializable, internal : ProfileDocument)
+│   ├── document/                  (documents Firestore, @Serializable, internal : ProfileDocument, GameDocument)
 │   ├── exception/                 (exceptions de data, traduction des erreurs de Firebase)
 │   ├── firebase/
 │   │   └── FirebaseServices.kt    (FirebaseServices, FirebaseProvider, l'app des émulateurs)
 │   ├── function/                  (requêtes et réponses des callables, internal)
-│   ├── model/                     (modèles exposés : StoredSession, StoredProfile)
+│   ├── model/                     (modèles exposés : StoredSession, StoredProfile, StoredGame, StoredMember)
 │   └── repository/
 │       ├── account/               (AccountRepository : suppression du compte, puis déconnexion)
 │       ├── auth/                  (AuthRepository : connexion par e-mail ou Google, inscription, invité, liaison, réauthentification, e-mail, mot de passe, déconnexion)
+│       ├── game/                  (GameRepository : parties observées, une partie et ses joueurs, créer, rejoindre, quitter, exclure, annuler)
 │       ├── profile/               (ProfileRepository : profil observé, ensureProfile, updateProfile)
 │       └── session/               (SessionRepository : la session observée)
 ├── androidMain/kotlin/fr/skyle/escapy/data/
@@ -131,6 +132,19 @@ internal expect val platformDataModule: Module
   vient d'un `@SerialName` ou d'une constante, jamais d'un nom de classe, obfusqué en release.
 - Le cache hors ligne de Firestore tient lieu de base locale : un écran rouvert s'affiche depuis le
   cache, puis se met à jour.
+- **Une écoute s'arrête sur un refus** dès que les règles ne laissent plus lire, comme pour un joueur
+  exclu d'une partie : `withFirestoreErrors()` en fait une `AccessDeniedException`, que le domaine
+  traduit en état (`GameState.Excluded`). Une partie supprimée, elle, se lit absente : la règle laisse
+  lire un document qui n'existe pas.
+- Une requête de liste ne passe les règles que si elle garantit ce qu'elles demandent ; les parties
+  de l'accueil se lisent dans la liste de l'utilisateur (`users/{uid}/games`), toujours lisible.
+- **Le SDK Android et une écoute refusée** : quand une écoute est refusée (un joueur exclu), le SDK
+  Android ne publie pas, dans le même temps, les changements des autres écoutes ouvertes ; ils
+  n'arrivent qu'à leur changement suivant (constaté sur l'émulateur, le 2026-11-26 ; le SDK
+  JavaScript, lui, les publie). D'où trois règles : l'accueil n'observe que lorsqu'il est affiché
+  (`SharingStarted.WhileSubscribed()`), et relit en revenant ; un écran qui fait partir
+  l'utilisateur (quitter, annuler) arrête d'abord ses écoutes de la partie ; une liste se lit dans
+  des documents que l'utilisateur garde le droit de lire.
 
 ### Cloud Functions
 
@@ -147,7 +161,8 @@ internal expect val platformDataModule: Module
   de Firebase en ses exceptions (`exception/`, par `authCall` et `functionCall`), puis `domain` les
   traduit en exceptions métier (`withDomainExceptions`).
 - Un premier appel après un temps de calme peut prendre 1 à 2 s (démarrage à froid) : l'écran montre
-  l'attente. Les fonctions de partie gardent une instance chaude (`minInstances`, lot 6).
+  l'attente. Aucune fonction n'a encore d'instance chaude (`minInstances`) : la décision vient avec
+  les fonctions de la partie en cours (lot 7).
 
 ### Storage
 

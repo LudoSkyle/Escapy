@@ -29,6 +29,7 @@ Décidés par l'[ADR-0004](../adr/0004-firestore-et-le-serveur-source-de-verite.
 | Chemin | Contenu | Lu par | Écrit par |
 |---|---|---|---|
 | `users/{uid}` | `username`, `avatarId` (1 à 50), `createdAt`, `updatedAt` (horodatages serveur). Ni e-mail ni nom réel | son propriétaire | les fonctions |
+| `users/{uid}/games/{gameId}` | `title`, `isMaster`, `master` (`username`, `avatarId`), `createdAt` : la liste des parties de l'utilisateur, pour son accueil | son propriétaire | les fonctions |
 | `games/{gameId}` | `title`, `durationMinutes`, `maxPlayers` (ou `null`), `status` (`WAITING`), `masterId`, `master` (`username`, `avatarId`), `memberIds` (le maître du jeu et les joueurs), `playerCount`, `joinCode`, `createdAt`, `updatedAt` | ses membres ; une partie qui n'existe pas se lit absente | les fonctions |
 | `games/{gameId}/players/{uid}` | `username`, `avatarId`, `joinedAt` : un joueur, le maître du jeu à part | les membres de la partie | les fonctions |
 | `games/{gameId}/private/access` | `excludedIds` : les joueurs exclus, que le code ne laisse plus entrer | personne | les fonctions |
@@ -38,14 +39,15 @@ Décidés par l'[ADR-0004](../adr/0004-firestore-et-le-serveur-source-de-verite.
 Tout autre chemin est refusé aux clients. Le modèle des scénarios s'ajoute ici avec le lot qui le
 crée (voir [ROADMAP.md](../ROADMAP.md)).
 
-- **Le nom et l'avatar** d'un membre sont copiés dans chaque partie (`master`, `players/{uid}`) : un
-  membre ne lit pas le profil d'un autre. `updateProfile` les recopie dans les parties de
-  l'utilisateur.
-- **L'accueil** liste les parties de l'utilisateur par
-  `where("memberIds", "array-contains", uid).orderBy("createdAt", "desc")`, que la règle accepte
-  parce que la requête la garantit. Elle demande un index composé (`firestore.indexes.json`), comme la
-  recherche des parties abandonnées : **l'émulateur n'en exige aucun**, un index oublié ne se voit
-  donc qu'en production.
+- **Le nom et l'avatar** d'un membre sont copiés dans chaque partie (`master`, `players/{uid}`) et
+  dans les fiches de ses membres : un membre ne lit pas le profil d'un autre. `updateProfile` les
+  recopie.
+- **L'accueil** lit la liste de l'utilisateur, `users/{uid}/games`, que les fonctions tiennent à
+  chaque création, entrée, sortie, exclusion et suppression : des documents qu'il lit toujours. Une
+  requête sur les parties (`memberIds` contient l'utilisateur) garderait une partie dont il vient
+  d'être exclu : le SDK Android la laisse dans son cache tant que la requête ne change pas.
+- La recherche des parties abandonnées demande un index composé (`firestore.indexes.json`) :
+  **l'émulateur n'en exige aucun**, un index oublié ne se voit donc qu'en production.
 - **Un joueur exclu** perd la lecture de la partie : son écoute s'arrête sur un refus. Une partie
   supprimée, elle, se lit absente.
 - **Le code** a 6 caractères tirés de `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (ni 0, O, 1, I ni L). Il est
