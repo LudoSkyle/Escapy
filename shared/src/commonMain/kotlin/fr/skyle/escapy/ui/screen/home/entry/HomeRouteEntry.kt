@@ -3,6 +3,7 @@ package fr.skyle.escapy.ui.screen.home.entry
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import fr.skyle.escapy.ui.main.navigation.Route
+import fr.skyle.escapy.ui.main.navigation.navigateTo
 import fr.skyle.escapy.ui.screen.home.ui.HomeRoute
 
 fun EntryProviderScope<Route>.homeRouteEntry(
@@ -11,13 +12,13 @@ fun EntryProviderScope<Route>.homeRouteEntry(
     entry<Route.Home> {
         HomeRoute(
             navigateToProfile = {
-                backStack.add(Route.Profile)
+                backStack.navigateTo(route = Route.Profile)
             },
             navigateToCreateGame = {
-                backStack.add(Route.CreateGame)
+                backStack.navigateTo(route = Route.CreateGame)
             },
             navigateToGame = { gameId ->
-                backStack.add(Route.WaitingRoom(gameId = gameId))
+                backStack.navigateTo(route = Route.WaitingRoom(gameId = gameId))
             },
         )
     }

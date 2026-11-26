@@ -43,6 +43,12 @@ Firebase Auth, décide de la racine du back stack :
   (`navigateToGame`, `navigateBack`), branchés dans son `entry`. Une `entry` qui navigue reçoit le
   back stack en paramètre ; celles d'aujourd'hui (`welcomeRouteEntry()`, `homeRouteEntry()`) n'en ont
   pas besoin.
+- **Une entrée navigue par les fonctions de `navigation/BackStackNavigation.kt`**, jamais par
+  `add` ou `removeLastOrNull` : `navigateTo(route)` n'ouvre pas deux fois l'écran courant,
+  `navigateBackFrom(from = route)` ne ferme que l'écran qui le demande et jamais la racine,
+  `replace(from, to)` remplace l'écran courant (une création qui ouvre ce qu'elle a créé). Un second
+  toucher pendant une transition atteint l'écran qui s'en va : un retour fait deux fois vidait le
+  back stack, et `NavDisplay` plante sur un back stack vide.
 - Un joueur exclu d'une partie, ou une partie terminée, se traite comme la session : l'écran le lit
   dans Firestore et la navigation suit l'état, plutôt qu'un écran qui en pousse un autre.
 - Aucune transition n'est déclarée pour l'instant : ce sont celles de Navigation 3 par défaut. Quand
@@ -83,7 +89,10 @@ NavDisplay(
     modifier = modifier,
     backStack = backStack,
     onBack = {
-        backStack.removeLastOrNull()
+        // Never the root: the system back on it leaves the app instead
+        if (backStack.size > 1) {
+            backStack.removeAt(backStack.lastIndex)
+        }
     },
     entryDecorators = listOf(
         rememberSaveableStateHolderNavEntryDecorator(),

@@ -51,7 +51,10 @@ fun RootNavDisplay(
         modifier = modifier,
         backStack = backStack,
         onBack = {
-            backStack.removeLastOrNull()
+            // Never the root: the system back on it leaves the app instead
+            if (backStack.size > 1) {
+                backStack.removeAt(backStack.lastIndex)
+            }
         },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
