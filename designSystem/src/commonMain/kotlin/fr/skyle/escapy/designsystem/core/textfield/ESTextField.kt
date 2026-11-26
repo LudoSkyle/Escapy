@@ -21,6 +21,7 @@ import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -102,6 +103,12 @@ fun ESTextField(
                 ESTextFieldDefaults.Kind.EMAIL -> KeyboardType.Email
                 ESTextFieldDefaults.Kind.PASSWORD, ESTextFieldDefaults.Kind.NEW_PASSWORD -> KeyboardType.Password
                 ESTextFieldDefaults.Kind.TEXT, ESTextFieldDefaults.Kind.USERNAME -> KeyboardType.Text
+                ESTextFieldDefaults.Kind.CODE -> KeyboardType.Ascii
+            },
+            capitalization = if (kind == ESTextFieldDefaults.Kind.CODE) {
+                KeyboardCapitalization.Characters
+            } else {
+                KeyboardCapitalization.Unspecified
             },
             autoCorrectEnabled = kind == ESTextFieldDefaults.Kind.TEXT,
             imeAction = imeAction,
