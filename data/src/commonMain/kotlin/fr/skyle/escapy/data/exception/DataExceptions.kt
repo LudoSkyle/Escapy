@@ -30,6 +30,11 @@ class FunctionFailureException(
     cause: Throwable? = null,
 ) : Exception("A Cloud Function refused: ${reason ?: "no reason"}", cause)
 
+/** Firestore refused to read: the user is no longer allowed to, such as a player excluded from a game. */
+class AccessDeniedException(
+    cause: Throwable? = null,
+) : Exception("Firestore refused to read", cause)
+
 /** The server could not be reached. */
 class NetworkUnavailableException(
     cause: Throwable? = null,

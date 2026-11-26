@@ -3,9 +3,13 @@ package fr.skyle.escapy.data.exception
 import dev.gitlive.firebase.FirebaseNetworkException
 import dev.gitlive.firebase.FirebaseTooManyRequestsException
 import dev.gitlive.firebase.auth.FirebaseAuthException
+import dev.gitlive.firebase.firestore.FirebaseFirestoreException
+import dev.gitlive.firebase.firestore.FirestoreExceptionCode
 import dev.gitlive.firebase.functions.FirebaseFunctionsException
 import dev.gitlive.firebase.functions.FunctionsExceptionCode
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 
 /** The failure of an error code of Firebase Auth, the same on Android and iOS. */
 internal fun authFailureOf(errorCode: String?): AuthFailure =
@@ -58,4 +62,16 @@ internal suspend fun <T> functionCall(block: suspend () -> T): T =
         }
     } catch (exception: FirebaseNetworkException) {
         throw NetworkUnavailableException(cause = exception)
+    }
+
+/**
+ * An observation of Firestore, a refusal turned into AccessDeniedException: Firestore stops an
+ * observation once its rules no longer let the user read, such as a player excluded from a game.
+ */
+internal fun <T> Flow<T>.withFirestoreErrors(): Flow<T> =
+    catch { exception ->
+        if (exception is FirebaseFirestoreException && exception.code == FirestoreExceptionCode.PERMISSION_DENIED) {
+            throw AccessDeniedException(cause = exception)
+        }
+        throw exception
     }
