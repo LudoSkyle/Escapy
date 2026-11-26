@@ -72,8 +72,15 @@ paquet de liaison SwiftPM qui apporte Firebase. Ne couvre ni les écrans (dans `
 - `Info.plist` : `CADisableMinimumFrameDurationOnPhone` reste à `true` (Compose Multiplatform
   s'arrête sans elle) ; `UIUserInterfaceStyle` à `Dark`, l'app étant sombre seulement ;
   `CFBundleLocalizations` liste les langues de l'app (`en`, `fr`). Toute API qui demande une
-  autorisation (caméra pour le QR code, micro pour un indice audio, photos) déclarera sa clé d'usage
-  ici, traduite dans chaque langue (`<langue>.lproj/InfoPlist.strings`).
+  autorisation déclare sa clé d'usage ici, traduite dans chaque langue
+  (`iosApp/<langue>.lproj/InfoPlist.strings`, un groupe de variantes du projet) : la caméra, pour le
+  QR code d'une partie (`NSCameraUsageDescription`) ; plus tard le micro et les photos.
+- `options.xcodeVersion` de `project.yml` fixe la version d'Xcode écrite dans le projet généré : sans
+  elle, XcodeGen la remplace par celle de la machine, et chaque génération change le `.pbxproj`.
+- **Caméra simulée** : le simulateur n'a pas de caméra. Un build Debug lancé avec
+  `ESCAPY_SIMULATED_QR` (`SIMCTL_CHILD_ESCAPY_SIMULATED_QR=ABC234 xcrun simctl launch booted
+  fr.skyle.escapy`) lit ce contenu comme un QR code (voir
+  [../docs/KMP/03_CODE_PLATEFORME.md](../docs/KMP/03_CODE_PLATEFORME.md)).
 - **Icône et démarrage** : `iosApp/Assets.xcassets` porte `AppIcon` (une image de 1024 px, pleine
   page, sans transparence : le trou de serrure de l'icône Android sur son fond), `LaunchBackground`
   (le fond de l'app, `ESColors.background`) et `LaunchLogo` (le trou de serrure seul), que

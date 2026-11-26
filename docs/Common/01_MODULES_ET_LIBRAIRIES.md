@@ -83,10 +83,15 @@ Communes (`commonMain`), en place :
 | Firebase | firebase-kotlin-sdk de GitLive : `firebase-app`, `-auth`, `-firestore`, `-functions`, `-storage`, **dans `data` seulement** ([ADR-0003](../adr/0003-firebase-en-kotlin-commun-avec-gitlive.md)) |
 | Sérialisation | kotlinx-serialization (routes de navigation ; requêtes et réponses des callables, documents Firestore à venir) |
 | Coroutines | kotlinx-coroutines |
+| QR code affiché | qrose |
 | Logs | Kermit (`Logger`). Sur Android, `EscapyApplication` n'écrit dans logcat qu'en debug, et rien en release tant que la remontée des crashs n'est pas branchée ; sur iOS, l'écrivain par défaut de Kermit |
 
 Android (`androidApp`) : `activity-compose`, `core-splashscreen`, le plugin Google Services (appliqué
 seulement avec le fichier Firebase).
+
+Android, dans `shared/androidMain` : CameraX (`camera2`, `lifecycle`, `compose`) et ML Kit Barcode
+Scanning, dans sa version au modèle embarqué (pas de téléchargement par les services Google), pour
+scanner le QR code d'une partie. Sur iOS, AVFoundation, sans bibliothèque.
 
 Prévues, ajoutées avec le lot qui en a besoin (et retirées du catalogue si elles n'y servent plus) :
 
@@ -96,8 +101,6 @@ Prévues, ajoutées avec le lot qui en a besoin (et retirées du catalogue si el
 | Dates, durées | kotlinx-datetime, `kotlin.time` | 6, 7 |
 | Images (avatars, indices) | Coil 3 | 5, 9 |
 | Appel d'une API HTTP (le dépôt GitHub de l'À propos) | Ktor | 5 |
-| Affichage d'un QR code | qrose | 6 |
-| Scan d'un QR code | CameraX + ML Kit sur Android, AVFoundation sur iOS | 6 |
 | Remontée des crashs | Crashlytics, branché sur Kermit | 11 |
 
 ### Ce qu'on n'utilise pas
