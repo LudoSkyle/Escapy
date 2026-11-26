@@ -60,8 +60,9 @@ dans `firebase/` : règles testées, création, modification et suppression du p
 design system v2 (lot 4) est en place : tokens, composants des écrans du compte, icônes, catalogue.
 Le compte (lot 5) est en place : connexion par e-mail ou Google, inscription, invité, mot de passe
 oublié, profil (pseudo, avatar), liaison d'un invité à un e-mail ou à Google, changement d'e-mail et
-de mot de passe, suppression du compte, à propos. L'accueil n'est encore qu'un emplacement. La suite
-arrive dans l'ordre de la [feuille de route](./docs/ROADMAP.md).
+de mot de passe, suppression du compte, à propos. Les parties (lot 6a) se créent, se rejoignent par
+leur code et attendent leurs joueurs ; le QR code (6b) et les liens (6c) suivent. La suite arrive
+dans l'ordre de la [feuille de route](./docs/ROADMAP.md).
 
 ## Commandes
 

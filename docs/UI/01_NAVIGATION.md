@@ -12,7 +12,7 @@ et iOS, dans `shared/src/commonMain`.
 
 L'app a deux côtés : sans session (`Route.Welcome` : se connecter, s'inscrire, jouer en invité ;
 puis `Route.SignIn`, `Route.SignUp`, `Route.ForgotPassword(email)`) et avec (`Route.Home` :
-rejoindre ou créer une partie). La session, lue par `MainViewModel` depuis
+rejoindre ou créer une partie, puis `Route.CreateGame` et `Route.WaitingRoom(gameId)`). La session, lue par `MainViewModel` depuis
 Firebase Auth, décide de la racine du back stack :
 
 - tant que la première session n'est pas lue, puis, connecté, tant que son profil n'est pas là (les

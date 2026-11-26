@@ -14,7 +14,7 @@ On y trouve :
 - le thème : `ESColors`, `ESTypography`, `ESShapes`, `ESSpacing`, `ESTheme` ;
 - les composants génériques : `ESScreenStructure` (fond, insets, barre du haut, barre fixée en bas,
   messages), `ESTopAppBar`, `ESIconButton`, `ESButton`, `ESText`, `ESTextField`, `ESDialog`,
-  `ESCard`, `ESDivider`, `ESProgressIndicator`, `ESSnackbarState` ;
+  `ESCard`, `ESDivider`, `ESProgressIndicator`, `ESStepper`, `ESSnackbarState` ;
 - le catalogue `ESCatalog`, tous les composants sur un écran ;
 - les polices (Exo 2), les icônes des composants et leurs textes, dans Compose Resources.
 
@@ -43,6 +43,7 @@ designSystem/
     │       ├── progress/          (ESProgressIndicator : une attente de durée inconnue)
     │       ├── screenstructure/   (ESScreenStructure : le cadre d'un écran)
     │       ├── snackbar/          (ESSnackbarState, et son hôte interne)
+    │       ├── stepper/           (ESStepper : une valeur choisie pas à pas, entre deux boutons)
     │       ├── text/              (ESText : un texte dans un style du thème)
     │       ├── textfield/         (ESTextField, ESTextFieldDefaults)
     │       └── topappbar/         (ESTopAppBar : retour, titre, actions)
@@ -125,8 +126,12 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
   `MEDIUM` et `LARGE`. **Pendant `isLoading`, il garde sa taille et ses couleurs, montre sa
   progression à la place du texte, ignore le toucher et se lit comme désactivé** : une action n'est
   jamais envoyée deux fois. Un écran désactive aussi la touche du clavier qui enverrait le formulaire.
-- **`ESTextField`** : son `kind` (`TEXT`, `USERNAME`, `EMAIL`, `PASSWORD`, `NEW_PASSWORD`) ouvre le
-  bon clavier et dit au gestionnaire de mots de passe quoi remplir. Un mot de passe est masqué
+- **`ESTextField`** : son `kind` (`TEXT`, `USERNAME`, `EMAIL`, `PASSWORD`, `NEW_PASSWORD`, `CODE`)
+  ouvre le bon clavier et dit au gestionnaire de mots de passe quoi remplir ; `CODE` (le code d'une
+  partie) tape et s'affiche en capitales, sans correction, `TEXT` commence ses phrases par une
+  capitale. **La valeur saisie ne se réécrit pas dans `onValueChange`** (capitales, filtre) : le
+  clavier Android, qui compose le mot, perd alors des touches ; l'affichage passe par une
+  transformation visuelle, et la valeur se nettoie à l'envoi. Un mot de passe est masqué
   jusqu'au toucher de l'œil, dont la description dit l'action. Un `errorMessage` remplace l'aide
   (`supportingText`), colore le champ et se lit comme l'erreur du champ par le lecteur d'écran. Le
   focus se voit (bord ambre, plus épais). La touche du clavier fait `imeAction`, puis appelle
@@ -147,7 +152,10 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
   a fait une exception assumée : il a construit d'avance les composants des écrans du compte
   (lot 5), pour les poser avant eux. Les composants des écrans de jeu (minuteur en chiffres
   tabulaires, saisie de code façon cadenas, carte d'un indice, victoire et défaite) arrivent avec
-  leur lot, comme un sélecteur de durée ou une feuille du bas.
+  leur lot, comme une feuille du bas.
+- **`ESStepper`** : un libellé, la valeur écrite par l'écran, et un bouton de chaque côté, désactivé
+  au bout de la plage. La valeur est relue par le lecteur d'écran à chaque changement. Il sert la
+  durée et le maximum de joueurs d'une partie.
 
 ### Icônes
 
