@@ -3,7 +3,6 @@ package fr.skyle.escapy.ui.screen.waitingroom.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
-import fr.skyle.escapy.domain.model.GameMember
 import fr.skyle.escapy.domain.model.GameState
 import fr.skyle.escapy.domain.usecase.game.CancelGameUseCase
 import fr.skyle.escapy.domain.usecase.game.KickPlayerUseCase
@@ -25,7 +24,8 @@ import kotlinx.coroutines.launch
 
 /**
  * A game before it starts, live: its code, its game master and its players. The game master
- * excludes a player or cancels the game; a player leaves it.
+ * excludes a player or cancels the game; a player leaves it. The screen asks for a confirmation
+ * first, in its dialogs: the actions here run once confirmed.
  */
 class WaitingRoomViewModel(
     private val gameId: String,
@@ -55,33 +55,13 @@ class WaitingRoomViewModel(
                 }
                 .collect { state ->
                     _uiState.update { uiState ->
-                        uiState.copy(
-                            state = state,
-                            // A player who left meanwhile is no longer to exclude
-                            playerToKick = uiState.playerToKick?.takeIf { player ->
-                                state is GameState.Available && player in state.players
-                            },
-                        )
+                        uiState.copy(state = state)
                     }
                 }
         }
     }
 
-    fun onKickClicked(player: GameMember) {
-        _uiState.update { uiState ->
-            uiState.copy(playerToKick = player)
-        }
-    }
-
-    fun onKickDismissed() {
-        if (_uiState.value.isKicking) return
-        _uiState.update { uiState ->
-            uiState.copy(playerToKick = null)
-        }
-    }
-
-    fun onKickConfirmed() {
-        val player = _uiState.value.playerToKick ?: return
+    fun onKickConfirmed(playerId: String) {
         if (_uiState.value.isKicking) return
         viewModelScope.launch {
             _uiState.update { uiState ->
@@ -89,7 +69,7 @@ class WaitingRoomViewModel(
             }
 
             try {
-                kickPlayerUseCase(gameId = gameId, playerId = player.userId)
+                kickPlayerUseCase(gameId = gameId, playerId = playerId)
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Exception) {
@@ -98,22 +78,10 @@ class WaitingRoomViewModel(
                 _event.send(WaitingRoomEvent.ShowError(error = exception.toGameError()))
             } finally {
                 _uiState.update { uiState ->
-                    uiState.copy(isKicking = false, playerToKick = null)
+                    uiState.copy(isKicking = false)
                 }
+                _event.send(WaitingRoomEvent.ActionFinished)
             }
-        }
-    }
-
-    fun onLeaveClicked() {
-        _uiState.update { uiState ->
-            uiState.copy(isLeaveDialogShown = true)
-        }
-    }
-
-    fun onLeaveDismissed() {
-        if (_uiState.value.isLeaving) return
-        _uiState.update { uiState ->
-            uiState.copy(isLeaveDialogShown = false)
         }
     }
 
@@ -127,21 +95,8 @@ class WaitingRoomViewModel(
                 leaveGameUseCase(gameId = gameId)
             }
             _uiState.update { uiState ->
-                uiState.copy(isLeaving = false, isLeaveDialogShown = false)
+                uiState.copy(isLeaving = false)
             }
-        }
-    }
-
-    fun onCancelClicked() {
-        _uiState.update { uiState ->
-            uiState.copy(isCancelDialogShown = true)
-        }
-    }
-
-    fun onCancelDismissed() {
-        if (_uiState.value.isCancelling) return
-        _uiState.update { uiState ->
-            uiState.copy(isCancelDialogShown = false)
         }
     }
 
@@ -155,7 +110,7 @@ class WaitingRoomViewModel(
                 cancelGameUseCase(gameId = gameId)
             }
             _uiState.update { uiState ->
-                uiState.copy(isCancelling = false, isCancelDialogShown = false)
+                uiState.copy(isCancelling = false)
             }
         }
     }
@@ -178,23 +133,24 @@ class WaitingRoomViewModel(
 
             watch()
             _event.send(WaitingRoomEvent.ShowError(error = exception.toGameError()))
+            _event.send(WaitingRoomEvent.ActionFinished)
         }
     }
 
     data class WaitingRoomUIState(
         // Null until the first read
         val state: GameState? = null,
-        // The player the game master is asked to confirm the exclusion of
-        val playerToKick: GameMember? = null,
         val isKicking: Boolean = false,
-        val isLeaveDialogShown: Boolean = false,
         val isLeaving: Boolean = false,
-        val isCancelDialogShown: Boolean = false,
         val isCancelling: Boolean = false,
     )
 
     sealed interface WaitingRoomEvent {
         data object Closed : WaitingRoomEvent
+
+        /** An action confirmed in a dialog is over, done or failed: the dialog closes. */
+        data object ActionFinished : WaitingRoomEvent
+
         data class ShowError(val error: GameError) : WaitingRoomEvent
     }
 }
