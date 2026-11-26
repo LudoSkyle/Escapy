@@ -13,6 +13,14 @@ class GameRulesTest {
     }
 
     @Test
+    fun `a code has six characters of its alphabet`() {
+        assertTrue(GameRules.isJoinCode("ABC234"))
+        assertFalse(GameRules.isJoinCode("ABC23O"))
+        assertFalse(GameRules.isJoinCode("abc234"))
+        assertFalse(GameRules.isJoinCode("ABC2345"))
+    }
+
+    @Test
     fun `a code is complete with its six characters spaces apart`() {
         assertTrue(GameRules.isJoinCodeComplete("abc 234"))
         assertFalse(GameRules.isJoinCodeComplete("ABC23"))
