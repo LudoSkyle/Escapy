@@ -65,9 +65,12 @@ targets:
             rm -f "$destination"
           fi
       # GoogleSignIn needs the reversed iOS client of the Firebase file as a URL scheme of the app:
-      # added to the built Info.plist, so that no identifier of the project is in the public repository
+      # added to the built Info.plist, so that no identifier of the project is in the public repository.
+      # The built Info.plist as an input makes Xcode run this phase after writing it, not before
       - name: Add the URL scheme of Google Sign-In
         basedOnDependencyAnalysis: false
+        inputFiles:
+          - $(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)
         script: |
           source="$SRCROOT/../private/firebase/GoogleService-Info.plist"
           plist="$TARGET_BUILD_DIR/$INFOPLIST_PATH"

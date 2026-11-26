@@ -163,6 +163,7 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
 			);
 			name = "Add the URL scheme of Google Sign-In";
 			outputFileListPaths = (
