@@ -28,9 +28,9 @@ internal class AuthRepositoryImpl(
         authCall { auth.createUserWithEmailAndPassword(email = email.trim(), password = password) }
     }
 
-    override suspend fun signInWithGoogle(idToken: String) {
+    override suspend fun signInWithGoogle(idToken: String, accessToken: String?) {
         val auth = services().auth
-        authCall { auth.signInWithCredential(googleCredential(idToken)) }
+        authCall { auth.signInWithCredential(googleCredential(idToken = idToken, accessToken = accessToken)) }
     }
 
     override suspend fun signInAsGuest() {
@@ -64,9 +64,9 @@ internal class AuthRepositoryImpl(
         }
     }
 
-    override suspend fun linkGuestWithGoogle(idToken: String) {
+    override suspend fun linkGuestWithGoogle(idToken: String, accessToken: String?) {
         val user = currentUser()
-        authCall { user.linkWithCredential(googleCredential(idToken)) }
+        authCall { user.linkWithCredential(googleCredential(idToken = idToken, accessToken = accessToken)) }
     }
 
     override suspend fun reauthenticate(password: String) {
@@ -81,10 +81,10 @@ internal class AuthRepositoryImpl(
         }
     }
 
-    override suspend fun reauthenticateWithGoogle(idToken: String) {
+    override suspend fun reauthenticateWithGoogle(idToken: String, accessToken: String?) {
         val user = currentUser()
         authCall {
-            user.reauthenticate(googleCredential(idToken))
+            user.reauthenticate(googleCredential(idToken = idToken, accessToken = accessToken))
             // A token of this new sign-in, for the functions that check its time
             user.getIdToken(forceRefresh = true)
         }
@@ -100,9 +100,10 @@ internal class AuthRepositoryImpl(
         authCall { user.updatePassword(password = newPassword) }
     }
 
-    // The ID token is enough: Firebase checks it, and the app asks Google for no access to any API
-    private fun googleCredential(idToken: String) =
-        GoogleAuthProvider.credential(idToken = idToken, accessToken = null)
+    // Firebase checks the ID token. Its iOS SDK refuses a credential without the access token, which
+    // Android does not give: null there
+    private fun googleCredential(idToken: String, accessToken: String?) =
+        GoogleAuthProvider.credential(idToken = idToken, accessToken = accessToken)
 
     private fun currentUser(): FirebaseUser =
         services().auth.currentUser ?: throw AuthFailureException(failure = AuthFailure.UNKNOWN)

@@ -2,6 +2,7 @@ package fr.skyle.escapy.platform.google
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import fr.skyle.escapy.domain.model.GoogleTokens
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.Foundation.NSBundle
@@ -39,7 +40,7 @@ private class GoogleSignInIos : GoogleSignInLauncher {
         get() = clientId != null
 
     @OptIn(ExperimentalForeignApi::class)
-    override suspend fun requestIdToken(): String? {
+    override suspend fun requestTokens(): GoogleTokens? {
         val clientId = clientId ?: return null
         // Looked for at the time of the click: the screen shown now, over which the sheet opens
         val presenter = topViewController() ?: error("No view controller to present the sign-in of Google from")
@@ -50,7 +51,12 @@ private class GoogleSignInIos : GoogleSignInLauncher {
                 when {
                     error?.code == kGIDSignInErrorCodeCanceled -> continuation.resume(null)
                     error != null -> continuation.resumeWithException(IllegalStateException(error.localizedDescription))
-                    else -> continuation.resume(result?.user?.idToken?.tokenString)
+                    else -> {
+                        val user = result?.user
+                        val idToken = user?.idToken?.tokenString
+                        // Firebase on iOS requires the access token along with the ID token
+                        continuation.resume(idToken?.let { token -> GoogleTokens(idToken = token, accessToken = user.accessToken.tokenString) })
+                    }
                 }
             }
         }

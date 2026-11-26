@@ -8,6 +8,6 @@ sealed interface Reauthentication {
 
     data class WithPassword(val password: String) : Reauthentication
 
-    /** With the ID token Google just gave the app. */
-    data class WithGoogle(val idToken: String) : Reauthentication
+    /** With the tokens Google just gave the app. */
+    data class WithGoogle(val tokens: GoogleTokens) : Reauthentication
 }

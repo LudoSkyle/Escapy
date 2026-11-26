@@ -2,6 +2,7 @@ package fr.skyle.escapy.ui.screen.deleteaccount
 
 import fr.skyle.escapy.domain.exception.InvalidCredentialsException
 import fr.skyle.escapy.domain.exception.WrongGoogleAccountException
+import fr.skyle.escapy.domain.model.GoogleTokens
 import fr.skyle.escapy.domain.model.Session
 import fr.skyle.escapy.fake.FakeDeleteAccountUseCase
 import fr.skyle.escapy.fake.FakeWatchSessionUseCase
@@ -90,7 +91,7 @@ class DeleteAccountViewModelTest : MainDispatcherTest() {
         val asked = viewModel.uiState.value.isConfirmationShown
         viewModel.onDeletionConfirmed(currentPassword = "")
         val deletedWithoutToken = deleteAccountUseCase.calls.toList()
-        viewModel.onGoogleIdTokenReceived(idToken = "token")
+        viewModel.onGoogleTokensReceived(tokens = GoogleTokens(idToken = "token", accessToken = null))
 
         // Then
         assertTrue(asked)
@@ -112,7 +113,7 @@ class DeleteAccountViewModelTest : MainDispatcherTest() {
 
         // When
         viewModel.onDeleteClicked(currentPassword = "")
-        viewModel.onGoogleIdTokenReceived(idToken = "token")
+        viewModel.onGoogleTokensReceived(tokens = GoogleTokens(idToken = "token", accessToken = null))
 
         // Then
         assertEquals(

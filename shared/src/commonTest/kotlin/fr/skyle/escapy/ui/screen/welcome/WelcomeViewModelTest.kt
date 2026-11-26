@@ -2,6 +2,7 @@ package fr.skyle.escapy.ui.screen.welcome
 
 import fr.skyle.escapy.domain.exception.AccountExistsWithPasswordException
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
+import fr.skyle.escapy.domain.model.GoogleTokens
 import fr.skyle.escapy.fake.FakeSignInAsGuestUseCase
 import fr.skyle.escapy.fake.FakeSignInWithGoogleUseCase
 import fr.skyle.escapy.test.MainDispatcherTest
@@ -58,7 +59,7 @@ class WelcomeViewModelTest : MainDispatcherTest() {
     @Test
     fun `the token of Google signs the user in`() = runTest {
         // When
-        viewModel.onGoogleIdTokenReceived(idToken = "token")
+        viewModel.onGoogleTokensReceived(tokens = GoogleTokens(idToken = "token", accessToken = null))
 
         // Then
         assertEquals(
@@ -73,7 +74,7 @@ class WelcomeViewModelTest : MainDispatcherTest() {
         signInWithGoogleUseCase.gate = CompletableDeferred()
 
         // When
-        viewModel.onGoogleIdTokenReceived(idToken = "token")
+        viewModel.onGoogleTokensReceived(tokens = GoogleTokens(idToken = "token", accessToken = null))
         viewModel.onContinueAsGuestClicked()
 
         // Then
@@ -89,7 +90,7 @@ class WelcomeViewModelTest : MainDispatcherTest() {
         signInWithGoogleUseCase.failure = AccountExistsWithPasswordException()
 
         // When
-        viewModel.onGoogleIdTokenReceived(idToken = "token")
+        viewModel.onGoogleTokensReceived(tokens = GoogleTokens(idToken = "token", accessToken = null))
 
         // Then
         assertEquals(
