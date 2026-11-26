@@ -30,8 +30,9 @@ paquet de liaison SwiftPM qui apporte Firebase. Ne couvre ni les écrans (dans `
   GoogleUtilities) doivent rester dans les plages que résout `firebase-ios-sdk`.
 - **Schéma d'URL de Google** : la phase « Add the URL scheme of Google Sign-In » ajoute au
   `Info.plist` construit le `REVERSED_CLIENT_ID` du fichier Firebase de `private/`, et ne l'ajoute
-  pas sans lui : aucun identifiant du projet dans le dépôt. `iOSApp.swift` transmet les URL reçues à
-  `handleGoogleSignInUrl`.
+  pas sans lui : aucun identifiant du projet dans le dépôt. Elle déclare l'`Info.plist` construit
+  comme fichier d'entrée : sans lui, Xcode écrivait l'`Info.plist` après la phase et effaçait le
+  schéma. `iOSApp.swift` transmet les URL reçues à `handleGoogleSignInUrl`.
 - **Firebase arrive uniquement par le paquet de liaison SwiftPM**, `KotlinMultiplatformLinkedPackage`,
   généré par le plugin Kotlin à partir des modules GitLive du code Kotlin, et déclaré dans
   `project.yml` (`packages:` et `dependencies:` de la cible). **Ne jamais redéclarer Firebase dans
