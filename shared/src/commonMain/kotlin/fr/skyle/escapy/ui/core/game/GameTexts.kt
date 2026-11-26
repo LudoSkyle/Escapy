@@ -18,7 +18,8 @@ fun durationText(minutes: Int): String {
     return when {
         hours == 0 -> stringResource(Res.string.duration_minutes, minutes)
         rest == 0 -> stringResource(Res.string.duration_hours, hours)
-        else -> stringResource(Res.string.duration_hours_minutes, hours, rest)
+        // Compose Resources replace %1$d and %1$s only, without a width: the minutes come padded
+        else -> stringResource(Res.string.duration_hours_minutes, hours, rest.toString().padStart(2, '0'))
     }
 }
 

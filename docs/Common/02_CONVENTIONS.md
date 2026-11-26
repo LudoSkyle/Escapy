@@ -137,6 +137,8 @@ joueurs verraient deux temps différents, et des messages dans le désordre.
     - Exemple à éviter : `home_button_title -> Join a game`.
 - Dans un `strings.xml` de Compose Resources, l'apostrophe s'écrit telle quelle (`L'escape game`, et
   non `L\'escape game`, dont l'antislash risque de s'afficher). Les variables restent positionnelles
-  (`%1$s`).
+  (`%1$s`, `%1$d`), sans largeur ni autre option : Compose Resources ne remplace que ces deux formes,
+  et affiche `%2$02d` tel quel. Un nombre à mettre en forme (deux chiffres) se prépare dans le code et
+  se passe en `%1$s`.
 - Un message d'erreur dit à l'utilisateur ce qui s'est passé et ce qu'il peut faire, sans détail
   technique (pas de code d'erreur Firebase à l'écran).
