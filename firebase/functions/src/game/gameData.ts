@@ -60,19 +60,25 @@ export function removePlayer(
   });
 }
 
-/** Deletes a game, its subcollections, its code and its entries in the lists of its members. Safe to run again. */
+/**
+ * Deletes a game, its code, its entries in the lists of its members, then its subcollections. Safe to
+ * run again. One transaction for the game and what points to it: a player joining meanwhile is either
+ * among the members whose entry goes, or finds no game.
+ */
 export async function deleteGame(game: DocumentReference): Promise<void> {
-  const data = (await game.get()).data();
-  // The code and the entries first: once the game is gone, nothing would point to them any more
-  const batch = db().batch();
-  const joinCode = data?.joinCode as string | undefined;
-  if (joinCode) {
-    batch.delete(db().collection(JOIN_CODES).doc(joinCode));
-  }
-  for (const memberId of (data?.memberIds as string[] | undefined) ?? []) {
-    batch.delete(userGameOf(memberId, game.id));
-  }
-  await batch.commit();
+  await db().runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(game);
+    if (!snapshot.exists) {
+      return;
+    }
+    const data = snapshot.data()!;
+    transaction.delete(db().collection(JOIN_CODES).doc(data.joinCode as string));
+    for (const memberId of data.memberIds as string[]) {
+      transaction.delete(userGameOf(memberId, game.id));
+    }
+    transaction.delete(game);
+  });
+  // The players and the excluded players, once nothing reaches them any more
   await db().recursiveDelete(game);
 }
 
