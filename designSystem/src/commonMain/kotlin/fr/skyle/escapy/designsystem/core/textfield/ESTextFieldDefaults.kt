@@ -23,7 +23,9 @@ object ESTextFieldDefaults {
         USERNAME,
         EMAIL,
         PASSWORD,
-        NEW_PASSWORD;
+        NEW_PASSWORD,
+        // A code to type as it is read, such as the code of a game: in capitals, never corrected
+        CODE;
 
         internal val isPassword: Boolean
             get() = this == PASSWORD || this == NEW_PASSWORD
@@ -35,6 +37,7 @@ object ESTextFieldDefaults {
                 EMAIL -> ContentType.EmailAddress
                 PASSWORD -> ContentType.Password
                 NEW_PASSWORD -> ContentType.NewPassword
+                CODE -> null
             }
     }
 }

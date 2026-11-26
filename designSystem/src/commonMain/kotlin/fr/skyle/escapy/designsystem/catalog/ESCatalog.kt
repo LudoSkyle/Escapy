@@ -38,6 +38,8 @@ import fr.skyle.escapy.designsystem.core.row.ESRowDefaults
 import fr.skyle.escapy.designsystem.core.screenstructure.ESScreenStructure
 import fr.skyle.escapy.designsystem.core.screenstructure.ESScreenStructureDefaults
 import fr.skyle.escapy.designsystem.core.snackbar.rememberESSnackbarState
+import fr.skyle.escapy.designsystem.core.stepper.ESStepper
+import fr.skyle.escapy.designsystem.core.stepper.ESStepperDefaults
 import fr.skyle.escapy.designsystem.core.text.ESText
 import fr.skyle.escapy.designsystem.core.textfield.ESTextField
 import fr.skyle.escapy.designsystem.core.textfield.ESTextFieldDefaults
@@ -59,6 +61,8 @@ fun ESCatalog() {
     var email by remember { mutableStateOf("player@escapy.app") }
     var password by remember { mutableStateOf("Escapy-2026") }
     var isDialogShown by remember { mutableStateOf(false) }
+    var minutes by remember { mutableStateOf(60) }
+    var code by remember { mutableStateOf("") }
 
     ESScreenStructure(
         style = ESScreenStructureDefaults.Style.STANDARD,
@@ -170,6 +174,15 @@ fun ESCatalog() {
 
                     ESTextField(
                         modifier = Modifier.fillMaxWidth(),
+                        value = code,
+                        onValueChange = { code = it },
+                        label = "Code of the game",
+                        kind = ESTextFieldDefaults.Kind.CODE,
+                        style = ESTextFieldDefaults.Style.STANDARD,
+                    )
+
+                    ESTextField(
+                        modifier = Modifier.fillMaxWidth(),
                         value = "",
                         onValueChange = {},
                         label = "Username",
@@ -193,6 +206,21 @@ fun ESCatalog() {
                         label = "Delete the account",
                         onClick = {},
                         style = ESRowDefaults.Style.DESTRUCTIVE,
+                    )
+
+                    ESDivider()
+
+                    ESStepper(
+                        label = "Duration",
+                        value = "$minutes min",
+                        onDecrease = { minutes -= 5 },
+                        onIncrease = { minutes += 5 },
+                        decreaseContentDescription = "Shorter",
+                        increaseContentDescription = "Longer",
+                        style = ESStepperDefaults.Style.STANDARD,
+                        size = ESStepperDefaults.Size.MEDIUM,
+                        isDecreaseEnabled = minutes > 15,
+                        isIncreaseEnabled = minutes < 180,
                     )
 
                     ESDivider()
