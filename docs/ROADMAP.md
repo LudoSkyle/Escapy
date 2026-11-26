@@ -22,7 +22,7 @@ Chaque lot est livré par une pull request vers `develop` (voir la section Git d
 ### Parties (lot 6)
 
 - [ ] Créer une partie : titre et durée
-- [ ] Rejoindre une partie par QR code
+- [x] Rejoindre une partie par QR code
 - [ ] La partie en cours, vue par ses joueurs (l'écran n'était pas terminé)
 
 ## Nouveautés
@@ -202,6 +202,23 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
        viennent avec les fonctions de la partie en cours.
    - 6b, **le QR code** : affiché par le maître du jeu, scanné dans l'app (caméra sur Android et
      iOS).
+     - [x] Le QR code de la partie dans la salle d'attente (qrose) ; il porte le code de la partie,
+           et sa lecture accepte déjà un lien dont le dernier segment est un code (`JoinCodeQr`)
+     - [x] Écran de scan, ouvert depuis l'accueil : permission caméra (demandée, refusée, refusée
+           pour de bon avec les réglages), aperçu, rejoindre la partie lue et ouvrir sa salle
+           d'attente ; CameraX et ML Kit (modèle embarqué) sur Android, AVFoundation sur iOS
+     - [x] Un QR code étranger n'est jamais envoyé au serveur ; un code refusé ne l'est plus tant que
+           l'écran reste ouvert (les codes inconnus comptent dans la limite de 10 en 10 minutes) ;
+           une erreur réseau se retente après 5 s
+     - [x] Caméra simulée pour les builds debug (simulateur iOS, émulateur Android)
+     - [x] Vérifié contre les émulateurs, sur le simulateur iOS 27.2 et un émulateur Android
+           (API 36), par la caméra simulée : rejoindre par le QR code, un QR code étranger, un code
+           inconnu (un seul appel au serveur) ; le QR code affiché décodé sur les deux ; la
+           permission refusée deux fois puis donnée par les réglages, et l'aperçu de la caméra
+           émulée, sur Android ; sur iOS, le message d'un appareil sans caméra (le simulateur) ; la
+           variante release construite (R8)
+     - [ ] À vérifier sur un appareil : la lecture d'un vrai QR code sur Android, et sur iOS tout le
+           chemin de la caméra (session, aperçu, lecture), que le simulateur ne peut pas exécuter
    - 6c, **les liens qui ouvrent l'app** (App Links, liens universels) : demande un domaine, et sur
      iOS un compte Apple payant (Associated Domains).
 7. **Partie en cours** : minuteur serveur (écart avec l'horloge du serveur estimé, voir

@@ -89,8 +89,8 @@ livrée et vérifiée ; le tableau est mis à jour dans le même commit.
 | Capacité | Android | iOS | Forme | Lot |
 |---|---|---|---|---|
 | Démarrage de Firebase, seulement avec son fichier | ✅ plugin Google Services | ✅ `startFirebase()` | build + `platformDataModule` | 2 |
-| Scanner le QR code d'une partie | CameraX + ML Kit Barcode Scanning | AVFoundation (`AVCaptureMetadataOutput`) | `expect` composable | 6 |
-| Permission caméra | `RequestPermission` | `AVCaptureDevice.requestAccess` | `expect` composable | 6 |
+| Scanner le QR code d'une partie | CameraX + ML Kit Barcode Scanning (modèle embarqué), livré ; lecture d'un vrai QR code à vérifier sur un appareil | AVFoundation (`AVCaptureMetadataOutput`), livré ; à vérifier sur un appareil | `expect` composable `QrCodeCamera` | 6 |
+| Permission caméra | ✅ `RequestPermission` | ✅ `AVCaptureDevice.requestAccess` | `expect` composable `rememberCameraPermissionState` | 6 |
 | Ouvrir l'app par le lien d'une partie | App Links | Universal Links | hôtes + route | 6 |
 | Partager le lien d'une partie | `ACTION_SEND` | `UIActivityViewController` | interface | 6 |
 | Vibration à la réception d'un indice | `LocalHapticFeedback` | `LocalHapticFeedback` | Compose | 9 |
@@ -98,3 +98,22 @@ livrée et vérifiée ; le tableau est mis à jour dans le même commit.
 | Jetons de connexion Google | Credential Manager (`GetSignInWithGoogleOption`) | GoogleSignIn, importé dans `iosMain` par SwiftPM | `expect` composable | 5 |
 | Enregistrer et jouer un indice audio | `MediaRecorder`, lecteur | `AVAudioRecorder`, `AVPlayer` | interface | 12 |
 | Notifications push | Firebase Messaging | Firebase Messaging, APNs | à décider | 12 |
+
+### La caméra du QR code
+
+- `QrCodeCamera` (`platform/camera/`) affiche l'aperçu et rend le contenu de chaque QR code lu, tant
+  que `isReading` est vrai ; il ne lit que les QR codes. Un appareil sans caméra le dit par
+  `onCameraUnavailable`.
+- Ce qui est fait d'un contenu lu revient au ViewModel de l'écran (`ScanCodeViewModel`) : la lecture
+  se met en pause avant tout appel, un contenu qui n'est pas celui d'une partie n'est jamais envoyé au
+  serveur, et un contenu refusé n'est plus envoyé tant que l'écran reste ouvert. Le serveur compte
+  les codes inconnus d'un utilisateur, et la caméra lit le même code plusieurs fois par seconde.
+- Le contenu du QR code est fabriqué et lu par `JoinCodeQr` (module `domain`) : le code de la partie
+  aujourd'hui, un lien au lot 6c. La lecture accepte déjà les deux.
+- **Caméra simulée** : le simulateur iOS n'a pas de caméra, et celle de l'émulateur Android ne montre
+  qu'une scène de synthèse. Un build debug lancé avec un contenu affiche une caméra simulée, qui lit
+  ce contenu chaque seconde : variable d'environnement `ESCAPY_SIMULATED_QR` sur iOS
+  (`SIMCTL_CHILD_ESCAPY_SIMULATED_QR=ABC234 xcrun simctl launch booted fr.skyle.escapy`), extra
+  `simulatedQr` sur Android (`adb shell am start -n fr.skyle.escapy.debug/fr.skyle.escapy.ui.MainActivity
+  --es simulatedQr ABC234`). Un build release ne les lit jamais. La lecture d'un vrai QR code ne se
+  vérifie que sur un appareil.
