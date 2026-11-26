@@ -20,9 +20,16 @@ object GameRules {
 
     const val JOIN_CODE_LENGTH = 6
 
+    /** The characters of a code: neither 0 and O nor 1, I and L, read aloud and typed by hand. */
+    const val JOIN_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+
     /** The code as the server reads it: without its spaces, in capitals. */
     fun cleanJoinCode(typed: String): String =
         typed.filterNot { character -> character.isWhitespace() }.uppercase()
+
+    /** Whether [code], already cleaned, can be the code of a game: its length and its alphabet. */
+    fun isJoinCode(code: String): Boolean =
+        code.length == JOIN_CODE_LENGTH && code.all { character -> character in JOIN_CODE_ALPHABET }
 
     /** Whether a typed code has its length, the only thing worth checking before the server does. */
     fun isJoinCodeComplete(typed: String): Boolean =
