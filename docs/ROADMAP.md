@@ -157,10 +157,22 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
        jusqu'au prochain rafraîchissement du jeton, puis se déconnecte. Le refus d'un compte supprimé
        par `ensureProfile` est déployé sur le vrai projet le 2026-11-25 ; `updateProfile`, qui laisse
        un champ `null` tel quel, ne l'est pas (l'app n'envoie jamais `null`).
-   - 5c, **la connexion Google**, sur les deux plateformes : le jeton obtenu nativement (Credential
-     Manager sur Android, GoogleSignIn sur iOS) derrière une interface commune, puis
-     `GoogleAuthProvider.credential`. Demande d'activer le fournisseur Google dans la console Firebase,
-     et sans doute de nouveaux fichiers de configuration dans `private/`.
+   - 5c, **la connexion Google** :
+     - [x] « Continuer avec Google » sur l'accueil, qui connecte ou crée le compte ; un e-mail déjà
+           inscrit avec un mot de passe le dit
+     - [x] Lier un invité à Google, en plus de l'e-mail ; un compte Google qui a déjà un compte le dit
+     - [x] Un membre Google seulement : ni changement d'e-mail ni de mot de passe, la suppression
+           confirmée par Google (un autre compte Google est refusé)
+     - [x] Les jetons obtenus nativement dans la Route (`rememberGoogleSignInLauncher`) : Credential
+           Manager sur Android, GoogleSignIn importé dans `iosMain` par SwiftPM sur iOS, qui donne
+           aussi le jeton d'accès qu'y exige Firebase ; le bouton
+           masqué sans la configuration Google (fork, CI), et aucun identifiant dans le dépôt
+     - [x] Fournisseur Google activé dans la console, empreintes des clés Android déclarées, fichiers
+           Firebase de `private/` mis à jour
+     - [x] Vérifié de bout en bout contre les émulateurs, sur le simulateur iOS 27.2 et un émulateur
+           Android (API 36) : connexion, profil, liaison d'un invité et suppression sur les deux ; un
+           compte Google déjà pris, sur iOS. Le refus d'un autre compte Google à la suppression n'est
+           couvert que par les tests
 6. **Parties** : créer (un vrai sélecteur de durée), rejoindre (code, QR code qui porte un lien
    universel, saisie manuelle), salle d'attente, exclure, quitter, liste en temps réel sur l'accueil.
    `minInstances` des fonctions de partie, avec son coût (une instance gardée chaude se facture
