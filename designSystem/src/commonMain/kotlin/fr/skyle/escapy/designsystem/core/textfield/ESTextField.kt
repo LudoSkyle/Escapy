@@ -20,10 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import fr.skyle.escapy.designsystem.core.text.ESText
@@ -95,7 +98,11 @@ fun ESTextField(
         } else {
             null
         },
-        visualTransformation = if (kind.isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = when {
+            kind.isPassword && !isPasswordVisible -> PasswordVisualTransformation()
+            kind == ESTextFieldDefaults.Kind.CODE -> CapitalsVisualTransformation
+            else -> VisualTransformation.None
+        },
         textStyle = ESTheme.typography.body,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -105,10 +112,10 @@ fun ESTextField(
                 ESTextFieldDefaults.Kind.TEXT, ESTextFieldDefaults.Kind.USERNAME -> KeyboardType.Text
                 ESTextFieldDefaults.Kind.CODE -> KeyboardType.Ascii
             },
-            capitalization = if (kind == ESTextFieldDefaults.Kind.CODE) {
-                KeyboardCapitalization.Characters
-            } else {
-                KeyboardCapitalization.Unspecified
+            capitalization = when (kind) {
+                ESTextFieldDefaults.Kind.CODE -> KeyboardCapitalization.Characters
+                ESTextFieldDefaults.Kind.TEXT -> KeyboardCapitalization.Sentences
+                else -> KeyboardCapitalization.Unspecified
             },
             autoCorrectEnabled = kind == ESTextFieldDefaults.Kind.TEXT,
             imeAction = imeAction,
@@ -169,4 +176,16 @@ private fun PreviewESTextField() {
             )
         }
     }
+}
+
+/**
+ * Shows a code in capitals, whatever the keyboard typed, without changing the text: rewriting the
+ * value while the keyboard composes it would lose keys. One character for one, so offsets map as is.
+ */
+private object CapitalsVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText =
+        TransformedText(
+            text = AnnotatedString(text.text.map { character -> character.uppercaseChar() }.joinToString(separator = "")),
+            offsetMapping = OffsetMapping.Identity,
+        )
 }

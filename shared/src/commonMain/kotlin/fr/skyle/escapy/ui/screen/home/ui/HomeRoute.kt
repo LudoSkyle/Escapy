@@ -41,10 +41,9 @@ fun HomeRoute(
         snackbarState = snackbarState,
         onProfileClicked = navigateToProfile,
         onJoinCodeChanged = { typed ->
-            // A code is letters and digits, read in capitals: nothing else is worth typing
-            joinCode = typed.filter { character -> character.isLetterOrDigit() }
-                .uppercase()
-                .take(GameRules.JOIN_CODE_LENGTH)
+            // Kept as typed: rewriting it while the keyboard composes would lose keys. The keyboard
+            // types in capitals, and the code is cleaned before it is sent (GameRules.cleanJoinCode)
+            joinCode = typed.take(JOIN_CODE_MAX_TYPED_LENGTH)
             viewModel.onJoinCodeEdited()
         },
         onJoinClicked = { viewModel.onJoinClicked(code = joinCode) },
@@ -52,3 +51,6 @@ fun HomeRoute(
         onGameClicked = navigateToGame,
     )
 }
+
+// Room for a space or two between the six characters, as the code is shown
+private const val JOIN_CODE_MAX_TYPED_LENGTH = GameRules.JOIN_CODE_LENGTH + 2
