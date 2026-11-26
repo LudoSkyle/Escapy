@@ -22,7 +22,8 @@ service cloud.firestore {
     // reads as missing, not as refused: a member sees their game deleted, not an error. Its id is
     // random, so this tells nothing to anyone else
     match /games/{gameId} {
-      allow read: if request.auth != null
+      // A game opens by its id; no client lists the games: the home screen reads users/{uid}/games
+      allow get: if request.auth != null
         && (resource == null || request.auth.uid in resource.data.memberIds);
       allow write: if false;
 
