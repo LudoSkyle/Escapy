@@ -3,6 +3,7 @@
     <string name="about_source_code">Source code on GitHub</string>
     <string name="about_title">About</string>
     <string name="about_version">Version %1$s</string>
+    <string name="action_allow_camera">Allow the camera</string>
     <string name="action_back_to_home">Back to home</string>
     <string name="action_back_to_profile">Back to the profile</string>
     <string name="action_cancel">Cancel</string>
@@ -15,8 +16,10 @@
     <string name="action_kick_player">Exclude %1$s</string>
     <string name="action_leave">Leave</string>
     <string name="action_leave_game">Leave the game</string>
+    <string name="action_open_settings">Open the settings</string>
     <string name="action_retry">Retry</string>
     <string name="action_save">Save</string>
+    <string name="action_scan_qr_code">Scan the QR code of a game</string>
     <string name="app_name" translatable="false">Escapy</string>
     <string name="avatar_label">Avatar %1$d</string>
     <string name="cancel_game_dialog_message">The game is deleted for everyone, and its code no longer works.</string>
@@ -61,6 +64,7 @@
     <string name="error_invalid_username">This username is too short, too long or has a forbidden character.</string>
     <string name="error_join_code_invalid">A code has 6 letters and digits.</string>
     <string name="error_network">No connection. Check your network and try again.</string>
+    <string name="error_not_a_game_qr_code">This QR code is not the one of an Escapy game.</string>
     <string name="error_recent_sign_in_required">For your safety, sign out and sign in again, then try again.</string>
     <string name="error_too_many_attempts">Too many attempts. Try again in a few minutes.</string>
     <string name="error_too_many_games">You already run 5 games. Cancel one to create another.</string>
@@ -95,6 +99,7 @@
     <string name="home_join_title">Join a game</string>
     <string name="home_my_games">My games</string>
     <string name="home_no_games">No game yet. Join one with its code, or create your own.</string>
+    <string name="join_code_qr_description">QR code to join the game, code %1$s</string>
     <string name="kick_player_dialog_message">%1$s leaves the game, and its code no longer lets them in.</string>
     <string name="kick_player_dialog_title">Exclude %1$s?</string>
     <string name="leave_game_dialog_message">You can join it again with its code while it waits for players.</string>
@@ -128,6 +133,11 @@
     <string name="profile_unavailable_message">Your profile could not be loaded. Check your connection and try again.</string>
     <string name="profile_unavailable_title">Profile unavailable</string>
     <string name="profile_your_avatar">Your avatar</string>
+    <string name="scan_qr_code_camera_denied">The camera is refused to Escapy. Allow it in the settings, or type the code of the game on the home screen.</string>
+    <string name="scan_qr_code_camera_needed">Escapy uses the camera to read the QR code of the game, and nothing else.</string>
+    <string name="scan_qr_code_camera_unavailable">No camera is available. Type the code of the game on the home screen.</string>
+    <string name="scan_qr_code_help">Aim at the QR code shown by the game master.</string>
+    <string name="scan_qr_code_title">Scan a QR code</string>
     <string name="sign_in_action">Sign in</string>
     <string name="sign_in_forgot_password">Forgot your password?</string>
     <string name="sign_in_title">Sign in</string>
@@ -136,7 +146,7 @@
     <string name="sign_out_guest_dialog_title">Sign out of the guest account?</string>
     <string name="sign_up_action">Create the account</string>
     <string name="sign_up_title">Create an account</string>
-    <string name="waiting_room_code_help">Give this code to the players: they type it on their home screen.</string>
+    <string name="waiting_room_code_help">Give this code to the players, or let them scan the QR code from their home screen.</string>
     <string name="waiting_room_deleted">The game master cancelled this game.</string>
     <string name="waiting_room_excluded">The game master excluded you from this game.</string>
     <string name="waiting_room_master">Game master</string>

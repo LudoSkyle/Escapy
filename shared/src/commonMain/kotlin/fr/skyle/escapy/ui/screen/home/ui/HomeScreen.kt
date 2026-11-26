@@ -2,11 +2,13 @@ package fr.skyle.escapy.ui.screen.home.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import fr.skyle.escapy.designsystem.core.button.ESButton
 import fr.skyle.escapy.designsystem.core.button.ESButtonDefaults
 import fr.skyle.escapy.designsystem.core.card.ESCard
@@ -39,6 +42,7 @@ import fr.skyle.escapy.domain.validation.GameRules
 import fr.skyle.escapy.resources.Res
 import fr.skyle.escapy.resources.action_create_game
 import fr.skyle.escapy.resources.action_join
+import fr.skyle.escapy.resources.action_scan_qr_code
 import fr.skyle.escapy.resources.app_name
 import fr.skyle.escapy.resources.field_join_code
 import fr.skyle.escapy.resources.game_summary_master
@@ -48,6 +52,7 @@ import fr.skyle.escapy.resources.home_join_title
 import fr.skyle.escapy.resources.home_my_games
 import fr.skyle.escapy.resources.home_no_games
 import fr.skyle.escapy.resources.ic_person
+import fr.skyle.escapy.resources.ic_qr_code_scanner
 import fr.skyle.escapy.resources.profile_title
 import fr.skyle.escapy.ui.core.error.message
 import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel.HomeUIState
@@ -62,6 +67,7 @@ fun HomeScreen(
     onProfileClicked: () -> Unit,
     onJoinCodeChanged: (String) -> Unit,
     onJoinClicked: () -> Unit,
+    onScanClicked: () -> Unit,
     onCreateGameClicked: () -> Unit,
     onGameClicked: (gameId: String) -> Unit,
 ) {
@@ -104,19 +110,34 @@ fun HomeScreen(
 
                     Spacer(modifier = Modifier.height(ESTheme.spacing.s))
 
-                    ESTextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = joinCode,
-                        onValueChange = onJoinCodeChanged,
-                        label = stringResource(Res.string.field_join_code),
-                        kind = ESTextFieldDefaults.Kind.CODE,
-                        style = ESTextFieldDefaults.Style.STANDARD,
-                        isEnabled = !uiState.isJoining,
-                        supportingText = stringResource(Res.string.home_join_code_help),
-                        errorMessage = uiState.joinCodeError?.message(),
-                        imeAction = ImeAction.Go,
-                        onImeAction = onJoinClicked,
-                    )
+                    Row(verticalAlignment = Alignment.Top) {
+                        ESTextField(
+                            modifier = Modifier.weight(1f),
+                            value = joinCode,
+                            onValueChange = onJoinCodeChanged,
+                            label = stringResource(Res.string.field_join_code),
+                            kind = ESTextFieldDefaults.Kind.CODE,
+                            style = ESTextFieldDefaults.Style.STANDARD,
+                            isEnabled = !uiState.isJoining,
+                            supportingText = stringResource(Res.string.home_join_code_help),
+                            errorMessage = uiState.joinCodeError?.message(),
+                            imeAction = ImeAction.Go,
+                            onImeAction = onJoinClicked,
+                        )
+
+                        Spacer(modifier = Modifier.width(ESTheme.spacing.xs))
+
+                        ESIconButton(
+                            // Level with the box of the field, under the room of its label
+                            modifier = Modifier.padding(top = 12.dp),
+                            icon = painterResource(Res.drawable.ic_qr_code_scanner),
+                            contentDescription = stringResource(Res.string.action_scan_qr_code),
+                            onClick = onScanClicked,
+                            style = ESIconButtonDefaults.Style.FILLED,
+                            size = ESIconButtonDefaults.Size.MEDIUM,
+                            isEnabled = !uiState.isJoining,
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(ESTheme.spacing.s))
 
@@ -223,6 +244,7 @@ private fun PreviewHomeScreen() {
             onProfileClicked = {},
             onJoinCodeChanged = {},
             onJoinClicked = {},
+            onScanClicked = {},
             onCreateGameClicked = {},
             onGameClicked = {},
         )
@@ -240,6 +262,7 @@ private fun PreviewHomeScreenWithoutGames() {
             onProfileClicked = {},
             onJoinCodeChanged = {},
             onJoinClicked = {},
+            onScanClicked = {},
             onCreateGameClicked = {},
             onGameClicked = {},
         )

@@ -21,6 +21,7 @@ import fr.skyle.escapy.ui.screen.linkaccount.entry.linkAccountRouteEntry
 import fr.skyle.escapy.ui.screen.profile.entry.profileRouteEntry
 import fr.skyle.escapy.ui.screen.forgotpassword.entry.forgotPasswordRouteEntry
 import fr.skyle.escapy.ui.screen.home.entry.homeRouteEntry
+import fr.skyle.escapy.ui.screen.scancode.entry.scanCodeRouteEntry
 import fr.skyle.escapy.ui.screen.signin.entry.signInRouteEntry
 import fr.skyle.escapy.ui.screen.signup.entry.signUpRouteEntry
 import fr.skyle.escapy.ui.screen.waitingroom.entry.waitingRoomRouteEntry
@@ -72,6 +73,8 @@ fun RootNavDisplay(
             homeRouteEntry(backStack = backStack)
 
             createGameRouteEntry(backStack = backStack)
+
+            scanCodeRouteEntry(backStack = backStack)
 
             waitingRoomRouteEntry(backStack = backStack)
 

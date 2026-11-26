@@ -16,6 +16,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import fr.skyle.escapy.designsystem.core.button.ESButton
 import fr.skyle.escapy.designsystem.core.button.ESButtonDefaults
 import fr.skyle.escapy.designsystem.core.card.ESCard
@@ -58,6 +59,7 @@ import fr.skyle.escapy.resources.waiting_room_no_players
 import fr.skyle.escapy.resources.waiting_room_players
 import fr.skyle.escapy.resources.waiting_room_start_by_master
 import fr.skyle.escapy.ui.core.game.GameMemberRow
+import fr.skyle.escapy.ui.core.game.JoinCodeQrCode
 import fr.skyle.escapy.ui.core.game.durationText
 import fr.skyle.escapy.ui.core.game.playersText
 import fr.skyle.escapy.ui.screen.waitingroom.ui.WaitingRoomViewModel.WaitingRoomUIState
@@ -292,7 +294,14 @@ private fun JoinCodeCard(game: Game) {
                 color = ESTheme.colors.textSecondary,
             )
 
-            Spacer(modifier = Modifier.height(ESTheme.spacing.s))
+            Spacer(modifier = Modifier.height(ESTheme.spacing.m))
+
+            JoinCodeQrCode(
+                joinCode = game.joinCode,
+                size = 200.dp,
+            )
+
+            Spacer(modifier = Modifier.height(ESTheme.spacing.m))
 
             ESText(
                 text = stringResource(Res.string.waiting_room_code_help),

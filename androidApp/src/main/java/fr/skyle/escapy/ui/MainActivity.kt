@@ -9,6 +9,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import fr.skyle.escapy.BuildConfig
 import fr.skyle.escapy.EscapyApp
 import fr.skyle.escapy.EscapyDesignSystemCatalog
+import fr.skyle.escapy.platform.camera.SimulatedQrCode
 
 class MainActivity : ComponentActivity() {
 
@@ -24,6 +25,10 @@ class MainActivity : ComponentActivity() {
 
         // A debug build started with --ez catalog true shows the design system instead of the app
         val showsCatalog = BuildConfig.DEBUG && intent.getBooleanExtra(EXTRA_CATALOG, false)
+        // A debug build started with --es simulatedQr <content> reads it as if the camera saw it
+        if (BuildConfig.DEBUG) {
+            SimulatedQrCode.content = intent.getStringExtra(EXTRA_SIMULATED_QR)
+        }
 
         setContent {
             if (showsCatalog) {
@@ -36,5 +41,6 @@ class MainActivity : ComponentActivity() {
 
     private companion object {
         const val EXTRA_CATALOG = "catalog"
+        const val EXTRA_SIMULATED_QR = "simulatedQr"
     }
 }

@@ -13,6 +13,7 @@ import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel
 import fr.skyle.escapy.ui.screen.linkaccount.ui.LinkAccountViewModel
 import fr.skyle.escapy.ui.screen.profile.ui.ProfileViewModel
 import fr.skyle.escapy.ui.screen.forgotpassword.ui.ForgotPasswordViewModel
+import fr.skyle.escapy.ui.screen.scancode.ui.ScanCodeViewModel
 import fr.skyle.escapy.ui.screen.signin.ui.SignInViewModel
 import fr.skyle.escapy.ui.screen.signup.ui.SignUpViewModel
 import fr.skyle.escapy.ui.screen.waitingroom.ui.WaitingRoomViewModel
@@ -38,6 +39,7 @@ val sharedModule = module {
     viewModelOf(::DeleteAccountViewModel)
     viewModelOf(::HomeViewModel)
     viewModelOf(::CreateGameViewModel)
+    viewModelOf(::ScanCodeViewModel)
     // The game the screen opened, given by its route
     viewModel { parameters ->
         WaitingRoomViewModel(

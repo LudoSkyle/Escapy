@@ -71,6 +71,9 @@ kotlin {
 
             // Logs
             implementation(libs.kermit)
+
+            // The QR code of a game
+            implementation(libs.qrose)
         }
 
         commonTest.dependencies {
@@ -84,6 +87,12 @@ kotlin {
             implementation(libs.androidx.credentials)
             implementation(libs.androidx.credentials.playServicesAuth)
             implementation(libs.googleId)
+
+            // The scan of the QR code of a game
+            implementation(libs.camerax.camera2)
+            implementation(libs.camerax.lifecycle)
+            implementation(libs.camerax.compose)
+            implementation(libs.mlkit.barcode.scanning)
         }
 
         iosMain.dependencies {

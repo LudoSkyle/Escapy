@@ -1,0 +1,2 @@
+/* La raison qu’iOS affiche en demandant la caméra */
+"NSCameraUsageDescription" = "Escapy utilise la caméra pour lire le QR code d’une partie.";

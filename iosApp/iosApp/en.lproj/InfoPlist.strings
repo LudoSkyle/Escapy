@@ -1,0 +1,2 @@
+/* The reason iOS shows when it asks for the camera */
+"NSCameraUsageDescription" = "Escapy uses the camera to read the QR code of a game.";

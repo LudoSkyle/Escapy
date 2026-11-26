@@ -27,6 +27,10 @@ sealed interface Route : NavKey {
     @Serializable
     data object CreateGame : Route
 
+    /** The camera, to join a game by its QR code. */
+    @Serializable
+    data object ScanCode : Route
+
     /** A game before it starts, opened by its id: the screen reads the game from Firestore. */
     @Serializable
     data class WaitingRoom(val gameId: String) : Route
