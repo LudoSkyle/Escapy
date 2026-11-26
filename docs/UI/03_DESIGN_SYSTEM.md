@@ -131,7 +131,9 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
   partie) tape et s'affiche en capitales, sans correction, `TEXT` commence ses phrases par une
   capitale. **La valeur saisie ne se réécrit pas dans `onValueChange`** (capitales, filtre) : le
   clavier Android, qui compose le mot, perd alors des touches ; l'affichage passe par une
-  transformation visuelle, et la valeur se nettoie à l'envoi. Un mot de passe est masqué
+  transformation visuelle, et la valeur se nettoie à l'envoi. Sa touche d'action fait d'abord ce
+  qu'elle ferait sans gestionnaire : `Done`, `Go`, `Search` et `Send` retirent le focus et ferment le
+  clavier (iOS ne le fait pas seul), `Next` passe au champ suivant ; puis elle appelle `onImeAction`. Un mot de passe est masqué
   jusqu'au toucher de l'œil, dont la description dit l'action. Un `errorMessage` remplace l'aide
   (`supportingText`), colore le champ et se lit comme l'erreur du champ par le lecteur d'écran. Le
   focus se voit (bord ambre, plus épais). La touche du clavier fait `imeAction`, puis appelle
@@ -139,7 +141,9 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
 - **`ESDialog`** : `STANDARD` ou `DESTRUCTIVE` (l'action en couleur d'erreur). Pendant
   `isConfirmLoading`, l'action montre sa progression et le dialogue ne se ferme pas.
 - **`ESScreenStructure`** : le cadre de chaque écran, qui garde son contenu hors des barres
-  système et du clavier (`safeDrawing`) et lui passe ces marges (`PaddingValues`). Un écran affiche
+  système et du clavier (`safeDrawing`) et lui passe ces marges (`PaddingValues`). Un toucher hors
+  d'un champ et d'un bouton retire le focus, ce qui ferme le clavier : iOS le garde sinon, sur les
+  boutons qu'il cache. Un écran affiche
   un message court par un `ESSnackbarState` (`rememberESSnackbarState()`) donné à
   `ESScreenStructure` ; `show` dit si son action a été touchée. Il ne voit jamais `Scaffold` ni
   `SnackbarHostState` de Material.
