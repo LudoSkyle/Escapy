@@ -13,6 +13,7 @@ document dit où et comment écrire ce qui ne peut pas l'être.
 | Démarrage de Koin | `EscapyApplication`, avec `androidContext(...)` | `initKoin()` (`shared/iosMain/.../di/KoinInitializer.kt`), appelé `doInitKoin()` depuis Swift |
 | Affichage de `EscapyApp` | `MainActivity.setContent` | `MainViewController()` (`ComposeUIViewController`), dans `ContentView.swift` |
 | Logs | Logcat en debug, rien en release | Écrivain par défaut de Kermit |
+| Jetons de connexion Google | `rememberGoogleSignInLauncher()` : Credential Manager, qui ne donne que le jeton d'identité, avec le client web `default_web_client_id` écrit par le plugin Google Services (gardé de la réduction des ressources par `androidApp/src/main/res/raw/keep.xml`) | `rememberGoogleSignInLauncher()` : `GIDSignIn`, avec `CLIENT_ID` du fichier Firebase, qui donne aussi le jeton d'accès ; l'app transmet ses URL par `handleGoogleSignInUrl` |
 | SDK Firebase natif | Dépendances Maven de GitLive | Paquet de liaison SwiftPM (voir [iosApp/CLAUDE.md](../../iosApp/CLAUDE.md)) |
 
 `FirebaseProvider` est une `fun interface` commune, `internal` à `data` ; chaque plateforme la fournit
@@ -20,6 +21,14 @@ dans son `platformDataModule` (`DataModule.android.kt`, `DataModule.ios.kt`) : e
 lister et créer les apps Firebase (le `Context` sur Android). Le choix des émulateurs vient de l'hôte :
 `BuildConfig.USE_FIREBASE_EMULATOR` sur Android, la variable `ESCAPY_FIREBASE_EMULATOR` d'un binaire
 debug sur iOS, passés à `startEscapyKoin(useFirebaseEmulator = …)`.
+
+La connexion Google passe par un `expect` composable, pas par une interface fournie par Koin :
+Credential Manager a besoin de l'activité, et GoogleSignIn du contrôleur affiché au moment du clic.
+La Route obtient les jetons (`requestTokensOrNull`, un `GoogleTokens`) et les donne au ViewModel, qui
+fait la connexion Firebase et se teste sans le natif. Le SDK Firebase d'iOS refuse un identifiant
+Google sans le jeton d'accès (GitLive lève une exception avant tout appel) : `GoogleTokens` le porte,
+nul sur Android, où Credential Manager ne le donne pas et Firebase s'en passe. Sans la configuration
+Google, `isAvailable` est faux et l'écran n'affiche pas le bouton.
 
 ### Avant d'écrire du code de plateforme
 
@@ -86,6 +95,6 @@ livrée et vérifiée ; le tableau est mis à jour dans le même commit.
 | Partager le lien d'une partie | `ACTION_SEND` | `UIActivityViewController` | interface | 6 |
 | Vibration à la réception d'un indice | `LocalHapticFeedback` | `LocalHapticFeedback` | Compose | 9 |
 | Choisir une image pour un indice | Photo Picker | `PHPickerViewController` | `expect` composable | 9 |
-| Jeton de connexion Google (si retenue) | Credential Manager | GoogleSignIn | interface | 5 |
+| Jetons de connexion Google | Credential Manager (`GetSignInWithGoogleOption`) | GoogleSignIn, importé dans `iosMain` par SwiftPM | `expect` composable | 5 |
 | Enregistrer et jouer un indice audio | `MediaRecorder`, lecteur | `AVAudioRecorder`, `AVPlayer` | interface | 12 |
 | Notifications push | Firebase Messaging | Firebase Messaging, APNs | à décider | 12 |

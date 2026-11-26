@@ -90,16 +90,20 @@ Avec le sous-module :
   avec le keystore debug du sous-module, ce que le build fait seul quand `private/` est là ;
 - `google-services.json` est copié depuis le sous-module dans `androidApp/` (tâche
   `clonePrivateFiles`, après `preBuild`), où il est ignoré par git, et le plugin Google Services
-  s'applique : Firebase démarre avec l'app ;
-- sur iOS, une phase de build copie `GoogleService-Info.plist` dans l'app (voir
+  s'applique : Firebase démarre avec l'app. Le plugin écrit aussi la ressource
+  `default_web_client_id`, le client web de la connexion Google, une fois le fournisseur Google
+  activé : `shared` la cherche par son nom, et `androidApp/src/main/res/raw/keep.xml` la garde de la
+  réduction des ressources de la release ;
+- sur iOS, une phase de build copie `GoogleService-Info.plist` dans l'app, et une autre ajoute son
+  `REVERSED_CLIENT_ID` comme schéma d'URL, pour la connexion Google (voir
   [iosApp/CLAUDE.md](../../iosApp/CLAUDE.md)).
 
 Sans le sous-module (un fork, la CI) :
 
 - le debug est signé avec la clé Android par défaut, la release n'est pas signée ;
-- Google Services ne s'applique pas, aucun fichier Firebase n'est copié : **Firebase est absent**, et
-  l'app démarre déconnectée. `FirebaseProvider` (`data`) le constate, et `SessionRepository` rend
-  `SignedOut` sans appeler Firebase ;
+- Google Services ne s'applique pas, aucun fichier Firebase n'est copié : **Firebase est absent**,
+  le bouton Google n'est pas affiché, et l'app démarre déconnectée. `FirebaseProvider` (`data`) le
+  constate, et `SessionRepository` rend `SignedOut` sans appeler Firebase ;
 - le build se configure, se teste et produit les deux apps quand même.
 
 ### iOS (`iosApp`)

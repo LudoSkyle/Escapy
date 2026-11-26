@@ -22,7 +22,7 @@ data/src/
 │   ├── model/                     (modèles exposés : StoredSession, StoredProfile)
 │   └── repository/
 │       ├── account/               (AccountRepository : suppression du compte, puis déconnexion)
-│       ├── auth/                  (AuthRepository : connexion, inscription, invité, liaison, réauthentification, e-mail, mot de passe, déconnexion)
+│       ├── auth/                  (AuthRepository : connexion par e-mail ou Google, inscription, invité, liaison, réauthentification, e-mail, mot de passe, déconnexion)
 │       ├── profile/               (ProfileRepository : profil observé, ensureProfile, updateProfile)
 │       └── session/               (SessionRepository : la session observée)
 ├── androidMain/kotlin/fr/skyle/escapy/data/
