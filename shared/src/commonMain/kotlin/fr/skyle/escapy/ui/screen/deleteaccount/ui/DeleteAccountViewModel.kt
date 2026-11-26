@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import fr.skyle.escapy.domain.exception.InvalidCredentialsException
+import fr.skyle.escapy.domain.model.GoogleTokens
 import fr.skyle.escapy.domain.model.Reauthentication
 import fr.skyle.escapy.domain.model.Session
 import fr.skyle.escapy.domain.usecase.account.DeleteAccountUseCase
@@ -89,8 +90,8 @@ class DeleteAccountViewModel(
         )
     }
 
-    fun onGoogleIdTokenReceived(idToken: String) {
-        delete(reauthentication = Reauthentication.WithGoogle(idToken = idToken))
+    fun onGoogleTokensReceived(tokens: GoogleTokens) {
+        delete(reauthentication = Reauthentication.WithGoogle(tokens = tokens))
     }
 
     fun onGoogleSignInFailed(exception: Exception) {

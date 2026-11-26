@@ -7,6 +7,7 @@ import fr.skyle.escapy.domain.exception.RecentSignInRequiredException
 import fr.skyle.escapy.domain.exception.WrongGoogleAccountException
 import fr.skyle.escapy.domain.fake.FakeAccountRepository
 import fr.skyle.escapy.domain.fake.FakeAuthRepository
+import fr.skyle.escapy.domain.model.GoogleTokens
 import fr.skyle.escapy.domain.model.Reauthentication
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -23,6 +24,8 @@ class DeleteAccountUseCaseImplTest {
         accountRepository = accountRepository,
     )
 
+    private val tokens = GoogleTokens(idToken = "token", accessToken = "access")
+
     @Test
     fun `a member signs in again before the deletion`() = runTest {
         // When
@@ -38,11 +41,11 @@ class DeleteAccountUseCaseImplTest {
     @Test
     fun `a member of Google signs in again with Google before the deletion`() = runTest {
         // When
-        deleteAccountUseCase(reauthentication = Reauthentication.WithGoogle(idToken = "token"))
+        deleteAccountUseCase(reauthentication = Reauthentication.WithGoogle(tokens = tokens))
 
         // Then
         assertEquals(
-            expected = listOf("reauthenticateGoogle:token", "deleteAccount"),
+            expected = listOf("reauthenticateGoogle:token:access", "deleteAccount"),
             actual = authRepository.calls,
         )
     }
@@ -54,10 +57,10 @@ class DeleteAccountUseCaseImplTest {
 
         // When / Then
         assertFailsWith<WrongGoogleAccountException> {
-            deleteAccountUseCase(reauthentication = Reauthentication.WithGoogle(idToken = "token"))
+            deleteAccountUseCase(reauthentication = Reauthentication.WithGoogle(tokens = tokens))
         }
         assertEquals(
-            expected = listOf("reauthenticateGoogle:token"),
+            expected = listOf("reauthenticateGoogle:token:access"),
             actual = authRepository.calls,
         )
     }

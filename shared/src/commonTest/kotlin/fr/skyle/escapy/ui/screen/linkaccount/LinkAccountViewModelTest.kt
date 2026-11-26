@@ -2,6 +2,7 @@ package fr.skyle.escapy.ui.screen.linkaccount
 
 import fr.skyle.escapy.domain.exception.EmailAlreadyInUseException
 import fr.skyle.escapy.domain.exception.GoogleAccountAlreadyInUseException
+import fr.skyle.escapy.domain.model.GoogleTokens
 import fr.skyle.escapy.fake.FakeLinkGuestAccountUseCase
 import fr.skyle.escapy.fake.FakeLinkGuestWithGoogleUseCase
 import fr.skyle.escapy.test.MainDispatcherTest
@@ -67,7 +68,7 @@ class LinkAccountViewModelTest : MainDispatcherTest() {
     @Test
     fun `once linked to Google the screen says so`() = runTest {
         // When
-        viewModel.onGoogleIdTokenReceived(idToken = "token")
+        viewModel.onGoogleTokensReceived(tokens = GoogleTokens(idToken = "token", accessToken = null))
 
         // Then
         assertEquals(
@@ -83,7 +84,7 @@ class LinkAccountViewModelTest : MainDispatcherTest() {
         linkGuestWithGoogleUseCase.failure = GoogleAccountAlreadyInUseException()
 
         // When
-        viewModel.onGoogleIdTokenReceived(idToken = "token")
+        viewModel.onGoogleTokensReceived(tokens = GoogleTokens(idToken = "token", accessToken = null))
 
         // Then
         assertEquals(

@@ -1,5 +1,6 @@
 package fr.skyle.escapy.fake
 
+import fr.skyle.escapy.domain.model.GoogleTokens
 import fr.skyle.escapy.domain.model.Profile
 import fr.skyle.escapy.domain.model.Reauthentication
 import fr.skyle.escapy.domain.usecase.account.ChangeEmailUseCase
@@ -48,7 +49,7 @@ class FakeSignUpWithEmailUseCase : FakeAction(), SignUpWithEmailUseCase {
 }
 
 class FakeSignInWithGoogleUseCase : FakeAction(), SignInWithGoogleUseCase {
-    override suspend fun invoke(idToken: String) = record(idToken)
+    override suspend fun invoke(tokens: GoogleTokens) = record(tokens.idToken)
 }
 
 class FakeSignInAsGuestUseCase : FakeAction(), SignInAsGuestUseCase {
@@ -96,7 +97,7 @@ class FakeLinkGuestAccountUseCase : FakeAction(), LinkGuestAccountUseCase {
 }
 
 class FakeLinkGuestWithGoogleUseCase : FakeAction(), LinkGuestWithGoogleUseCase {
-    override suspend fun invoke(idToken: String) = record(idToken)
+    override suspend fun invoke(tokens: GoogleTokens) = record(tokens.idToken)
 }
 
 class FakeChangeEmailUseCase : FakeAction(), ChangeEmailUseCase {
@@ -113,7 +114,7 @@ class FakeDeleteAccountUseCase : FakeAction(), DeleteAccountUseCase {
             when (reauthentication) {
                 Reauthentication.None -> "guest"
                 is Reauthentication.WithPassword -> reauthentication.password
-                is Reauthentication.WithGoogle -> "google:${reauthentication.idToken}"
+                is Reauthentication.WithGoogle -> "google:${reauthentication.tokens.idToken}"
             },
         )
 }

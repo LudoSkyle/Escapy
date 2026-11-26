@@ -11,6 +11,7 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import fr.skyle.escapy.domain.model.GoogleTokens
 
 @Composable
 actual fun rememberGoogleSignInLauncher(): GoogleSignInLauncher {
@@ -35,7 +36,7 @@ private class CredentialManagerGoogleSignIn(
     override val isAvailable: Boolean
         get() = webClientId != null
 
-    override suspend fun requestIdToken(): String? {
+    override suspend fun requestTokens(): GoogleTokens? {
         val serverClientId = webClientId ?: return null
         // The button flow of Google: the user picks an account, or adds one
         val request = GetCredentialRequest.Builder()
@@ -49,7 +50,8 @@ private class CredentialManagerGoogleSignIn(
         check(credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             "Unexpected credential from Credential Manager: ${credential.type}"
         }
-        return GoogleIdTokenCredential.createFrom(credential.data).idToken
+        // Credential Manager gives no access token, which Firebase does not need on Android
+        return GoogleTokens(idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken, accessToken = null)
     }
 
     private companion object {

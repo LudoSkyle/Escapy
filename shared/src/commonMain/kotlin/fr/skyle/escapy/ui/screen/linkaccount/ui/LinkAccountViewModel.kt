@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import fr.skyle.escapy.domain.exception.EmailAlreadyInUseException
 import fr.skyle.escapy.domain.exception.InvalidEmailException
+import fr.skyle.escapy.domain.model.GoogleTokens
 import fr.skyle.escapy.domain.usecase.account.LinkGuestAccountUseCase
 import fr.skyle.escapy.domain.usecase.account.LinkGuestWithGoogleUseCase
 import fr.skyle.escapy.domain.validation.PasswordPolicy
@@ -74,7 +75,7 @@ class LinkAccountViewModel(
     }
 
     // The Route asks Google for the token natively, then gives it here
-    fun onGoogleIdTokenReceived(idToken: String) {
+    fun onGoogleTokensReceived(tokens: GoogleTokens) {
         if (_uiState.value.isBusy) return
         viewModelScope.launch {
             _uiState.update { uiState ->
@@ -82,7 +83,7 @@ class LinkAccountViewModel(
             }
 
             try {
-                linkGuestWithGoogleUseCase(idToken = idToken)
+                linkGuestWithGoogleUseCase(tokens = tokens)
 
                 _uiState.update { uiState ->
                     uiState.copy(isLinkedWithGoogle = true)

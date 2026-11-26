@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.skyle.escapy.designsystem.core.snackbar.rememberESSnackbarState
 import fr.skyle.escapy.platform.google.rememberGoogleSignInLauncher
-import fr.skyle.escapy.platform.google.requestIdTokenOrNull
+import fr.skyle.escapy.platform.google.requestTokensOrNull
 import fr.skyle.escapy.ui.core.error.accountErrorMessages
 import fr.skyle.escapy.ui.core.error.message
 import fr.skyle.escapy.ui.core.event.ObserveEvents
@@ -51,8 +51,8 @@ fun LinkAccountRoute(
         onLinkClicked = { viewModel.onLinkClicked(email = email, password = password) },
         onLinkWithGoogleClicked = {
             scope.launch {
-                googleSignIn.requestIdTokenOrNull(onFailure = viewModel::onGoogleSignInFailed)
-                    ?.let(viewModel::onGoogleIdTokenReceived)
+                googleSignIn.requestTokensOrNull(onFailure = viewModel::onGoogleSignInFailed)
+                    ?.let(viewModel::onGoogleTokensReceived)
             }
         },
     )

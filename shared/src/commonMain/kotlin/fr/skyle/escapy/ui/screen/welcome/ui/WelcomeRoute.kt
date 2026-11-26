@@ -6,7 +6,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.skyle.escapy.designsystem.core.snackbar.rememberESSnackbarState
 import fr.skyle.escapy.platform.google.rememberGoogleSignInLauncher
-import fr.skyle.escapy.platform.google.requestIdTokenOrNull
+import fr.skyle.escapy.platform.google.requestTokensOrNull
 import fr.skyle.escapy.ui.core.error.accountErrorMessages
 import fr.skyle.escapy.ui.core.event.ObserveEvents
 import fr.skyle.escapy.ui.screen.welcome.ui.WelcomeViewModel.WelcomeEvent
@@ -40,8 +40,8 @@ fun WelcomeRoute(
         onSignUpClicked = navigateToSignUp,
         onContinueWithGoogleClicked = {
             scope.launch {
-                googleSignIn.requestIdTokenOrNull(onFailure = viewModel::onGoogleSignInFailed)
-                    ?.let(viewModel::onGoogleIdTokenReceived)
+                googleSignIn.requestTokensOrNull(onFailure = viewModel::onGoogleSignInFailed)
+                    ?.let(viewModel::onGoogleTokensReceived)
             }
         },
         onContinueAsGuestClicked = viewModel::onContinueAsGuestClicked,

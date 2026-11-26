@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.skyle.escapy.designsystem.core.snackbar.rememberESSnackbarState
 import fr.skyle.escapy.platform.google.rememberGoogleSignInLauncher
-import fr.skyle.escapy.platform.google.requestIdTokenOrNull
+import fr.skyle.escapy.platform.google.requestTokensOrNull
 import fr.skyle.escapy.ui.core.error.accountErrorMessages
 import fr.skyle.escapy.ui.core.error.message
 import fr.skyle.escapy.ui.core.event.ObserveEvents
@@ -50,9 +50,9 @@ fun DeleteAccountRoute(
             if (uiState.method == DeletionMethod.GOOGLE) {
                 // The member signs in with Google again: the server asks for a recent sign-in
                 scope.launch {
-                    val idToken = googleSignIn.requestIdTokenOrNull(onFailure = viewModel::onGoogleSignInFailed)
-                    if (idToken != null) {
-                        viewModel.onGoogleIdTokenReceived(idToken = idToken)
+                    val tokens = googleSignIn.requestTokensOrNull(onFailure = viewModel::onGoogleSignInFailed)
+                    if (tokens != null) {
+                        viewModel.onGoogleTokensReceived(tokens = tokens)
                     } else {
                         viewModel.onConfirmationDismissed()
                     }

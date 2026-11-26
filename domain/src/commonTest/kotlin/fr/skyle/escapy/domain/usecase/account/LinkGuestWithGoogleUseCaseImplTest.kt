@@ -4,6 +4,7 @@ import fr.skyle.escapy.data.exception.AuthFailure
 import fr.skyle.escapy.data.exception.AuthFailureException
 import fr.skyle.escapy.domain.exception.GoogleAccountAlreadyInUseException
 import fr.skyle.escapy.domain.fake.FakeAuthRepository
+import fr.skyle.escapy.domain.model.GoogleTokens
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -17,14 +18,16 @@ class LinkGuestWithGoogleUseCaseImplTest {
         authRepository = authRepository,
     )
 
+    private val tokens = GoogleTokens(idToken = "token", accessToken = "access")
+
     @Test
     fun `the guest account is linked to Google`() = runTest {
         // When
-        linkGuestWithGoogleUseCase(idToken = "token")
+        linkGuestWithGoogleUseCase(tokens = tokens)
 
         // Then
         assertEquals(
-            expected = listOf("linkGoogle:token"),
+            expected = listOf("linkGoogle:token:access"),
             actual = authRepository.calls,
         )
     }
@@ -36,7 +39,7 @@ class LinkGuestWithGoogleUseCaseImplTest {
 
         // When / Then
         assertFailsWith<GoogleAccountAlreadyInUseException> {
-            linkGuestWithGoogleUseCase(idToken = "token")
+            linkGuestWithGoogleUseCase(tokens = tokens)
         }
     }
 }

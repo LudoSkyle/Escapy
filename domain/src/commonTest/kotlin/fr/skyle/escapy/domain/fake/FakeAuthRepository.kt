@@ -18,7 +18,7 @@ class FakeAuthRepository : AuthRepository {
 
     override suspend fun signUpWithEmail(email: String, password: String) = record("signUp:$email")
 
-    override suspend fun signInWithGoogle(idToken: String) = record("google:$idToken")
+    override suspend fun signInWithGoogle(idToken: String, accessToken: String?) = record("google:$idToken:$accessToken")
 
     override suspend fun signInAsGuest() = record("guest")
 
@@ -28,11 +28,11 @@ class FakeAuthRepository : AuthRepository {
 
     override suspend fun linkGuestWithEmail(email: String, password: String) = record("link:$email")
 
-    override suspend fun linkGuestWithGoogle(idToken: String) = record("linkGoogle:$idToken")
+    override suspend fun linkGuestWithGoogle(idToken: String, accessToken: String?) = record("linkGoogle:$idToken:$accessToken")
 
     override suspend fun reauthenticate(password: String) = record("reauthenticate")
 
-    override suspend fun reauthenticateWithGoogle(idToken: String) = record("reauthenticateGoogle:$idToken")
+    override suspend fun reauthenticateWithGoogle(idToken: String, accessToken: String?) = record("reauthenticateGoogle:$idToken:$accessToken")
 
     override suspend fun changeEmail(newEmail: String) = record("changeEmail:$newEmail")
 

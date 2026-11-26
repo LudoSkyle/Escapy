@@ -3,6 +3,7 @@ package fr.skyle.escapy.ui.screen.welcome.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import fr.skyle.escapy.domain.model.GoogleTokens
 import fr.skyle.escapy.domain.usecase.auth.SignInAsGuestUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignInWithGoogleUseCase
 import fr.skyle.escapy.ui.core.error.AccountError
@@ -27,8 +28,8 @@ class WelcomeViewModel(
     private val _event = Channel<WelcomeEvent>(Channel.BUFFERED)
     val event = _event.receiveAsFlow()
 
-    // The Route asks Google for the token natively, then gives it here
-    fun onGoogleIdTokenReceived(idToken: String) {
+    // The Route asks Google for the tokens natively, then gives it here
+    fun onGoogleTokensReceived(tokens: GoogleTokens) {
         if (_uiState.value.isSigningIn) return
         viewModelScope.launch {
             _uiState.update { uiState ->
@@ -37,7 +38,7 @@ class WelcomeViewModel(
 
             try {
                 // The session changes: the app opens the home screen, or creates the profile first
-                signInWithGoogleUseCase(idToken = idToken)
+                signInWithGoogleUseCase(tokens = tokens)
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Exception) {

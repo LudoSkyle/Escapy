@@ -15,7 +15,10 @@ internal class DeleteAccountUseCaseImpl(
             when (reauthentication) {
                 Reauthentication.None -> Unit
                 is Reauthentication.WithPassword -> authRepository.reauthenticate(password = reauthentication.password)
-                is Reauthentication.WithGoogle -> authRepository.reauthenticateWithGoogle(idToken = reauthentication.idToken)
+                is Reauthentication.WithGoogle -> authRepository.reauthenticateWithGoogle(
+                    idToken = reauthentication.tokens.idToken,
+                    accessToken = reauthentication.tokens.accessToken,
+                )
             }
             accountRepository.deleteAccount()
         }
