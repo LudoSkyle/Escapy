@@ -1,11 +1,30 @@
-import { DocumentReference, FieldValue, Transaction } from "firebase-admin/firestore";
+import { DocumentData, DocumentReference, FieldValue, Transaction } from "firebase-admin/firestore";
 import { failure } from "../core/errors";
-import { db, GAMES, isNotFound, JOIN_CODES, PLAYERS, USERS } from "../core/firestore";
+import { db, GAMES, isNotFound, JOIN_CODES, PLAYERS, USER_GAMES, USERS } from "../core/firestore";
 import { GameMember } from "./game";
 
 /** Where a game keeps what no client reads: the players its game master excluded. */
 export function accessOf(game: DocumentReference): DocumentReference {
   return game.collection("private").doc("access");
+}
+
+/**
+ * The entry of a game in the list of a user (users/{uid}/games/{gameId}): what their home screen
+ * shows, from documents they always read. A list made by a query on the games would keep a game the
+ * user lost access to, which the Android SDK leaves in its cache (see docs/Backend/README.md).
+ */
+export function userGameOf(uid: string, gameId: string): DocumentReference {
+  return db().collection(USERS).doc(uid).collection(USER_GAMES).doc(gameId);
+}
+
+/** The entry of a game for one of its members, from the game as stored. */
+export function userGameData(game: DocumentData, isMaster: boolean): DocumentData {
+  return {
+    title: game.title,
+    isMaster,
+    master: game.master,
+    createdAt: game.createdAt,
+  };
 }
 
 /** The name and avatar of a user, copied into the games they join. */
@@ -33,6 +52,7 @@ export function removePlayer(
     return;
   }
   transaction.delete(game.collection(PLAYERS).doc(playerId));
+  transaction.delete(userGameOf(playerId, game.id));
   transaction.update(game, {
     memberIds: FieldValue.arrayRemove(playerId),
     playerCount: FieldValue.increment(-1),
@@ -40,14 +60,19 @@ export function removePlayer(
   });
 }
 
-/** Deletes a game, its subcollections and its code. Safe to run again. */
+/** Deletes a game, its subcollections, its code and its entries in the lists of its members. Safe to run again. */
 export async function deleteGame(game: DocumentReference): Promise<void> {
-  const snapshot = await game.get();
-  const joinCode = snapshot.data()?.joinCode as string | undefined;
-  // The code first: once the game is gone, nothing would point to it any more
+  const data = (await game.get()).data();
+  // The code and the entries first: once the game is gone, nothing would point to them any more
+  const batch = db().batch();
+  const joinCode = data?.joinCode as string | undefined;
   if (joinCode) {
-    await db().collection(JOIN_CODES).doc(joinCode).delete();
+    batch.delete(db().collection(JOIN_CODES).doc(joinCode));
   }
+  for (const memberId of (data?.memberIds as string[] | undefined) ?? []) {
+    batch.delete(userGameOf(memberId, game.id));
+  }
+  await batch.commit();
   await db().recursiveDelete(game);
 }
 
@@ -71,18 +96,36 @@ export async function removeUserFromGames(uid: string): Promise<void> {
   }
 }
 
-/** Copies a changed name or avatar into every game of the user, where the others see it. */
+/**
+ * Copies a changed name or avatar into every game of the user, where the others see it: the game and
+ * the entries of its members for a game master, their player document for a player.
+ */
 export async function copyMemberToGames(uid: string, member: GameMember): Promise<void> {
   const games = await db().collection(GAMES).where("memberIds", "array-contains", uid).get();
   for (const game of games.docs) {
-    const target = game.data().masterId === uid ? game.ref : game.ref.collection(PLAYERS).doc(uid);
-    try {
-      // update(), not set(): a game deleted or left meanwhile must not come back
-      await target.update(game.data().masterId === uid ? { master: member } : { ...member });
-    } catch (error) {
-      if (!isNotFound(error)) {
-        throw error;
-      }
+    const data = game.data();
+    const targets: [DocumentReference, DocumentData][] = data.masterId === uid
+      ? [
+        [game.ref, { master: member }],
+        ...(data.memberIds as string[]).map((memberId): [DocumentReference, DocumentData] => [
+          userGameOf(memberId, game.id),
+          { master: member },
+        ]),
+      ]
+      : [[game.ref.collection(PLAYERS).doc(uid), { ...member }]];
+    for (const [target, change] of targets) {
+      await updateIfExists(target, change);
+    }
+  }
+}
+
+// update(), not set(): a game deleted or left meanwhile must not come back
+async function updateIfExists(target: DocumentReference, change: DocumentData): Promise<void> {
+  try {
+    await target.update(change);
+  } catch (error) {
+    if (!isNotFound(error)) {
+      throw error;
     }
   }
 }

@@ -1,13 +1,14 @@
 package fr.skyle.escapy.data.repository.game.api
 
 import fr.skyle.escapy.data.model.StoredGame
+import fr.skyle.escapy.data.model.StoredGameEntry
 import fr.skyle.escapy.data.model.StoredMember
 import kotlinx.coroutines.flow.Flow
 
 interface GameRepository {
 
-    /** The games [userId] runs or plays, the latest first, then each change. */
-    fun watchGamesOf(userId: String): Flow<List<StoredGame>>
+    /** The games [userId] runs or plays, from their own list, the latest first, then each change. */
+    fun watchGamesOf(userId: String): Flow<List<StoredGameEntry>>
 
     /**
      * A game, then each change: null once it is deleted. Throws AccessDeniedException once the user

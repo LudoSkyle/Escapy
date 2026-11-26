@@ -77,7 +77,7 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `a player who leaves closes the screen without being told they are out`() = runTest {
+    fun `a player who leaves stops observing the game then closes the screen`() = runTest {
         // Given
         watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = false), players = listOf(player)))
         val gate = CompletableDeferred<Unit>()
@@ -86,11 +86,11 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
         // When
         viewModel.onLeaveClicked()
         viewModel.onLeaveConfirmed()
-        // The game is no longer readable before the call returns
-        watchGameUseCase.states.emit(GameState.Excluded)
+        val observedWhileLeaving = watchGameUseCase.states.subscriptionCount.value
         gate.complete(Unit)
 
         // Then
+        assertEquals(expected = 0, actual = observedWhileLeaving)
         assertEquals(expected = listOf("game"), actual = leaveGameUseCase.calls)
         assertEquals(expected = WaitingRoomEvent.Closed, actual = viewModel.event.first())
         assertTrue(viewModel.uiState.value.state is GameState.Available)
@@ -125,5 +125,6 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
         // Then
         assertEquals(expected = WaitingRoomEvent.ShowError(error = GameError.NETWORK), actual = viewModel.event.first())
         assertFalse(viewModel.uiState.value.isCancelling)
+        assertEquals(expected = 1, actual = watchGameUseCase.states.subscriptionCount.value)
     }
 }

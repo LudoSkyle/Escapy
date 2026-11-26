@@ -5,7 +5,7 @@ import fr.skyle.escapy.data.model.StoredSession
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
 import fr.skyle.escapy.domain.fake.FakeGameRepository
 import fr.skyle.escapy.domain.fake.FakeSessionRepository
-import fr.skyle.escapy.domain.fake.storedGame
+import fr.skyle.escapy.domain.fake.storedGameEntry
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -34,7 +34,7 @@ class WatchMyGamesUseCaseImplTest {
     fun `the games of the signed-in user tell which ones they run`() = runTest {
         // Given
         sessionRepository.sessions = flowOf(signedIn(userId = "master"))
-        gameRepository.gamesOf = flowOf(listOf(storedGame(masterId = "master"), storedGame(masterId = "other")))
+        gameRepository.gamesOf = flowOf(listOf(storedGameEntry(gameId = "own", isMaster = true), storedGameEntry(gameId = "other", isMaster = false)))
 
         // When
         val games = watchMyGamesUseCase().first()

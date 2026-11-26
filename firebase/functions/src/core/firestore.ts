@@ -1,6 +1,8 @@
 import { getFirestore } from "firebase-admin/firestore";
 
 export const USERS = "users";
+/** The games of a user, under their profile: users/{uid}/games. */
+export const USER_GAMES = "games";
 export const GAMES = "games";
 export const PLAYERS = "players";
 export const JOIN_CODES = "joinCodes";

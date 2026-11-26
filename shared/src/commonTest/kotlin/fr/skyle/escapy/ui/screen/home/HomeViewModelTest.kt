@@ -4,18 +4,22 @@ import fr.skyle.escapy.domain.exception.GameNotFoundException
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
 import fr.skyle.escapy.fake.FakeJoinGameUseCase
 import fr.skyle.escapy.fake.FakeWatchMyGamesUseCase
-import fr.skyle.escapy.fake.game
+import fr.skyle.escapy.fake.gameSummary
 import fr.skyle.escapy.test.MainDispatcherTest
 import fr.skyle.escapy.ui.core.error.GameError
 import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel
 import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel.HomeEvent
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest : MainDispatcherTest() {
 
     private val watchMyGamesUseCase = FakeWatchMyGamesUseCase()
@@ -29,14 +33,31 @@ class HomeViewModelTest : MainDispatcherTest() {
     @Test
     fun `the games of the user are shown once read`() = runTest {
         // Given
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
         val loading = viewModel.uiState.value.games
 
         // When
-        watchMyGamesUseCase.games.emit(listOf(game(isMaster = true)))
+        watchMyGamesUseCase.games.emit(listOf(gameSummary(isMaster = true)))
 
         // Then
         assertNull(loading)
-        assertEquals(expected = listOf(game(isMaster = true)), actual = viewModel.uiState.value.games)
+        assertEquals(expected = listOf(gameSummary(isMaster = true)), actual = viewModel.uiState.value.games)
+    }
+
+    @Test
+    fun `the games are observed only while the screen is shown`() = runTest {
+        // Given
+        val before = watchMyGamesUseCase.games.subscriptionCount.value
+
+        // When
+        val shown = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        val whileShown = watchMyGamesUseCase.games.subscriptionCount.value
+        shown.cancel()
+
+        // Then
+        assertEquals(expected = 0, actual = before)
+        assertEquals(expected = 1, actual = whileShown)
+        assertEquals(expected = 0, actual = watchMyGamesUseCase.games.subscriptionCount.value)
     }
 
     @Test
@@ -61,6 +82,7 @@ class HomeViewModelTest : MainDispatcherTest() {
     @Test
     fun `an unknown code is told under the field until it changes`() = runTest {
         // Given
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
         joinGameUseCase.failure = GameNotFoundException()
 
         // When
@@ -76,6 +98,7 @@ class HomeViewModelTest : MainDispatcherTest() {
     @Test
     fun `a network failure is told in a message`() = runTest {
         // Given
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
         joinGameUseCase.failure = NetworkUnavailableException()
 
         // When

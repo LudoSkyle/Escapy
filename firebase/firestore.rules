@@ -10,6 +10,12 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if false;
+
+      // The list of their games, for the home screen: read by its owner only
+      match /games/{gameId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
     }
 
     // A game is read by its members: its game master and its players. A game that does not exist

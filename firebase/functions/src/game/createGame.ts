@@ -11,7 +11,7 @@ import {
   validateGameTitle,
   validateMaxPlayers,
 } from "./game";
-import { readMember } from "./gameData";
+import { readMember, userGameOf } from "./gameData";
 
 /** A clash among 31^6 codes is rare: a few tries are plenty. */
 const JOIN_CODE_TRIES = 5;
@@ -49,6 +49,12 @@ export const createGame = onCall(async (request): Promise<CreateGameResponse> =>
       }
       const status: GameStatus = "WAITING";
       transaction.create(code, { gameId: game.id, createdAt: FieldValue.serverTimestamp() });
+      transaction.create(userGameOf(uid, game.id), {
+        title,
+        isMaster: true,
+        master,
+        createdAt: FieldValue.serverTimestamp(),
+      });
       transaction.create(game, {
         title,
         durationMinutes,

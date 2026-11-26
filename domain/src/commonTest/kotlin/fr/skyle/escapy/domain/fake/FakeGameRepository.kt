@@ -1,6 +1,7 @@
 package fr.skyle.escapy.domain.fake
 
 import fr.skyle.escapy.data.model.StoredGame
+import fr.skyle.escapy.data.model.StoredGameEntry
 import fr.skyle.escapy.data.model.StoredMember
 import fr.skyle.escapy.data.repository.game.api.GameRepository
 import kotlinx.coroutines.flow.Flow
@@ -8,7 +9,7 @@ import kotlinx.coroutines.flow.emptyFlow
 
 class FakeGameRepository : GameRepository {
 
-    var gamesOf: Flow<List<StoredGame>> = emptyFlow()
+    var gamesOf: Flow<List<StoredGameEntry>> = emptyFlow()
     var game: Flow<StoredGame?> = emptyFlow()
     var players: Flow<List<StoredMember>> = emptyFlow()
 
@@ -20,7 +21,7 @@ class FakeGameRepository : GameRepository {
 
     val calls = mutableListOf<String>()
 
-    override fun watchGamesOf(userId: String): Flow<List<StoredGame>> {
+    override fun watchGamesOf(userId: String): Flow<List<StoredGameEntry>> {
         calls += "watchGamesOf:$userId"
         return gamesOf
     }
@@ -65,4 +66,13 @@ fun storedGame(
         master = StoredMember(userId = masterId, username = "Maître", avatarId = 3),
         playerCount = playerCount,
         joinCode = "ABC234",
+    )
+
+fun storedGameEntry(gameId: String, isMaster: Boolean): StoredGameEntry =
+    StoredGameEntry(
+        gameId = gameId,
+        title = "Le manoir",
+        isMaster = isMaster,
+        masterUsername = "Maître",
+        masterAvatarId = 3,
     )

@@ -100,8 +100,8 @@
     <string name="home_join_code_help">6 caractères, donnés par le maître du jeu</string>
     <string name="home_my_games">Mes parties</string>
     <string name="home_no_games">Aucune partie pour l’instant. Rejoignez-en une avec son code, ou créez la vôtre.</string>
-    <string name="game_summary_master">Vous la menez · %1$s</string>
-    <string name="game_summary_player">Menée par %1$s · %2$s</string>
+    <string name="game_summary_master">Vous la menez</string>
+    <string name="game_summary_player">Menée par %1$s</string>
     <plurals name="game_players">
         <item quantity="one">%1$d joueur</item>
         <item quantity="other">%1$d joueurs</item>

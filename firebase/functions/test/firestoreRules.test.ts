@@ -32,6 +32,7 @@ beforeEach(async () => {
   await testEnv.withSecurityRulesDisabled(async (context) => {
     const firestore = context.firestore();
     await setDoc(doc(firestore, "users/alice"), { username: "Alice", avatarId: 1 });
+    await setDoc(doc(firestore, "users/alice/games/manor"), { title: "Le manoir", isMaster: true });
     // Alice runs the game, Bob plays it, Carol is in none
     await setDoc(doc(firestore, "games/manor"), { title: "Le manoir", masterId: "alice", memberIds: ["alice", "bob"] });
     await setDoc(doc(firestore, "games/manor/players/bob"), { username: "Bob", avatarId: 2 });
@@ -55,6 +56,15 @@ describe("users", () => {
   test("a signed-out client reads no profile", async () => {
     const anonymous = testEnv.unauthenticatedContext().firestore();
     await assertFails(getDoc(doc(anonymous, "users/alice")));
+  });
+
+  test("a user reads the list of their games, and nobody else does", async () => {
+    const alice = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(getDocs(collection(alice, "users/alice/games")));
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDocs(collection(bob, "users/alice/games")));
+    await assertFails(getDoc(doc(bob, "users/alice/games/manor")));
+    await assertFails(setDoc(doc(alice, "users/alice/games/other"), { title: "Hack", isMaster: true }));
   });
 
   test("a user does not create, change or delete even their own profile", async () => {
