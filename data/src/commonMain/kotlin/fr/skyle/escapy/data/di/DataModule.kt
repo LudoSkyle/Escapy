@@ -4,6 +4,8 @@ import fr.skyle.escapy.data.repository.account.AccountRepositoryImpl
 import fr.skyle.escapy.data.repository.account.api.AccountRepository
 import fr.skyle.escapy.data.repository.auth.AuthRepositoryImpl
 import fr.skyle.escapy.data.repository.auth.api.AuthRepository
+import fr.skyle.escapy.data.repository.game.GameRepositoryImpl
+import fr.skyle.escapy.data.repository.game.api.GameRepository
 import fr.skyle.escapy.data.repository.profile.ProfileRepositoryImpl
 import fr.skyle.escapy.data.repository.profile.api.ProfileRepository
 import fr.skyle.escapy.data.repository.session.SessionRepositoryImpl
@@ -20,6 +22,7 @@ val dataModule = module {
     singleOf(::AuthRepositoryImpl) bind AuthRepository::class
     singleOf(::ProfileRepositoryImpl) bind ProfileRepository::class
     singleOf(::AccountRepositoryImpl) bind AccountRepository::class
+    singleOf(::GameRepositoryImpl) bind GameRepository::class
 }
 
 // What each platform answers differently, such as which Firebase app to call

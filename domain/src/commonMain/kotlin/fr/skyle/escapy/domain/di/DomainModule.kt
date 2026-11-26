@@ -24,6 +24,20 @@ import fr.skyle.escapy.domain.usecase.auth.SignOutUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignOutUseCaseImpl
 import fr.skyle.escapy.domain.usecase.auth.SignUpWithEmailUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignUpWithEmailUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.CancelGameUseCase
+import fr.skyle.escapy.domain.usecase.game.CancelGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.CreateGameUseCase
+import fr.skyle.escapy.domain.usecase.game.CreateGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.JoinGameUseCase
+import fr.skyle.escapy.domain.usecase.game.JoinGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.KickPlayerUseCase
+import fr.skyle.escapy.domain.usecase.game.KickPlayerUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.LeaveGameUseCase
+import fr.skyle.escapy.domain.usecase.game.LeaveGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.WatchGameUseCase
+import fr.skyle.escapy.domain.usecase.game.WatchGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.WatchMyGamesUseCase
+import fr.skyle.escapy.domain.usecase.game.WatchMyGamesUseCaseImpl
 import fr.skyle.escapy.domain.usecase.profile.EnsureProfileUseCase
 import fr.skyle.escapy.domain.usecase.profile.EnsureProfileUseCaseImpl
 import fr.skyle.escapy.domain.usecase.profile.UpdateAvatarUseCase
@@ -64,6 +78,15 @@ val domainModule = module {
     factoryOf(::ChangeEmailUseCaseImpl) bind ChangeEmailUseCase::class
     factoryOf(::ChangePasswordUseCaseImpl) bind ChangePasswordUseCase::class
     factoryOf(::DeleteAccountUseCaseImpl) bind DeleteAccountUseCase::class
+
+    // Games
+    factoryOf(::WatchMyGamesUseCaseImpl) bind WatchMyGamesUseCase::class
+    factoryOf(::WatchGameUseCaseImpl) bind WatchGameUseCase::class
+    factoryOf(::CreateGameUseCaseImpl) bind CreateGameUseCase::class
+    factoryOf(::JoinGameUseCaseImpl) bind JoinGameUseCase::class
+    factoryOf(::LeaveGameUseCaseImpl) bind LeaveGameUseCase::class
+    factoryOf(::KickPlayerUseCaseImpl) bind KickPlayerUseCase::class
+    factoryOf(::CancelGameUseCaseImpl) bind CancelGameUseCase::class
 }
 
 /** The Koin property a debug host sets to "true" to use the Firebase emulators. */

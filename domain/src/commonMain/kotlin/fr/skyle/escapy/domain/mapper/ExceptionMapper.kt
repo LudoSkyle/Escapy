@@ -7,13 +7,21 @@ import fr.skyle.escapy.data.exception.FunctionFailureException
 import fr.skyle.escapy.domain.exception.AccountExistsWithPasswordException
 import fr.skyle.escapy.domain.exception.AccountUnavailableException
 import fr.skyle.escapy.domain.exception.EmailAlreadyInUseException
+import fr.skyle.escapy.domain.exception.ExcludedFromGameException
+import fr.skyle.escapy.domain.exception.GameFullException
+import fr.skyle.escapy.domain.exception.GameNotFoundException
+import fr.skyle.escapy.domain.exception.GameNotJoinableException
 import fr.skyle.escapy.domain.exception.GoogleAccountAlreadyInUseException
 import fr.skyle.escapy.domain.exception.InvalidCredentialsException
 import fr.skyle.escapy.domain.exception.InvalidEmailException
+import fr.skyle.escapy.domain.exception.InvalidGameTitleException
+import fr.skyle.escapy.domain.exception.InvalidJoinCodeException
 import fr.skyle.escapy.domain.exception.InvalidUsernameException
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
+import fr.skyle.escapy.domain.exception.NotGameMasterException
 import fr.skyle.escapy.domain.exception.RecentSignInRequiredException
 import fr.skyle.escapy.domain.exception.TooManyAttemptsException
+import fr.skyle.escapy.domain.exception.TooManyGamesException
 import fr.skyle.escapy.domain.exception.WeakPasswordException
 import fr.skyle.escapy.domain.exception.WrongGoogleAccountException
 import fr.skyle.escapy.domain.validation.PasswordRule
@@ -41,6 +49,15 @@ internal fun Throwable.toDomainException(): Throwable =
         is FunctionFailureException -> when (reason) {
             "USERNAME_INVALID" -> InvalidUsernameException(cause = this)
             "RECENT_SIGN_IN_REQUIRED" -> RecentSignInRequiredException(cause = this)
+            "GAME_TITLE_INVALID" -> InvalidGameTitleException(cause = this)
+            "TOO_MANY_GAMES" -> TooManyGamesException(cause = this)
+            "JOIN_CODE_INVALID" -> InvalidJoinCodeException(cause = this)
+            "TOO_MANY_ATTEMPTS" -> TooManyAttemptsException(cause = this)
+            "GAME_NOT_FOUND" -> GameNotFoundException(cause = this)
+            "GAME_NOT_JOINABLE" -> GameNotJoinableException(cause = this)
+            "GAME_FULL" -> GameFullException(cause = this)
+            "PLAYER_EXCLUDED" -> ExcludedFromGameException(cause = this)
+            "NOT_GAME_MASTER" -> NotGameMasterException(cause = this)
             else -> AccountUnavailableException(cause = this)
         }
         else -> this
