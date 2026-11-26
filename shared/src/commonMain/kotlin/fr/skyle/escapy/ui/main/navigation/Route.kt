@@ -25,6 +25,13 @@ sealed interface Route : NavKey {
     data object Home : Route
 
     @Serializable
+    data object CreateGame : Route
+
+    /** A game before it starts, opened by its id: the screen reads the game from Firestore. */
+    @Serializable
+    data class WaitingRoom(val gameId: String) : Route
+
+    @Serializable
     data object Profile : Route
 
     /** Opened from the profile, with the username shown there. */

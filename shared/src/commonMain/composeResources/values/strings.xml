@@ -48,7 +48,6 @@
     <string name="forgot_password_send">Send the link</string>
     <string name="forgot_password_sent">If an account uses %1$s, an email with a link to choose a new password is on its way. Check your spam folder too.</string>
     <string name="forgot_password_title">Forgotten password</string>
-    <string name="home_coming_soon">Your games will be here.</string>
     <string name="link_account_action">Link the email</string>
     <string name="link_account_done">Your account is now linked to %1$s: everything in it is kept. An email to verify this address is on its way.</string>
     <string name="link_account_done_google">Your account is now linked to your Google account: everything in it is kept.</string>
@@ -91,4 +90,65 @@
     <string name="welcome_sign_in">Sign in</string>
     <string name="welcome_sign_up">Create an account</string>
     <string name="welcome_tagline">Escape games at home, run by a game master.</string>
+
+    <!-- Games -->
+    <string name="action_create_game">Create a game</string>
+    <string name="action_join">Join</string>
+    <string name="action_back_to_home">Back to home</string>
+    <string name="field_join_code">Code of the game</string>
+    <string name="field_game_title">Title</string>
+    <string name="home_join_title">Join a game</string>
+    <string name="home_join_code_help">6 characters, given by the game master</string>
+    <string name="home_my_games">My games</string>
+    <string name="home_no_games">No game yet. Join one with its code, or create your own.</string>
+    <string name="game_summary_master">You run it · %1$s</string>
+    <string name="game_summary_player">Run by %1$s · %2$s</string>
+    <plurals name="game_players">
+        <item quantity="one">%1$d player</item>
+        <item quantity="other">%1$d players</item>
+    </plurals>
+    <plurals name="game_players_of_max">
+        <item quantity="one">%1$d player out of %2$d</item>
+        <item quantity="other">%1$d players out of %2$d</item>
+    </plurals>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="duration_hours_minutes">%1$d h %2$02d</string>
+    <string name="create_game_title_help">From 3 to 40 characters</string>
+    <string name="create_game_duration">Duration</string>
+    <string name="create_game_shorter">Shorter</string>
+    <string name="create_game_longer">Longer</string>
+    <string name="create_game_max_players">Players at most</string>
+    <string name="create_game_max_players_help">The game master apart</string>
+    <string name="create_game_no_limit">No limit</string>
+    <string name="create_game_fewer_players">Fewer players</string>
+    <string name="create_game_more_players">More players</string>
+    <string name="action_create">Create the game</string>
+    <string name="waiting_room_code_help">Give this code to the players: they type it on their home screen.</string>
+    <string name="waiting_room_master">Game master</string>
+    <string name="waiting_room_players">Players</string>
+    <string name="waiting_room_you">%1$s (you)</string>
+    <string name="waiting_room_no_players">Waiting for the players…</string>
+    <string name="waiting_room_start_by_master">The game starts when the game master launches it.</string>
+    <string name="waiting_room_deleted">The game master cancelled this game.</string>
+    <string name="waiting_room_excluded">The game master excluded you from this game.</string>
+    <string name="error_excluded_from_game">The game master no longer lets you into this game.</string>
+    <string name="action_kick_player">Exclude %1$s</string>
+    <string name="kick_player_dialog_title">Exclude %1$s?</string>
+    <string name="kick_player_dialog_message">%1$s leaves the game, and its code no longer lets them in.</string>
+    <string name="action_kick">Exclude</string>
+    <string name="action_leave_game">Leave the game</string>
+    <string name="leave_game_dialog_title">Leave the game?</string>
+    <string name="leave_game_dialog_message">You can join it again with its code while it waits for players.</string>
+    <string name="action_leave">Leave</string>
+    <string name="action_cancel_game">Cancel the game</string>
+    <string name="cancel_game_dialog_title">Cancel the game?</string>
+    <string name="cancel_game_dialog_message">The game is deleted for everyone, and its code no longer works.</string>
+    <string name="action_keep_game">Keep it</string>
+    <string name="error_join_code_invalid">A code has 6 letters and digits.</string>
+    <string name="error_game_not_found">No game has this code. Check it with the game master.</string>
+    <string name="error_game_full">This game is full.</string>
+    <string name="error_game_not_joinable">This game no longer waits for players.</string>
+    <string name="error_game_title_invalid">The title has 3 to 40 characters.</string>
+    <string name="error_too_many_games">You already run 5 games. Cancel one to create another.</string>
 </resources>

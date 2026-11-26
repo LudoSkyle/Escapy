@@ -13,6 +13,7 @@ import androidx.navigation3.ui.NavDisplay
 import fr.skyle.escapy.ui.screen.about.entry.aboutRouteEntry
 import fr.skyle.escapy.ui.screen.changeemail.entry.changeEmailRouteEntry
 import fr.skyle.escapy.ui.screen.changepassword.entry.changePasswordRouteEntry
+import fr.skyle.escapy.ui.screen.creategame.entry.createGameRouteEntry
 import fr.skyle.escapy.ui.screen.deleteaccount.entry.deleteAccountRouteEntry
 import fr.skyle.escapy.ui.screen.editavatar.entry.editAvatarRouteEntry
 import fr.skyle.escapy.ui.screen.editusername.entry.editUsernameRouteEntry
@@ -22,6 +23,7 @@ import fr.skyle.escapy.ui.screen.forgotpassword.entry.forgotPasswordRouteEntry
 import fr.skyle.escapy.ui.screen.home.entry.homeRouteEntry
 import fr.skyle.escapy.ui.screen.signin.entry.signInRouteEntry
 import fr.skyle.escapy.ui.screen.signup.entry.signUpRouteEntry
+import fr.skyle.escapy.ui.screen.waitingroom.entry.waitingRoomRouteEntry
 import fr.skyle.escapy.ui.screen.welcome.entry.welcomeRouteEntry
 
 /**
@@ -65,6 +67,10 @@ fun RootNavDisplay(
             forgotPasswordRouteEntry(backStack = backStack)
 
             homeRouteEntry(backStack = backStack)
+
+            createGameRouteEntry(backStack = backStack)
+
+            waitingRoomRouteEntry(backStack = backStack)
 
             profileRouteEntry(backStack = backStack)
 
