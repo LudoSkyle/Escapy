@@ -66,6 +66,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun WaitingRoomScreen(
     uiState: WaitingRoomUIState,
+    playerToKick: GameMember?,
+    isLeaveDialogShown: Boolean,
+    isCancelDialogShown: Boolean,
     snackbarState: ESSnackbarState,
     onBackClicked: () -> Unit,
     onKickClicked: (GameMember) -> Unit,
@@ -141,6 +144,9 @@ fun WaitingRoomScreen(
 
     WaitingRoomDialogs(
         uiState = uiState,
+        playerToKick = playerToKick,
+        isLeaveDialogShown = isLeaveDialogShown,
+        isCancelDialogShown = isCancelDialogShown,
         onKickDismissed = onKickDismissed,
         onKickConfirmed = onKickConfirmed,
         onLeaveDismissed = onLeaveDismissed,
@@ -300,6 +306,9 @@ private fun JoinCodeCard(game: Game) {
 @Composable
 private fun WaitingRoomDialogs(
     uiState: WaitingRoomUIState,
+    playerToKick: GameMember?,
+    isLeaveDialogShown: Boolean,
+    isCancelDialogShown: Boolean,
     onKickDismissed: () -> Unit,
     onKickConfirmed: () -> Unit,
     onLeaveDismissed: () -> Unit,
@@ -307,7 +316,6 @@ private fun WaitingRoomDialogs(
     onCancelDismissed: () -> Unit,
     onCancelConfirmed: () -> Unit,
 ) {
-    val playerToKick = uiState.playerToKick
     if (playerToKick != null) {
         ESDialog(
             title = stringResource(Res.string.kick_player_dialog_title, playerToKick.username),
@@ -321,7 +329,7 @@ private fun WaitingRoomDialogs(
         )
     }
 
-    if (uiState.isLeaveDialogShown) {
+    if (isLeaveDialogShown) {
         ESDialog(
             title = stringResource(Res.string.leave_game_dialog_title),
             message = stringResource(Res.string.leave_game_dialog_message),
@@ -334,7 +342,7 @@ private fun WaitingRoomDialogs(
         )
     }
 
-    if (uiState.isCancelDialogShown) {
+    if (isCancelDialogShown) {
         ESDialog(
             title = stringResource(Res.string.cancel_game_dialog_title),
             message = stringResource(Res.string.cancel_game_dialog_message),
@@ -374,6 +382,9 @@ private fun PreviewWaitingRoomScreenForTheMaster() {
                     ),
                 ),
             ),
+            playerToKick = null,
+            isLeaveDialogShown = false,
+            isCancelDialogShown = false,
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
             onKickClicked = {},
@@ -400,6 +411,9 @@ private fun PreviewWaitingRoomScreenForAPlayer() {
                     players = listOf(GameMember(userId = "a", username = "Joueuse", avatarId = 8, isCurrentUser = true)),
                 ),
             ),
+            playerToKick = null,
+            isLeaveDialogShown = false,
+            isCancelDialogShown = false,
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
             onKickClicked = {},
@@ -421,6 +435,9 @@ private fun PreviewWaitingRoomScreenDeleted() {
     ESTheme {
         WaitingRoomScreen(
             uiState = WaitingRoomUIState(state = GameState.Deleted),
+            playerToKick = null,
+            isLeaveDialogShown = false,
+            isCancelDialogShown = false,
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
             onKickClicked = {},

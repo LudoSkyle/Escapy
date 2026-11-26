@@ -14,11 +14,12 @@ import fr.skyle.escapy.ui.screen.waitingroom.ui.WaitingRoomViewModel
 import fr.skyle.escapy.ui.screen.waitingroom.ui.WaitingRoomViewModel.WaitingRoomEvent
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class WaitingRoomViewModelTest : MainDispatcherTest() {
@@ -61,19 +62,17 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `the game master excludes a player after confirming`() = runTest {
+    fun `an exclusion confirmed reaches the server and closes the dialog`() = runTest {
         // Given
         watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = true), players = listOf(player)))
 
         // When
-        viewModel.onKickClicked(player = player)
-        val asked = viewModel.uiState.value.playerToKick
-        viewModel.onKickConfirmed()
+        viewModel.onKickConfirmed(playerId = player.userId)
 
         // Then
-        assertEquals(expected = player, actual = asked)
         assertEquals(expected = listOf("game:player"), actual = kickPlayerUseCase.calls)
-        assertNull(viewModel.uiState.value.playerToKick)
+        assertEquals(expected = WaitingRoomEvent.ActionFinished, actual = viewModel.event.first())
+        assertFalse(viewModel.uiState.value.isKicking)
     }
 
     @Test
@@ -84,7 +83,6 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
         leaveGameUseCase.gate = gate
 
         // When
-        viewModel.onLeaveClicked()
         viewModel.onLeaveConfirmed()
         val observedWhileLeaving = watchGameUseCase.states.subscriptionCount.value
         gate.complete(Unit)
@@ -94,7 +92,6 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
         assertEquals(expected = listOf("game"), actual = leaveGameUseCase.calls)
         assertEquals(expected = WaitingRoomEvent.Closed, actual = viewModel.event.first())
         assertTrue(viewModel.uiState.value.state is GameState.Available)
-        assertFalse(viewModel.uiState.value.isLeaveDialogShown)
     }
 
     @Test
@@ -103,7 +100,6 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
         watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = true), players = emptyList()))
 
         // When
-        viewModel.onCancelClicked()
         viewModel.onCancelConfirmed()
         watchGameUseCase.states.emit(GameState.Deleted)
 
@@ -113,17 +109,19 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `a failure to cancel is told and keeps the screen`() = runTest {
+    fun `a failure to cancel is told closes the dialog and keeps the screen`() = runTest {
         // Given
         watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = true), players = emptyList()))
         cancelGameUseCase.failure = NetworkUnavailableException()
 
         // When
-        viewModel.onCancelClicked()
         viewModel.onCancelConfirmed()
 
         // Then
-        assertEquals(expected = WaitingRoomEvent.ShowError(error = GameError.NETWORK), actual = viewModel.event.first())
+        assertEquals(
+            expected = listOf(WaitingRoomEvent.ShowError(error = GameError.NETWORK), WaitingRoomEvent.ActionFinished),
+            actual = viewModel.event.take(2).toList(),
+        )
         assertFalse(viewModel.uiState.value.isCancelling)
         assertEquals(expected = 1, actual = watchGameUseCase.states.subscriptionCount.value)
     }
