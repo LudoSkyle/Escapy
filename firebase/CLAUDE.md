@@ -30,8 +30,10 @@ Les principes et le contrat des fonctions sont dans [../docs/Backend/README.md](
   chat.
 - **Région** `europe-west1` pour toutes les fonctions (`setGlobalOptions` dans `src/index.ts`), la
   région de la base.
-- **Une fonction par fichier**, rangée par domaine (`src/profile/`, `src/account/`), exportée par
-  `src/index.ts`. Ce qui sert à plusieurs fonctions vit dans `src/core/`.
+- **Une fonction par fichier**, rangée par domaine (`src/profile/`, `src/account/`, `src/game/`),
+  exportée par `src/index.ts`. Ce qui sert à plusieurs domaines vit dans `src/core/` ; ce qui touche
+  aux données d'un domaine reste dans ce domaine, et les autres l'importent (`game/gameData.ts`, appelé
+  par la suppression du compte et par `updateProfile`).
 - **Tests** : chaque fonction et chaque règle se testent sur l'émulateur, dans `functions/test/`
   (vitest, un fichier par domaine). Une fonction s'appelle comme l'app l'appelle, par le SDK client
   (`newClient()` de `test/support/emulators.ts`), et son effet se vérifie par le SDK Admin. Une

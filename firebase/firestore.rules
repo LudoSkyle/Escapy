@@ -12,6 +12,26 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // A game is read by its members: its game master and its players. A game that does not exist
+    // reads as missing, not as refused: a member sees their game deleted, not an error. Its id is
+    // random, so this tells nothing to anyone else
+    match /games/{gameId} {
+      allow read: if request.auth != null
+        && (resource == null || request.auth.uid in resource.data.memberIds);
+      allow write: if false;
+
+      match /players/{playerId} {
+        allow read: if request.auth != null
+          && request.auth.uid in get(/databases/$(database)/documents/games/$(gameId)).data.memberIds;
+        allow write: if false;
+      }
+
+      // games/{gameId}/private: the excluded players, for the functions only (refused below)
+    }
+
+    // joinCodes and joinAttempts are for the functions only: a client neither lists the codes nor
+    // reads a game without its code
+
     // Everything else is refused, until a lot opens it with its tests
     match /{document=**} {
       allow read, write: if false;

@@ -1,0 +1,479 @@
+import { signInAnonymously } from "firebase/auth";
+import { Timestamp } from "firebase-admin/firestore";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import {
+  JOIN_CODE_ALPHABET,
+  JOIN_FAILURES_LIMIT,
+  randomJoinCode,
+  validateDurationMinutes,
+  validateGameTitle,
+  validateJoinCode,
+  validateMaxPlayers,
+} from "../src/game/game";
+import { adminFirestore, clearEmulators, failureOf, newClient, TestClient } from "./support/emulators";
+
+interface Created {
+  gameId: string;
+  joinCode: string;
+}
+
+const NEW_GAME = { title: "Le manoir", durationMinutes: 60 };
+
+/** A signed-in user with a profile, as the app has one before it reaches the home screen. */
+async function newUser(): Promise<TestClient & { uid: string }> {
+  const client = newClient();
+  const { user } = await signInAnonymously(client.auth);
+  await client.call("ensureProfile");
+  return Object.assign(client, { uid: user.uid });
+}
+
+function game(gameId: string) {
+  return adminFirestore().collection("games").doc(gameId);
+}
+
+describe("games", () => {
+  let clients: TestClient[] = [];
+
+  async function user() {
+    const created = await newUser();
+    clients.push(created);
+    return created;
+  }
+
+  beforeEach(async () => {
+    await clearEmulators();
+    clients = [];
+  });
+
+  afterEach(async () => {
+    await Promise.all(clients.map((client) => client.close()));
+  });
+
+  describe("createGame", () => {
+    test("creates a waiting game run by the user, with a code that points to it", async () => {
+      // Given
+      const master = await user();
+
+      // When
+      const created = await master.call<Created>("createGame", { ...NEW_GAME, maxPlayers: 4 });
+
+      // Then
+      expect(created.joinCode).toMatch(new RegExp(`^[${JOIN_CODE_ALPHABET}]{6}$`));
+      const stored = (await game(created.gameId).get()).data()!;
+      const profile = (await adminFirestore().collection("users").doc(master.uid).get()).data()!;
+      expect(stored).toMatchObject({
+        title: "Le manoir",
+        durationMinutes: 60,
+        maxPlayers: 4,
+        status: "WAITING",
+        masterId: master.uid,
+        master: { username: profile.username, avatarId: profile.avatarId },
+        memberIds: [master.uid],
+        playerCount: 0,
+        joinCode: created.joinCode,
+      });
+      const code = (await adminFirestore().collection("joinCodes").doc(created.joinCode).get()).data();
+      expect(code?.gameId).toBe(created.gameId);
+    });
+
+    test("cleans the title and leaves the game without a maximum by default", async () => {
+      // Given
+      const master = await user();
+
+      // When
+      const created = await master.call<Created>("createGame", { title: "  Le   manoir ", durationMinutes: 90 });
+
+      // Then
+      expect((await game(created.gameId).get()).data()).toMatchObject({ title: "Le manoir", maxPlayers: null });
+    });
+
+    test("refuses a title, a duration or a maximum out of bounds", async () => {
+      // Given
+      const master = await user();
+
+      // When / Then
+      expect(await failureOf(master.call("createGame", { ...NEW_GAME, title: "Ab" }))).toEqual({
+        code: "functions/invalid-argument",
+        reason: "GAME_TITLE_INVALID",
+      });
+      expect(await failureOf(master.call("createGame", { ...NEW_GAME, durationMinutes: 62 }))).toEqual({
+        code: "functions/invalid-argument",
+        reason: "GAME_DURATION_INVALID",
+      });
+      expect(await failureOf(master.call("createGame", { ...NEW_GAME, maxPlayers: 21 }))).toEqual({
+        code: "functions/invalid-argument",
+        reason: "MAX_PLAYERS_INVALID",
+      });
+    });
+
+    test("refuses a user without a profile", async () => {
+      // Given
+      const client = newClient();
+      clients.push(client);
+      await signInAnonymously(client.auth);
+
+      // When
+      const result = await failureOf(client.call("createGame", NEW_GAME));
+
+      // Then
+      expect(result).toEqual({ code: "functions/not-found", reason: "PROFILE_NOT_FOUND" });
+    });
+
+    test("refuses a sixth game run at once", async () => {
+      // Given
+      const master = await user();
+      for (let index = 0; index < 5; index++) {
+        await master.call("createGame", NEW_GAME);
+      }
+
+      // When
+      const result = await failureOf(master.call("createGame", NEW_GAME));
+
+      // Then
+      expect(result).toEqual({ code: "functions/resource-exhausted", reason: "TOO_MANY_GAMES" });
+    });
+
+    test("refuses a call without a signed-in user", async () => {
+      // Given
+      const client = newClient();
+      clients.push(client);
+
+      // When
+      const result = await failureOf(client.call("createGame", NEW_GAME));
+
+      // Then
+      expect(result).toEqual({ code: "functions/unauthenticated", reason: "UNAUTHENTICATED" });
+    });
+  });
+
+  describe("joinGame", () => {
+    test("lets a user in by the code, typed in lower case with spaces", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+      const typed = ` ${created.joinCode.slice(0, 3)} ${created.joinCode.slice(3)} `.toLowerCase();
+
+      // When
+      const joined = await player.call<{ gameId: string }>("joinGame", { code: typed });
+
+      // Then
+      expect(joined.gameId).toBe(created.gameId);
+      const stored = (await game(created.gameId).get()).data()!;
+      expect(stored.memberIds).toEqual([master.uid, player.uid]);
+      expect(stored.playerCount).toBe(1);
+      const profile = (await adminFirestore().collection("users").doc(player.uid).get()).data()!;
+      const playerDocument = (await game(created.gameId).collection("players").doc(player.uid).get()).data();
+      expect(playerDocument).toMatchObject({ username: profile.username, avatarId: profile.avatarId });
+      expect(playerDocument?.joinedAt).toBeInstanceOf(Timestamp);
+    });
+
+    test("changes nothing for a member who joins again, nor for the game master", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+      await player.call("joinGame", { code: created.joinCode });
+
+      // When
+      await player.call("joinGame", { code: created.joinCode });
+      const masterJoined = await master.call<{ gameId: string }>("joinGame", { code: created.joinCode });
+
+      // Then
+      expect(masterJoined.gameId).toBe(created.gameId);
+      expect((await game(created.gameId).get()).data()).toMatchObject({
+        memberIds: [master.uid, player.uid],
+        playerCount: 1,
+      });
+    });
+
+    test("refuses an unknown code, and a code that cannot be one", async () => {
+      // Given
+      const player = await user();
+
+      // When / Then
+      expect(await failureOf(player.call("joinGame", { code: "ABCDEF" }))).toEqual({
+        code: "functions/not-found",
+        reason: "GAME_NOT_FOUND",
+      });
+      expect(await failureOf(player.call("joinGame", { code: "ABC0" }))).toEqual({
+        code: "functions/invalid-argument",
+        reason: "JOIN_CODE_INVALID",
+      });
+    });
+
+    test("refuses a full game", async () => {
+      // Given
+      const master = await user();
+      const created = await master.call<Created>("createGame", { ...NEW_GAME, maxPlayers: 2 });
+      await (await user()).call("joinGame", { code: created.joinCode });
+      await (await user()).call("joinGame", { code: created.joinCode });
+
+      // When
+      const result = await failureOf((await user()).call("joinGame", { code: created.joinCode }));
+
+      // Then
+      expect(result).toEqual({ code: "functions/failed-precondition", reason: "GAME_FULL" });
+    });
+
+    test("refuses anyone once too many unknown codes were tried, even a right one", async () => {
+      // Given
+      const master = await user();
+      const guesser = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+      for (let index = 0; index < JOIN_FAILURES_LIMIT; index++) {
+        await failureOf(guesser.call("joinGame", { code: "ABCDEF" }));
+      }
+
+      // When
+      const result = await failureOf(guesser.call("joinGame", { code: created.joinCode }));
+
+      // Then
+      expect(result).toEqual({ code: "functions/resource-exhausted", reason: "TOO_MANY_ATTEMPTS" });
+    });
+
+    test("refuses a call without a signed-in user", async () => {
+      // Given
+      const client = newClient();
+      clients.push(client);
+
+      // When
+      const result = await failureOf(client.call("joinGame", { code: "ABCDEF" }));
+
+      // Then
+      expect(result).toEqual({ code: "functions/unauthenticated", reason: "UNAUTHENTICATED" });
+    });
+  });
+
+  describe("leaveGame", () => {
+    test("takes a player out of the game", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+      await player.call("joinGame", { code: created.joinCode });
+
+      // When
+      await player.call("leaveGame", { gameId: created.gameId });
+
+      // Then
+      expect((await game(created.gameId).get()).data()).toMatchObject({ memberIds: [master.uid], playerCount: 0 });
+      expect((await game(created.gameId).collection("players").doc(player.uid).get()).exists).toBe(false);
+    });
+
+    test("is no error for a game already left, or deleted", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+
+      // When
+      const notIn = await player.call("leaveGame", { gameId: created.gameId });
+      const deleted = await player.call("leaveGame", { gameId: "missing" });
+
+      // Then
+      expect(notIn).toEqual({ left: true });
+      expect(deleted).toEqual({ left: true });
+      expect((await game(created.gameId).get()).data()?.playerCount).toBe(0);
+    });
+
+    test("refuses the game master, who cancels the game instead", async () => {
+      // Given
+      const master = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+
+      // When
+      const result = await failureOf(master.call("leaveGame", { gameId: created.gameId }));
+
+      // Then
+      expect(result).toEqual({ code: "functions/failed-precondition", reason: "GAME_MASTER_CANNOT_LEAVE" });
+    });
+  });
+
+  describe("kickPlayer", () => {
+    test("takes a player out, and the code no longer lets them in", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+      await player.call("joinGame", { code: created.joinCode });
+
+      // When
+      await master.call("kickPlayer", { gameId: created.gameId, playerId: player.uid });
+
+      // Then
+      expect((await game(created.gameId).get()).data()).toMatchObject({ memberIds: [master.uid], playerCount: 0 });
+      expect(await failureOf(player.call("joinGame", { code: created.joinCode }))).toEqual({
+        code: "functions/permission-denied",
+        reason: "PLAYER_EXCLUDED",
+      });
+    });
+
+    test("refuses a player who is not the game master", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const other = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+      await player.call("joinGame", { code: created.joinCode });
+      await other.call("joinGame", { code: created.joinCode });
+
+      // When
+      const result = await failureOf(player.call("kickPlayer", { gameId: created.gameId, playerId: other.uid }));
+
+      // Then
+      expect(result).toEqual({ code: "functions/permission-denied", reason: "NOT_GAME_MASTER" });
+      expect((await game(created.gameId).get()).data()?.playerCount).toBe(2);
+    });
+
+    test("refuses the game master excluding themself", async () => {
+      // Given
+      const master = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+
+      // When
+      const result = await failureOf(master.call("kickPlayer", { gameId: created.gameId, playerId: master.uid }));
+
+      // Then
+      expect(result).toEqual({ code: "functions/invalid-argument", reason: "INVALID_REQUEST" });
+    });
+  });
+
+  describe("cancelGame", () => {
+    test("deletes the game, its players and its code", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+      await player.call("joinGame", { code: created.joinCode });
+
+      // When
+      await master.call("cancelGame", { gameId: created.gameId });
+
+      // Then
+      expect((await game(created.gameId).get()).exists).toBe(false);
+      expect((await game(created.gameId).collection("players").get()).empty).toBe(true);
+      expect((await adminFirestore().collection("joinCodes").doc(created.joinCode).get()).exists).toBe(false);
+      expect(await failureOf(player.call("joinGame", { code: created.joinCode }))).toEqual({
+        code: "functions/not-found",
+        reason: "GAME_NOT_FOUND",
+      });
+    });
+
+    test("refuses a player, and is no error once the game is deleted", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+      await player.call("joinGame", { code: created.joinCode });
+
+      // When
+      const refused = await failureOf(player.call("cancelGame", { gameId: created.gameId }));
+      await master.call("cancelGame", { gameId: created.gameId });
+      const again = await master.call("cancelGame", { gameId: created.gameId });
+
+      // Then
+      expect(refused).toEqual({ code: "functions/permission-denied", reason: "NOT_GAME_MASTER" });
+      expect(again).toEqual({ cancelled: true });
+    });
+  });
+
+  describe("deleteStaleGames", () => {
+    test("deletes the waiting games created before the limit, with their codes, and keeps the others", async () => {
+      // Given
+      const master = await user();
+      const old = await master.call<Created>("createGame", NEW_GAME);
+      const recent = await master.call<Created>("createGame", NEW_GAME);
+      await game(old.gameId).update({ createdAt: Timestamp.fromMillis(Date.now() - 25 * 60 * 60 * 1000) });
+      const { deleteGamesWaitingSince } = await import("../src/game/deleteStaleGames");
+
+      // When
+      const deleted = await deleteGamesWaitingSince(Timestamp.fromMillis(Date.now() - 24 * 60 * 60 * 1000));
+
+      // Then
+      expect(deleted).toBe(1);
+      expect((await game(old.gameId).get()).exists).toBe(false);
+      expect((await adminFirestore().collection("joinCodes").doc(old.joinCode).get()).exists).toBe(false);
+      expect((await game(recent.gameId).get()).exists).toBe(true);
+    });
+  });
+
+  describe("with the account and the profile", () => {
+    test("deleting an account deletes the games the user runs and takes them out of the others", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const own = await player.call<Created>("createGame", NEW_GAME);
+      const other = await master.call<Created>("createGame", NEW_GAME);
+      await player.call("joinGame", { code: other.joinCode });
+
+      // When
+      await player.call("deleteAccount");
+
+      // Then
+      expect((await game(own.gameId).get()).exists).toBe(false);
+      expect((await adminFirestore().collection("joinCodes").doc(own.joinCode).get()).exists).toBe(false);
+      expect((await game(other.gameId).get()).data()).toMatchObject({ memberIds: [master.uid], playerCount: 0 });
+    });
+
+    test("a new name or avatar shows in the games of the user", async () => {
+      // Given
+      const master = await user();
+      const player = await user();
+      const created = await master.call<Created>("createGame", NEW_GAME);
+      await player.call("joinGame", { code: created.joinCode });
+
+      // When
+      await master.call("updateProfile", { username: "Maître", avatarId: 7 });
+      await player.call("updateProfile", { username: "Joueuse", avatarId: 8 });
+
+      // Then
+      expect((await game(created.gameId).get()).data()?.master).toEqual({ username: "Maître", avatarId: 7 });
+      expect((await game(created.gameId).collection("players").doc(player.uid).get()).data()).toMatchObject({
+        username: "Joueuse",
+        avatarId: 8,
+      });
+    });
+  });
+});
+
+describe("game values", () => {
+  test("a random code takes six characters of the alphabet", () => {
+    for (let index = 0; index < 100; index++) {
+      expect(randomJoinCode()).toMatch(new RegExp(`^[${JOIN_CODE_ALPHABET}]{6}$`));
+    }
+  });
+
+  test("a code is read without its case and its spaces, and refuses the ambiguous characters", () => {
+    expect(validateJoinCode(" ab c2 3d ")).toBe("ABC23D");
+    expect(() => validateJoinCode("ABCDE0")).toThrow();
+    expect(() => validateJoinCode("ABCDEI")).toThrow();
+    expect(() => validateJoinCode("ABCDE")).toThrow();
+    expect(() => validateJoinCode(123456)).toThrow();
+  });
+
+  test("a title has 3 to 40 characters, without a control character", () => {
+    expect(validateGameTitle("Le  manoir hanté")).toBe("Le manoir hanté");
+    expect(() => validateGameTitle("Ab")).toThrow();
+    expect(() => validateGameTitle("a".repeat(41))).toThrow();
+    expect(() => validateGameTitle("Le\u0000manoir")).toThrow();
+  });
+
+  test("a duration goes from 15 to 180 minutes, by 5", () => {
+    expect(validateDurationMinutes(15)).toBe(15);
+    expect(validateDurationMinutes(180)).toBe(180);
+    expect(() => validateDurationMinutes(10)).toThrow();
+    expect(() => validateDurationMinutes(185)).toThrow();
+    expect(() => validateDurationMinutes(61)).toThrow();
+    expect(() => validateDurationMinutes(60.5)).toThrow();
+  });
+
+  test("a maximum is absent, or from 2 to 20 players", () => {
+    expect(validateMaxPlayers(undefined)).toBeNull();
+    expect(validateMaxPlayers(null)).toBeNull();
+    expect(validateMaxPlayers(2)).toBe(2);
+    expect(validateMaxPlayers(20)).toBe(20);
+    expect(() => validateMaxPlayers(1)).toThrow();
+    expect(() => validateMaxPlayers(21)).toThrow();
+  });
+});

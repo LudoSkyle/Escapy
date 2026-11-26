@@ -1,6 +1,10 @@
 import { getFirestore } from "firebase-admin/firestore";
 
 export const USERS = "users";
+export const GAMES = "games";
+export const PLAYERS = "players";
+export const JOIN_CODES = "joinCodes";
+export const JOIN_ATTEMPTS = "joinAttempts";
 
 export function db() {
   return getFirestore();
