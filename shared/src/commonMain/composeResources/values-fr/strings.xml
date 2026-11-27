@@ -1,5 +1,6 @@
 <resources>
     <string name="about_description">L’escape game à la maison : un maître du jeu prépare les missions et les indices, les joueurs les résolvent contre la montre.</string>
+    <string name="about_privacy_policy">Politique de confidentialité</string>
     <string name="about_source_code">Code source sur GitHub</string>
     <string name="about_title">À propos</string>
     <string name="about_version">Version %1$s</string>
@@ -168,7 +169,6 @@
     <string name="profile_google_account">Connecté avec Google</string>
     <string name="profile_guest_warning">Vous jouez en invité : votre compte est perdu si vous vous déconnectez ou changez d’appareil. Liez un compte pour le garder.</string>
     <string name="profile_link_account">Lier un compte</string>
-    <string name="profile_privacy_policy">Politique de confidentialité</string>
     <string name="profile_title">Profil</string>
     <string name="profile_unavailable_message">Votre profil n’a pas pu être chargé. Vérifiez votre connexion et réessayez.</string>
     <string name="profile_unavailable_title">Profil indisponible</string>

@@ -1,5 +1,6 @@
 <resources>
     <string name="about_description">Escape games at home: a game master prepares the missions and the hints, the players solve them against the clock.</string>
+    <string name="about_privacy_policy">Privacy policy</string>
     <string name="about_source_code">Source code on GitHub</string>
     <string name="about_title">About</string>
     <string name="about_version">Version %1$s</string>
@@ -169,7 +170,6 @@
     <string name="profile_google_account">Signed in with Google</string>
     <string name="profile_guest_warning">You play as a guest: your account is lost if you sign out or change device. Link an account to keep it.</string>
     <string name="profile_link_account">Link an account</string>
-    <string name="profile_privacy_policy">Privacy policy</string>
     <string name="profile_title">Profile</string>
     <string name="profile_unavailable_message">Your profile could not be loaded. Check your connection and try again.</string>
     <string name="profile_unavailable_title">Profile unavailable</string>

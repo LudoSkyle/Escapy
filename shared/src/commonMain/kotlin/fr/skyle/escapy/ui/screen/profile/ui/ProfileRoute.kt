@@ -2,12 +2,10 @@ package fr.skyle.escapy.ui.screen.profile.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.skyle.escapy.designsystem.core.snackbar.rememberESSnackbarState
 import fr.skyle.escapy.ui.core.error.accountErrorMessages
 import fr.skyle.escapy.ui.core.event.ObserveEvents
-import fr.skyle.escapy.ui.core.link.EscapyLinks
 import fr.skyle.escapy.ui.screen.profile.ui.ProfileViewModel.ProfileEvent
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -24,7 +22,6 @@ fun ProfileRoute(
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val uriHandler = LocalUriHandler.current
     val snackbarState = rememberESSnackbarState()
     val errorMessages = accountErrorMessages()
 
@@ -44,7 +41,6 @@ fun ProfileRoute(
         onChangeEmailClicked = navigateToChangeEmail,
         onChangePasswordClicked = navigateToChangePassword,
         onAboutClicked = navigateToAbout,
-        onPrivacyPolicyClicked = { uriHandler.openUri(EscapyLinks.PRIVACY_POLICY) },
         onSignOutClicked = viewModel::onSignOutClicked,
         onDeleteAccountClicked = navigateToDeleteAccount,
         onGuestSignOutConfirmed = viewModel::onGuestSignOutConfirmed,
