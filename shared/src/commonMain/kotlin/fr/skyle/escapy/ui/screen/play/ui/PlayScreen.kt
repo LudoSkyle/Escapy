@@ -27,6 +27,8 @@ import fr.skyle.escapy.designsystem.core.dialog.ESDialogDefaults
 import fr.skyle.escapy.designsystem.core.divider.ESDivider
 import fr.skyle.escapy.designsystem.core.progress.ESProgressIndicator
 import fr.skyle.escapy.designsystem.core.progress.ESProgressIndicatorDefaults
+import fr.skyle.escapy.designsystem.core.row.ESRow
+import fr.skyle.escapy.designsystem.core.row.ESRowDefaults
 import fr.skyle.escapy.designsystem.core.screenstructure.ESScreenStructure
 import fr.skyle.escapy.designsystem.core.screenstructure.ESScreenStructureDefaults
 import fr.skyle.escapy.designsystem.core.snackbar.ESSnackbarState
@@ -61,6 +63,9 @@ import fr.skyle.escapy.resources.add_time_dialog_message
 import fr.skyle.escapy.resources.add_time_fewer
 import fr.skyle.escapy.resources.add_time_minutes
 import fr.skyle.escapy.resources.add_time_more
+import fr.skyle.escapy.resources.chat_preview_empty
+import fr.skyle.escapy.resources.chat_preview_message
+import fr.skyle.escapy.resources.chat_title
 import fr.skyle.escapy.resources.delete_game_dialog_message
 import fr.skyle.escapy.resources.delete_game_dialog_title
 import fr.skyle.escapy.resources.end_game_dialog_message
@@ -109,6 +114,7 @@ fun PlayScreen(
     isDeleteDialogShown: Boolean,
     snackbarState: ESSnackbarState,
     onBackClicked: () -> Unit,
+    onChatClicked: () -> Unit,
     onPauseClicked: () -> Unit,
     onResumeClicked: () -> Unit,
     onAddTimeClicked: () -> Unit,
@@ -155,6 +161,7 @@ fun PlayScreen(
                         state = state,
                         uiState = uiState,
                         onBackClicked = onBackClicked,
+                        onChatClicked = onChatClicked,
                         onLeaveClicked = onLeaveClicked,
                         onDeleteClicked = onDeleteClicked,
                     )
@@ -162,6 +169,7 @@ fun PlayScreen(
                     PlayContent(
                         state = state,
                         uiState = uiState,
+                        onChatClicked = onChatClicked,
                         onPauseClicked = onPauseClicked,
                         onResumeClicked = onResumeClicked,
                         onAddTimeClicked = onAddTimeClicked,
@@ -232,6 +240,7 @@ private fun Loading() {
 private fun PlayContent(
     state: GameState.Available,
     uiState: PlayUIState,
+    onChatClicked: () -> Unit,
     onPauseClicked: () -> Unit,
     onResumeClicked: () -> Unit,
     onAddTimeClicked: () -> Unit,
@@ -242,6 +251,10 @@ private fun PlayContent(
     val game = state.game
 
     TimerCard(game = game, uiState = uiState)
+
+    Spacer(modifier = Modifier.height(ESTheme.spacing.m))
+
+    ChatCard(uiState = uiState, onClick = onChatClicked)
 
     Spacer(modifier = Modifier.height(ESTheme.spacing.l))
 
@@ -353,6 +366,7 @@ private fun EndContent(
     state: GameState.Available,
     uiState: PlayUIState,
     onBackClicked: () -> Unit,
+    onChatClicked: () -> Unit,
     onLeaveClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
 ) {
@@ -395,6 +409,10 @@ private fun EndContent(
         Spacer(modifier = Modifier.height(ESTheme.spacing.l))
     }
 
+    ChatCard(uiState = uiState, onClick = onChatClicked)
+
+    Spacer(modifier = Modifier.height(ESTheme.spacing.l))
+
     Members(state = state, onKickClicked = null)
 
     Spacer(modifier = Modifier.height(ESTheme.spacing.xl))
@@ -426,6 +444,27 @@ private fun EndContent(
             style = ESButtonDefaults.Style.SECONDARY,
             size = ESButtonDefaults.Size.LARGE,
             isLoading = uiState.action == PlayAction.LEAVE,
+        )
+    }
+}
+
+/** The latest message of the chat, which opens it. */
+@Composable
+private fun ChatCard(uiState: PlayUIState, onClick: () -> Unit) {
+    val lastMessage = uiState.lastMessage
+    ESCard(
+        modifier = Modifier.fillMaxWidth(),
+        style = ESCardDefaults.Style.STANDARD,
+    ) {
+        ESRow(
+            label = stringResource(Res.string.chat_title),
+            supportingText = when {
+                lastMessage != null -> stringResource(Res.string.chat_preview_message, lastMessage.authorUsername, lastMessage.text)
+                uiState.hasReadChat -> stringResource(Res.string.chat_preview_empty)
+                else -> null
+            },
+            onClick = onClick,
+            style = ESRowDefaults.Style.STANDARD,
         )
     }
 }
@@ -629,6 +668,7 @@ private fun PreviewPlayScreen(uiState: PlayUIState) {
             isDeleteDialogShown = false,
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
+            onChatClicked = {},
             onPauseClicked = {},
             onResumeClicked = {},
             onAddTimeClicked = {},

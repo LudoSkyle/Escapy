@@ -5,6 +5,7 @@ import fr.skyle.escapy.ui.main.MainViewModel
 import fr.skyle.escapy.ui.screen.about.ui.AboutViewModel
 import fr.skyle.escapy.ui.screen.changeemail.ui.ChangeEmailViewModel
 import fr.skyle.escapy.ui.screen.changepassword.ui.ChangePasswordViewModel
+import fr.skyle.escapy.ui.screen.chat.ui.ChatViewModel
 import fr.skyle.escapy.ui.screen.creategame.ui.CreateGameViewModel
 import fr.skyle.escapy.ui.screen.deleteaccount.ui.DeleteAccountViewModel
 import fr.skyle.escapy.ui.screen.editavatar.ui.EditAvatarViewModel
@@ -53,9 +54,19 @@ val sharedModule = module {
         )
     }
     viewModel { parameters ->
+        ChatViewModel(
+            gameId = parameters.get(),
+            watchGameUseCase = get(),
+            watchMessagesUseCase = get(),
+            sendMessageUseCase = get(),
+            expireGameUseCase = get(),
+        )
+    }
+    viewModel { parameters ->
         PlayViewModel(
             gameId = parameters.get(),
             watchGameUseCase = get(),
+            watchMessagesUseCase = get(),
             estimateServerClockOffsetUseCase = get(),
             pauseGameUseCase = get(),
             resumeGameUseCase = get(),

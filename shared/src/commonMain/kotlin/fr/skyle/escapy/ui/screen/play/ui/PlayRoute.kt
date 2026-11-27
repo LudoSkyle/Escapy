@@ -22,6 +22,7 @@ private const val DEFAULT_MINUTES_TO_ADD = 5
 fun PlayRoute(
     gameId: String,
     navigateBack: () -> Unit,
+    navigateToChat: () -> Unit,
     viewModel: PlayViewModel = koinViewModel(key = gameId) { parametersOf(gameId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -74,6 +75,7 @@ fun PlayRoute(
         isDeleteDialogShown = isDeleteDialogShown,
         snackbarState = snackbarState,
         onBackClicked = navigateBack,
+        onChatClicked = navigateToChat,
         onPauseClicked = viewModel::onPauseClicked,
         onResumeClicked = viewModel::onResumeClicked,
         onAddTimeClicked = { minutesToAdd = DEFAULT_MINUTES_TO_ADD },

@@ -16,6 +16,8 @@ import fr.skyle.escapy.fake.FakeLeaveGameUseCase
 import fr.skyle.escapy.fake.FakePauseGameUseCase
 import fr.skyle.escapy.fake.FakeResumeGameUseCase
 import fr.skyle.escapy.fake.FakeWatchGameUseCase
+import fr.skyle.escapy.fake.FakeWatchMessagesUseCase
+import fr.skyle.escapy.fake.chatMessage
 import fr.skyle.escapy.fake.game
 import fr.skyle.escapy.fake.gameMember
 import fr.skyle.escapy.test.MainDispatcherTest
@@ -35,6 +37,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -45,6 +48,7 @@ import kotlin.time.Instant
 class PlayViewModelTest : MainDispatcherTest() {
 
     private val watchGameUseCase = FakeWatchGameUseCase()
+    private val watchMessagesUseCase = FakeWatchMessagesUseCase()
     private val estimateServerClockOffsetUseCase = FakeEstimateServerClockOffsetUseCase()
     private val pauseGameUseCase = FakePauseGameUseCase()
     private val addTimeUseCase = FakeAddTimeUseCase()
@@ -64,6 +68,7 @@ class PlayViewModelTest : MainDispatcherTest() {
         PlayViewModel(
             gameId = "game",
             watchGameUseCase = watchGameUseCase,
+            watchMessagesUseCase = watchMessagesUseCase,
             estimateServerClockOffsetUseCase = estimateServerClockOffsetUseCase,
             pauseGameUseCase = pauseGameUseCase,
             resumeGameUseCase = FakeResumeGameUseCase(),
@@ -253,10 +258,12 @@ class PlayViewModelTest : MainDispatcherTest() {
         // When
         viewModel.onLeaveConfirmed()
         val observedWhileLeaving = watchGameUseCase.states.subscriptionCount.value
+        val chatObservedWhileLeaving = watchMessagesUseCase.messages.subscriptionCount.value
         gate.complete(Unit)
 
         // Then
         assertEquals(expected = 0, actual = observedWhileLeaving)
+        assertEquals(expected = 0, actual = chatObservedWhileLeaving)
         assertEquals(expected = listOf("game"), actual = leaveGameUseCase.calls)
         assertEquals(expected = PlayEvent.Closed, actual = viewModel.event.first())
     }
@@ -273,6 +280,22 @@ class PlayViewModelTest : MainDispatcherTest() {
         // Then
         assertEquals(expected = 2.seconds, actual = viewModel.uiState.value.remaining)
         assertEquals(expected = 0, actual = expireGameUseCase.calls.size)
+    }
+
+    @Test
+    fun `the latest message of the chat is shown and a chat without any is told so`() = playTest {
+        // Given
+        val viewModel = viewModel()
+
+        // When
+        watchMessagesUseCase.messages.emit(emptyList())
+        val beforeAnyMessage = viewModel.uiState.value
+        watchMessagesUseCase.messages.emit(listOf(chatMessage(id = "1"), chatMessage(id = "2", text = "Regardez sous le tapis")))
+
+        // Then
+        assertTrue(beforeAnyMessage.hasReadChat)
+        assertNull(beforeAnyMessage.lastMessage)
+        assertEquals(expected = "Regardez sous le tapis", actual = viewModel.uiState.value.lastMessage?.text)
     }
 
     @Test

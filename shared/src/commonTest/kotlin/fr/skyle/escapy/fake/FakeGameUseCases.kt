@@ -1,5 +1,6 @@
 package fr.skyle.escapy.fake
 
+import fr.skyle.escapy.domain.model.ChatMessage
 import fr.skyle.escapy.domain.model.Game
 import fr.skyle.escapy.domain.model.GameEnd
 import fr.skyle.escapy.domain.model.GameMember
@@ -7,6 +8,8 @@ import fr.skyle.escapy.domain.model.GameState
 import fr.skyle.escapy.domain.model.GameStatus
 import fr.skyle.escapy.domain.model.GameSummary
 import fr.skyle.escapy.domain.model.GameTimer
+import fr.skyle.escapy.domain.usecase.chat.SendMessageUseCase
+import fr.skyle.escapy.domain.usecase.chat.WatchMessagesUseCase
 import fr.skyle.escapy.domain.usecase.clock.EstimateServerClockOffsetUseCase
 import fr.skyle.escapy.domain.usecase.game.AddTimeUseCase
 import fr.skyle.escapy.domain.usecase.game.CancelGameUseCase
@@ -104,6 +107,29 @@ class FakeEstimateServerClockOffsetUseCase(
         failure?.let { exception -> throw exception }
     }
 }
+
+class FakeWatchMessagesUseCase : WatchMessagesUseCase {
+
+    val messages = MutableSharedFlow<List<ChatMessage>>()
+
+    override fun invoke(gameId: String): Flow<List<ChatMessage>> = messages
+}
+
+class FakeSendMessageUseCase : FakeAction(), SendMessageUseCase {
+    override suspend fun invoke(gameId: String, text: String) = record("$gameId:$text")
+}
+
+fun chatMessage(id: String, isMine: Boolean = false, text: String = "Message $id"): ChatMessage =
+    ChatMessage(
+        id = id,
+        authorId = if (isMine) "me" else "master",
+        authorUsername = if (isMine) "Joueuse" else "Maître",
+        authorAvatarId = 3,
+        text = text,
+        sentAt = null,
+        isMine = isMine,
+        isPending = false,
+    )
 
 fun gameMember(userId: String, isCurrentUser: Boolean = false): GameMember =
     GameMember(userId = userId, username = "Name of $userId", avatarId = 3, isCurrentUser = isCurrentUser)
