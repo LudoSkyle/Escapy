@@ -10,6 +10,8 @@ import fr.skyle.escapy.data.repository.clock.ServerClockRepositoryImpl
 import fr.skyle.escapy.data.repository.clock.api.ServerClockRepository
 import fr.skyle.escapy.data.repository.game.GameRepositoryImpl
 import fr.skyle.escapy.data.repository.game.api.GameRepository
+import fr.skyle.escapy.data.repository.mission.MissionRepositoryImpl
+import fr.skyle.escapy.data.repository.mission.api.MissionRepository
 import fr.skyle.escapy.data.repository.profile.ProfileRepositoryImpl
 import fr.skyle.escapy.data.repository.profile.api.ProfileRepository
 import fr.skyle.escapy.data.repository.session.SessionRepositoryImpl
@@ -29,6 +31,7 @@ val dataModule = module {
     singleOf(::GameRepositoryImpl) bind GameRepository::class
     singleOf(::ServerClockRepositoryImpl) bind ServerClockRepository::class
     singleOf(::ChatRepositoryImpl) bind ChatRepository::class
+    singleOf(::MissionRepositoryImpl) bind MissionRepository::class
 }
 
 // What each platform answers differently, such as which Firebase app to call
