@@ -271,7 +271,13 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
            été éteint pour ne pas faire tourner les deux en même temps
      - L'heure des messages n'est pas affichée : elle demande kotlinx-datetime (fuseau de
        l'appareil), qui viendra avec un écran qui en a besoin.
-8. **Missions** : types, déclencheurs, soumission avec anti-force brute, mots-clés du chat.
+8. **Missions**, en deux pull requests :
+   - 8a, **les missions** : types code et texte, déclencheurs manuel, au lancement et après une autre
+     mission ; les joueurs répondent, avec une limite de tentatives par minute et par mission ; le
+     maître du jeu crée et modifie les missions en salle d'attente comme en jeu (une mission
+     improvisée), les débloque et les valide ; les missions finales réussies font la victoire.
+   - 8b, **le chat et le journal** : le déclencheur par mot-clé du chat, et le journal des tentatives
+     côté maître du jeu.
 9. **Indices** : texte et image (Storage), avec la progression de l'envoi côté maître du jeu.
 10. **Scénarios** : éditeur, expiration (TTL), créer une partie depuis un scénario ; l'histoire
     d'intro, affichée au lancement, vient du scénario.
@@ -295,10 +301,13 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
   ([ADR-0004](./adr/0004-firestore-et-le-serveur-source-de-verite.md)).
 - **Pas de Room** : le cache hors ligne de Firestore suffit.
 - **Connexion Google en v1** (décidé le 2026-11-24), au lot 5c.
-- **Aucune instance chaude (`minInstances`) au lot 7a** (2026-11-27) : lancer, pause, temps ajouté
-  et fin sont des gestes du maître du jeu, où un démarrage à froid (1,3 à 2,3 s) se tolère ;
-  `expireGame` et `getServerTime` tournent en tâche de fond. La décision et son coût reviennent à
-  l'utilisateur, au plus tard avec la validation des réponses (lot 8), qu'un joueur attend.
+- **Aucune instance chaude (`minInstances`) pour l'instant** (décidé le 2026-11-27, au lot 8) : un
+  démarrage à froid (1,3 à 2,3 s) se tolère pour les gestes du maître du jeu, et la validation des
+  réponses se mesurera sur un vrai téléphone après le déploiement avant de décider. L'option
+  s'ajoute en une ligne, fonction par fonction.
+- **Lot 8 découpé en 8a et 8b** (décidé le 2026-11-27). Avant les scénarios (lot 10), le maître du
+  jeu crée les missions d'une partie en salle d'attente, et peut en ajouter ou en modifier pendant
+  la partie.
 - **Lot 6 découpé en 6a, 6b et 6c** (décidé le 2026-11-26) ; le maître du jeu choisit un maximum de
   joueurs de 2 à 20, ou aucun.
 - **Lot 7 découpé en 7a et 7b** (décidé le 2026-11-27). L'intro attend les scénarios (lot 10) : une
