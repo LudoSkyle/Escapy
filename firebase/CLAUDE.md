@@ -26,8 +26,8 @@ Les principes et le contrat des fonctions sont dans [../docs/Backend/README.md](
 - **Aucune donnée personnelle superflue** : `users/{uid}` ne garde ni e-mail ni nom réel.
 - **Règles** : tout est refusé par défaut (`match /{document=**}`), et chaque chemin ouvert l'est par
   un lot, avec ses tests qui couvrent l'accès permis et l'accès refusé (un autre utilisateur
-  connecté, un client déconnecté). Aucune écriture client, sauf, plus tard, l'envoi d'un message de
-  chat.
+  connecté, un client déconnecté). Aucune écriture client, sauf l'envoi d'un message de chat
+  (`games/{gameId}/messages`), dont les règles vérifient chaque champ.
 - **Région** `europe-west1` pour toutes les fonctions (`setGlobalOptions` dans `src/index.ts`), la
   région de la base.
 - **Une fonction par fichier**, rangée par domaine (`src/profile/`, `src/account/`, `src/game/`),
