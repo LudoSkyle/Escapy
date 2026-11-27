@@ -59,6 +59,10 @@ fun RootNavDisplay(
                 backStack.removeAt(backStack.lastIndex)
             }
         },
+        transitionSpec = { forwardTransition() },
+        popTransitionSpec = { backTransition() },
+        // The system back gesture follows the finger with the same slide
+        predictivePopTransitionSpec = { backTransition() },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
