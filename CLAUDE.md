@@ -63,8 +63,11 @@ oublié, profil (pseudo, avatar), liaison d'un invité à un e-mail ou à Google
 de mot de passe, suppression du compte, à propos. Les parties (lot 6a) se créent, se rejoignent par
 leur code ou leur QR code (6b) et attendent leurs joueurs ; les liens (6c) suivent. La partie en
 cours (lot 7a) se lance, son minuteur est tenu par le serveur (pause, reprise, temps ajouté), et elle
-finit à la main ou sur le temps, avec son récapitulatif ; ses membres discutent dans son chat (7b). La suite arrive dans
-l'ordre de la [feuille de route](./docs/ROADMAP.md).
+finit à la main ou sur le temps, avec son récapitulatif ; ses membres discutent dans son chat (7b).
+Les missions (lot 8a), code ou texte, se créent en salle d'attente comme en jeu, se débloquent au
+lancement, après une autre ou à la main, se résolvent sur le serveur et font la victoire ; le
+mot-clé du chat et le journal des tentatives (8b) suivent. La suite arrive dans l'ordre de la
+[feuille de route](./docs/ROADMAP.md).
 
 ## Commandes
 
