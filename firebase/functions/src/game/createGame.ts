@@ -5,6 +5,7 @@ import { failure } from "../core/errors";
 import { db, GAMES, JOIN_CODES } from "../core/firestore";
 import {
   ACTIVE_GAMES_LIMIT,
+  ACTIVE_STATUSES,
   GameStatus,
   randomJoinCode,
   validateDurationMinutes,
@@ -33,9 +34,14 @@ export const createGame = onCall(async (request): Promise<CreateGameResponse> =>
   const maxPlayers = validateMaxPlayers(data.maxPlayers);
   await requireExistingAccount(uid);
 
-  const running = await db().collection(GAMES).where("masterId", "==", uid).count().get();
+  const running = await db()
+    .collection(GAMES)
+    .where("masterId", "==", uid)
+    .where("status", "in", ACTIVE_STATUSES)
+    .count()
+    .get();
   if (running.data().count >= ACTIVE_GAMES_LIMIT) {
-    throw failure("resource-exhausted", "TOO_MANY_GAMES", `A user runs at most ${ACTIVE_GAMES_LIMIT} games at once`);
+    throw failure("resource-exhausted", "TOO_MANY_GAMES", `A user runs at most ${ACTIVE_GAMES_LIMIT} unfinished games at once`);
   }
 
   const master = await readMember(uid);
@@ -53,6 +59,7 @@ export const createGame = onCall(async (request): Promise<CreateGameResponse> =>
         title,
         isMaster: true,
         master,
+        status,
         createdAt: FieldValue.serverTimestamp(),
       });
       transaction.create(game, {

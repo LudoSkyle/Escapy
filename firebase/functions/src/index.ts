@@ -7,11 +7,18 @@ initializeApp();
 setGlobalOptions({ region: "europe-west1", maxInstances: 10 });
 
 export { deleteAccount } from "./account/deleteAccount";
+export { addTime } from "./game/addTime";
 export { cancelGame } from "./game/cancelGame";
 export { createGame } from "./game/createGame";
 export { deleteStaleGames } from "./game/deleteStaleGames";
+export { endGame } from "./game/endGame";
+export { expireGame } from "./game/expireGame";
+export { getServerTime } from "./game/getServerTime";
 export { joinGame } from "./game/joinGame";
 export { kickPlayer } from "./game/kickPlayer";
 export { leaveGame } from "./game/leaveGame";
+export { pauseGame } from "./game/pauseGame";
+export { resumeGame } from "./game/resumeGame";
+export { startGame } from "./game/startGame";
 export { ensureProfile } from "./profile/ensureProfile";
 export { updateProfile } from "./profile/updateProfile";

@@ -2,8 +2,17 @@ import { randomInt } from "node:crypto";
 import { DocumentData } from "firebase-admin/firestore";
 import { failure } from "../core/errors";
 
-/** The state of a game. Only waiting for now: the game starts with the timer, in a later lot. */
-export type GameStatus = "WAITING";
+/**
+ * The state of a game: waiting for its players, then running or paused while the timer counts down,
+ * then finished for good.
+ */
+export type GameStatus = "WAITING" | "RUNNING" | "PAUSED" | "FINISHED";
+
+/** The games that still count towards ACTIVE_GAMES_LIMIT: a finished game only waits to be deleted. */
+export const ACTIVE_STATUSES: GameStatus[] = ["WAITING", "RUNNING", "PAUSED"];
+
+/** Why a game finished. The victory comes with the missions. */
+export type GameResult = "TIME_UP" | "ENDED_BY_MASTER";
 
 export const GAME_TITLE_MIN_LENGTH = 3;
 export const GAME_TITLE_MAX_LENGTH = 40;
@@ -19,8 +28,16 @@ export const MAX_PLAYERS_MIN = 2;
 /** The waiting games a user may run at once: more would only fill the codes. */
 export const ACTIVE_GAMES_LIMIT = 5;
 
-/** A waiting game nobody started is deleted this long after its creation. */
+/**
+ * A waiting game nobody started is deleted this long after its creation; a started game, this long
+ * after its last change (a finished game, after its end).
+ */
 export const STALE_GAME_HOURS = 24;
+
+/** The time the game master adds at once, and in all, in minutes. */
+export const ADDED_MINUTES_MIN = 1;
+export const ADDED_MINUTES_MAX = 60;
+export const ADDED_MINUTES_TOTAL_MAX = 180;
 
 export const JOIN_CODE_LENGTH = 6;
 // Neither 0 and O nor 1, I and L: a code is read aloud and typed by hand
@@ -95,6 +112,24 @@ export function validateMaxPlayers(raw: unknown): number | null {
   }
   if (typeof raw !== "number" || !Number.isInteger(raw) || raw < MAX_PLAYERS_MIN || raw > PLAYER_LIMIT) {
     throw failure("invalid-argument", "MAX_PLAYERS_INVALID", `The maximum is an integer from ${MAX_PLAYERS_MIN} to ${PLAYER_LIMIT}`);
+  }
+  return raw;
+}
+
+/** The minutes to add to a game that already has [alreadyAdded] minutes added. */
+export function validateAddedMinutes(raw: unknown, alreadyAdded: number): number {
+  if (
+    typeof raw !== "number" ||
+    !Number.isInteger(raw) ||
+    raw < ADDED_MINUTES_MIN ||
+    raw > ADDED_MINUTES_MAX ||
+    alreadyAdded + raw > ADDED_MINUTES_TOTAL_MAX
+  ) {
+    throw failure(
+      "invalid-argument",
+      "ADDED_TIME_INVALID",
+      `From ${ADDED_MINUTES_MIN} to ${ADDED_MINUTES_MAX} minutes at once, ${ADDED_MINUTES_TOTAL_MAX} in all`,
+    );
   }
   return raw;
 }
