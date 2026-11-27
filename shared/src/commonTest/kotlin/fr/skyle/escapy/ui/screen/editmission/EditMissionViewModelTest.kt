@@ -113,7 +113,7 @@ class EditMissionViewModelTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `a mission deleted closes the screen, and one deleted elsewhere is told missing`() = runTest {
+    fun `a mission deleted closes the screen and one deleted elsewhere is told missing`() = runTest {
         // Given
         val viewModel = viewModel(missionId = "safe")
         watchMissionsUseCase.missions.emit(listOf(mission(id = "safe", state = MissionState.LOCKED)))

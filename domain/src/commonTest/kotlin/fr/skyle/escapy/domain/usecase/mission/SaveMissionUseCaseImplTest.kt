@@ -50,7 +50,7 @@ class SaveMissionUseCaseImplTest {
     }
 
     @Test
-    fun `an invalid mission is refused before reaching the server, and a game full of missions is told`() = runTest {
+    fun `an invalid mission is refused before reaching the server and a game full of missions is told`() = runTest {
         // When Then
         assertFailsWith<InvalidMissionException> { saveMissionUseCase(gameId = "game", draft = draft.copy(title = "")) }
         assertTrue(missionRepository.calls.isEmpty())
