@@ -6,7 +6,20 @@ import {
   initializeTestEnvironment,
   RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+  setDoc,
+  Timestamp,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, test } from "vitest";
 import { PROJECT_ID } from "./support/emulators";
 
@@ -35,6 +48,7 @@ beforeEach(async () => {
     await setDoc(doc(firestore, "users/alice/games/manor"), { title: "Le manoir", isMaster: true });
     // Alice runs the game, Bob plays it, Carol is in none
     await setDoc(doc(firestore, "games/manor"), { title: "Le manoir", masterId: "alice", memberIds: ["alice", "bob"] });
+    await setDoc(doc(firestore, "users/bob"), { username: "Bob", avatarId: 2 });
     await setDoc(doc(firestore, "games/manor/players/bob"), { username: "Bob", avatarId: 2 });
     await setDoc(doc(firestore, "games/manor/private/access"), { excludedIds: ["dave"] });
     await setDoc(doc(firestore, "joinCodes/ABCDEF"), { gameId: "manor" });
@@ -131,6 +145,112 @@ describe("games", () => {
     await assertFails(setDoc(doc(carol, "joinCodes/GHJKMN"), { gameId: "manor" }));
     await assertFails(getDoc(doc(carol, "joinAttempts/carol")));
     await assertFails(deleteDoc(doc(carol, "joinAttempts/carol")));
+  });
+});
+
+describe("chat", () => {
+  /** The game, running for an hour more, or as [change] makes it. */
+  async function setGame(change: Record<string, unknown> = {}) {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), "games/manor"), {
+        title: "Le manoir",
+        masterId: "alice",
+        memberIds: ["alice", "bob"],
+        status: "RUNNING",
+        endsAt: Timestamp.fromMillis(Date.now() + 60 * 60 * 1000),
+        ...change,
+      });
+    });
+  }
+
+  function message(uid: string, change: Record<string, unknown> = {}) {
+    const author = uid === "alice" ? { username: "Alice", avatarId: 1 } : { username: "Bob", avatarId: 2 };
+    return { authorId: uid, author, text: "On a trouvé la clé !", sentAt: serverTimestamp(), ...change };
+  }
+
+  function messages(uid: string) {
+    return collection(testEnv.authenticatedContext(uid).firestore(), "games/manor/messages");
+  }
+
+  test("a player and the game master send a message in their own name and read the chat", async () => {
+    await setGame();
+    await assertSucceeds(addDoc(messages("bob"), message("bob")));
+    await assertSucceeds(addDoc(messages("alice"), message("alice")));
+    await assertSucceeds(getDocs(messages("bob")));
+  });
+
+  test("a paused game keeps its chat open", async () => {
+    await setGame({ status: "PAUSED", endsAt: null, remainingMs: 1000 });
+    await assertSucceeds(addDoc(messages("bob"), message("bob")));
+  });
+
+  test("a user who is not a member, or signed out, neither reads nor writes", async () => {
+    await setGame();
+    await assertFails(addDoc(messages("carol"), message("carol", { author: { username: "Carol", avatarId: 3 } })));
+    await assertFails(getDocs(messages("carol")));
+    const anonymous = collection(testEnv.unauthenticatedContext().firestore(), "games/manor/messages");
+    await assertFails(getDocs(anonymous));
+    await assertFails(addDoc(anonymous, message("bob")));
+  });
+
+  test("an excluded player no longer reads nor writes", async () => {
+    await setGame({ memberIds: ["alice"] });
+    await assertFails(addDoc(messages("bob"), message("bob")));
+    await assertFails(getDocs(messages("bob")));
+  });
+
+  test("a message in the name of another user, or with another name or avatar, is refused", async () => {
+    await setGame();
+    await assertFails(addDoc(messages("bob"), message("bob", { authorId: "alice" })));
+    await assertFails(addDoc(messages("bob"), message("bob", { author: { username: "Alice", avatarId: 2 } })));
+    await assertFails(addDoc(messages("bob"), message("bob", { author: { username: "Bob", avatarId: 9 } })));
+    await assertFails(addDoc(messages("bob"), message("bob", { author: { username: "Bob", avatarId: 2, admin: true } })));
+  });
+
+  test("a message with a field too many, or the time of the device, is refused", async () => {
+    await setGame();
+    await assertFails(addDoc(messages("bob"), message("bob", { isHint: true })));
+    await assertFails(addDoc(messages("bob"), message("bob", { sentAt: Timestamp.now() })));
+    const { sentAt: _sentAt, ...withoutTime } = message("bob");
+    await assertFails(addDoc(messages("bob"), withoutTime));
+  });
+
+  test("a text of 500 UTF-16 units is the longest: an accent counts one, an emoji two", async () => {
+    // As String.length counts in Kotlin, which the app checks the same way
+    await setGame();
+    await assertSucceeds(addDoc(messages("bob"), message("bob", { text: "é".repeat(500) })));
+    await assertFails(addDoc(messages("bob"), message("bob", { text: "é".repeat(501) })));
+    await assertSucceeds(addDoc(messages("bob"), message("bob", { text: "🔑".repeat(250) })));
+    await assertFails(addDoc(messages("bob"), message("bob", { text: "🔑".repeat(251) })));
+  });
+
+  test("an empty text, or one of spaces only, is refused", async () => {
+    await setGame();
+    await assertFails(addDoc(messages("bob"), message("bob", { text: "" })));
+    await assertFails(addDoc(messages("bob"), message("bob", { text: "   " })));
+    await assertFails(addDoc(messages("bob"), message("bob", { text: 42 })));
+  });
+
+  test("the chat is closed before the game starts, once it is over, and once its time is up", async () => {
+    await setGame({ status: "WAITING", endsAt: null });
+    await assertFails(addDoc(messages("bob"), message("bob")));
+    await setGame({ status: "FINISHED", endsAt: null });
+    await assertFails(addDoc(messages("bob"), message("bob")));
+    await setGame({ endsAt: Timestamp.fromMillis(Date.now() - 1000) });
+    await assertFails(addDoc(messages("bob"), message("bob")));
+    // The chat of a game over is still read
+    await assertSucceeds(getDocs(messages("bob")));
+  });
+
+  test("nobody changes or deletes a message, not even its author", async () => {
+    await setGame();
+    let id = "";
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      id = (await addDoc(collection(context.firestore(), "games/manor/messages"), message("bob"))).id;
+    });
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(updateDoc(doc(bob, `games/manor/messages/${id}`), { text: "Rien" }));
+    await assertFails(deleteDoc(doc(bob, `games/manor/messages/${id}`)));
   });
 });
 
