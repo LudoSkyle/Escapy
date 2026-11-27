@@ -23,7 +23,11 @@ export type FailureReason =
   | "GAME_FULL"
   | "PLAYER_EXCLUDED"
   | "NOT_GAME_MASTER"
-  | "GAME_MASTER_CANNOT_LEAVE";
+  | "GAME_MASTER_CANNOT_LEAVE"
+  | "NOT_GAME_MEMBER"
+  | "GAME_NOT_STARTED"
+  | "GAME_FINISHED"
+  | "ADDED_TIME_INVALID";
 
 export function failure(code: FunctionsErrorCode, reason: FailureReason, message: string): HttpsError {
   return new HttpsError(code, message, { reason });

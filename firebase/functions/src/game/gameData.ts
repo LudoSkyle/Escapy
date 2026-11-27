@@ -23,6 +23,7 @@ export function userGameData(game: DocumentData, isMaster: boolean): DocumentDat
     title: game.title,
     isMaster,
     master: game.master,
+    status: game.status,
     createdAt: game.createdAt,
   };
 }
