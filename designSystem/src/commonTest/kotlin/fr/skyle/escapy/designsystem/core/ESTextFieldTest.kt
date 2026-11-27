@@ -1,5 +1,8 @@
 package fr.skyle.escapy.designsystem.core
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
@@ -14,6 +17,7 @@ import fr.skyle.escapy.designsystem.test.ComposeTest
 import fr.skyle.escapy.designsystem.theme.ESTheme
 import kotlin.test.Test
 import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 internal class ESTextFieldTest : ComposeTest() {
@@ -66,5 +70,30 @@ internal class ESTextFieldTest : ComposeTest() {
             illegal = descriptionBefore,
             actual = descriptionAfter,
         )
+    }
+
+    @Test
+    fun `a message field grows with its lines`() = runComposeUiTest {
+        // Given
+        var text by mutableStateOf("Une ligne")
+        setContent {
+            ESTheme {
+                ESTextField(
+                    value = text,
+                    onValueChange = { value -> text = value },
+                    label = "Message",
+                    kind = ESTextFieldDefaults.Kind.MESSAGE,
+                    style = ESTextFieldDefaults.Style.STANDARD,
+                )
+            }
+        }
+        val oneLine = onNode(hasSetTextAction()).fetchSemanticsNode().size.height
+
+        // When
+        text = "Une ligne\nDeux lignes\nTrois lignes"
+        waitForIdle()
+
+        // Then
+        assertTrue(onNode(hasSetTextAction()).fetchSemanticsNode().size.height > oneLine)
     }
 }
