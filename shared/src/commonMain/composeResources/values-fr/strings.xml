@@ -132,6 +132,8 @@
     <string name="home_join_title">Rejoindre une partie</string>
     <string name="home_my_games">Mes parties</string>
     <string name="home_no_games">Aucune partie pour l’instant. Rejoignez-en une avec son code, ou créez la vôtre.</string>
+    <string name="home_welcome">Bienvenue,\n%1$s !</string>
+    <string name="home_welcome_anonymous">Bienvenue !</string>
     <string name="join_code_qr_description">QR code pour rejoindre la partie, code %1$s</string>
     <string name="kick_player_dialog_message">%1$s quitte la partie, et son code ne lui permettra plus d’entrer.</string>
     <string name="kick_player_dialog_title">Exclure %1$s ?</string>

@@ -1,5 +1,6 @@
 package fr.skyle.escapy.ui.screen.home.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,14 +50,16 @@ import fr.skyle.escapy.resources.Res
 import fr.skyle.escapy.resources.action_create_game
 import fr.skyle.escapy.resources.action_join
 import fr.skyle.escapy.resources.action_scan_qr_code
-import fr.skyle.escapy.resources.app_name
 import fr.skyle.escapy.resources.field_join_code
 import fr.skyle.escapy.resources.game_summary_master
 import fr.skyle.escapy.resources.game_summary_player
+import fr.skyle.escapy.resources.home_background
 import fr.skyle.escapy.resources.home_join_code_help
 import fr.skyle.escapy.resources.home_join_title
 import fr.skyle.escapy.resources.home_my_games
 import fr.skyle.escapy.resources.home_no_games
+import fr.skyle.escapy.resources.home_welcome
+import fr.skyle.escapy.resources.home_welcome_anonymous
 import fr.skyle.escapy.resources.ic_person
 import fr.skyle.escapy.resources.ic_qr_code_scanner
 import fr.skyle.escapy.resources.profile_title
@@ -77,9 +85,11 @@ fun HomeScreen(
 
     ESScreenStructure(
         style = ESScreenStructureDefaults.Style.STANDARD,
+        background = { HomeBackground() },
         topBar = {
             ESTopAppBar(
-                title = stringResource(Res.string.app_name),
+                // The welcome below says where the user is
+                title = "",
                 actions = {
                     ESIconButton(
                         icon = painterResource(Res.drawable.ic_person),
@@ -100,6 +110,10 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(ESTheme.spacing.l),
         ) {
+            Welcome(username = uiState.username)
+
+            Spacer(modifier = Modifier.height(ESTheme.spacing.l))
+
             ESCard(
                 modifier = Modifier.fillMaxWidth(),
                 style = ESCardDefaults.Style.STANDARD,
@@ -180,6 +194,42 @@ fun HomeScreen(
             )
         }
     }
+}
+
+/** "Welcome, Player_ABC234!", the name in the accent color, as the first version of the app said it. */
+@Composable
+private fun Welcome(username: String?) {
+    val primary = ESTheme.colors.primary
+    val text = if (username == null) {
+        AnnotatedString(stringResource(Res.string.home_welcome_anonymous))
+    } else {
+        val sentence = stringResource(Res.string.home_welcome, username)
+        val start = sentence.indexOf(username)
+        buildAnnotatedString {
+            append(sentence)
+            if (start >= 0) {
+                addStyle(style = SpanStyle(color = primary), start = start, end = start + username.length)
+            }
+        }
+    }
+    ESText(
+        modifier = Modifier.fillMaxWidth(),
+        text = text,
+        style = ESTheme.typography.headline,
+    )
+}
+
+/** The rings of the first version of the app, at the top left, faint behind the bar and the welcome. */
+@Composable
+private fun HomeBackground() {
+    Image(
+        modifier = Modifier.width(375.dp),
+        painter = painterResource(Res.drawable.home_background),
+        contentDescription = null,
+        contentScale = ContentScale.FillWidth,
+        // Drawn in black: tinted with a surface color, it shows on the dark background
+        colorFilter = ColorFilter.tint(ESTheme.colors.surfaceHighest),
+    )
 }
 
 @Composable

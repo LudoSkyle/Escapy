@@ -2,33 +2,56 @@ package fr.skyle.escapy.ui.screen.home
 
 import fr.skyle.escapy.domain.exception.GameNotFoundException
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
+import fr.skyle.escapy.domain.model.Profile
+import fr.skyle.escapy.domain.model.Session
 import fr.skyle.escapy.fake.FakeJoinGameUseCase
 import fr.skyle.escapy.fake.FakeWatchMyGamesUseCase
+import fr.skyle.escapy.fake.FakeWatchProfileUseCase
+import fr.skyle.escapy.fake.FakeWatchSessionUseCase
 import fr.skyle.escapy.fake.gameSummary
 import fr.skyle.escapy.test.MainDispatcherTest
 import fr.skyle.escapy.ui.core.error.GameError
 import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel
 import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel.HomeEvent
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest : MainDispatcherTest() {
 
     private val watchMyGamesUseCase = FakeWatchMyGamesUseCase()
     private val joinGameUseCase = FakeJoinGameUseCase()
+    private val watchSessionUseCase = FakeWatchSessionUseCase()
+    private val watchProfileUseCase = FakeWatchProfileUseCase()
 
     private val viewModel = HomeViewModel(
         watchMyGamesUseCase = watchMyGamesUseCase,
         joinGameUseCase = joinGameUseCase,
+        watchSessionUseCase = watchSessionUseCase,
+        watchProfileUseCase = watchProfileUseCase,
     )
+
+    @Test
+    fun `the user is welcomed by their name once their profile is read`() = runTest {
+        // Given
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        val beforeProfile = viewModel.uiState.value.username
+
+        // When
+        watchSessionUseCase.sessions.emit(Session.SignedIn(userId = "player", isGuest = true))
+        watchProfileUseCase.profiles.emit(Profile(username = "Player_ABC234", avatarId = 7))
+
+        // Then
+        assertNull(beforeProfile)
+        assertEquals(expected = "Player_ABC234", actual = viewModel.uiState.value.username)
+    }
 
     @Test
     fun `the games of the user are shown once read`() = runTest {
