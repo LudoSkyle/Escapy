@@ -33,11 +33,48 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // The chat, the one thing a client writes: a member sends a message in their own name, with
+      // the name and avatar of their profile, at the time of the server, while the game is played.
+      // A message is never changed or deleted; it goes with its game. Tested in
+      // functions/test/firestoreRules.test.ts
+      match /messages/{messageId} {
+        allow read: if request.auth != null && request.auth.uid in game(gameId).data.memberIds;
+        allow create: if request.auth != null
+          && request.auth.uid in game(gameId).data.memberIds
+          && isChatOpen(game(gameId).data)
+          && isOwnMessage(request.resource.data);
+        allow update, delete: if false;
+      }
+
       // games/{gameId}/private: the excluded players, for the functions only (refused below)
     }
 
     // joinCodes and joinAttempts are for the functions only: a client neither lists the codes nor
     // reads a game without its code
+
+    function game(gameId) {
+      return get(/databases/$(database)/documents/games/$(gameId));
+    }
+
+    // Played: paused, or running before its end. A game whose end has passed is over even before a
+    // function records it, as for the functions (see functions/src/game/timer.ts)
+    function isChatOpen(game) {
+      return game.status == 'PAUSED' || (game.status == 'RUNNING' && game.endsAt > request.time);
+    }
+
+    function isOwnMessage(message) {
+      let profile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return message.keys().hasOnly(['authorId', 'author', 'text', 'sentAt'])
+        && message.keys().hasAll(['authorId', 'author', 'text', 'sentAt'])
+        && message.authorId == request.auth.uid
+        && message.author.keys().hasOnly(['username', 'avatarId'])
+        && message.author.username == profile.username
+        && message.author.avatarId == profile.avatarId
+        && message.text is string
+        && message.text.size() <= 500
+        && message.text.trim().size() > 0
+        && message.sentAt == request.time;
+    }
 
     // Everything else is refused, until a lot opens it with its tests
     match /{document=**} {
