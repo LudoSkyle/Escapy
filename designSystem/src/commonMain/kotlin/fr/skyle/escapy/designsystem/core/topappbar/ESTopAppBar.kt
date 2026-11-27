@@ -6,6 +6,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import fr.skyle.escapy.designsystem.core.iconbutton.ESIconButton
@@ -53,7 +54,8 @@ fun ESTopAppBar(
         },
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = ESTheme.colors.background,
+            // The background of the screen shows through, with what ESScreenStructure draws on it
+            containerColor = Color.Transparent,
             scrolledContainerColor = ESTheme.colors.surface,
             titleContentColor = ESTheme.colors.textPrimary,
             navigationIconContentColor = ESTheme.colors.textPrimary,

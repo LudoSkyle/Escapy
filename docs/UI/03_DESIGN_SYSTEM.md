@@ -115,7 +115,9 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
   l'appelant choisit, et la relecture voit ce qu'il a choisi. Une enum à une seule entrée est
   acceptée : c'est le point d'extension.
 - `ESText` prend un `style` du thème (`ESTheme.typography.body`), sans valeur par défaut, et la
-  couleur du contenu autour de lui, sauf une couleur du thème donnée.
+  couleur du contenu autour de lui, sauf une couleur du thème donnée. Un texte de plusieurs couleurs
+  (un nom en ambre dans une phrase) se donne en `AnnotatedString`, dont les styles ne portent que
+  des couleurs du thème.
 - **Une hauteur est un minimum** (`heightIn(min = …)`), jamais une hauteur fixe : un composant
   grandit avec une police agrandie plutôt que de couper son texte. Une cible de toucher fait au moins
   48 dp.
@@ -147,7 +149,9 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
 - **`ESScreenStructure`** : le cadre de chaque écran, qui garde son contenu hors des barres
   système et du clavier (`safeDrawing`) et lui passe ces marges (`PaddingValues`). Un toucher hors
   d'un champ et d'un bouton retire le focus, ce qui ferme le clavier : iOS le garde sinon, sur les
-  boutons qu'il cache. Un écran affiche
+  boutons qu'il cache. Un `background` facultatif dessine sur le fond de l'écran, sous les barres
+  et le contenu (les anneaux de l'accueil) : la barre du haut (`ESTopAppBar`) est transparente, et
+  le fond se voit au travers. Un écran affiche
   un message court par un `ESSnackbarState` (`rememberESSnackbarState()`) donné à
   `ESScreenStructure` ; `show` dit si son action a été touchée. Il ne voit jamais `Scaffold` ni
   `SnackbarHostState` de Material.

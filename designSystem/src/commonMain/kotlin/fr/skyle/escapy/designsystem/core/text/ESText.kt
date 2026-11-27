@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -20,6 +21,31 @@ import fr.skyle.escapy.designsystem.theme.ESTheme
 @Composable
 fun ESText(
     text: String,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    color: Color = LocalContentColor.current,
+    textAlign: TextAlign? = null,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+) {
+    Text(
+        modifier = modifier,
+        text = text,
+        style = style,
+        color = color,
+        textAlign = textAlign,
+        maxLines = maxLines,
+        overflow = overflow,
+    )
+}
+
+/**
+ * A text of several styles, such as a name in the accent color within a sentence: its spans hold
+ * colors of the theme only.
+ */
+@Composable
+fun ESText(
+    text: AnnotatedString,
     style: TextStyle,
     modifier: Modifier = Modifier,
     color: Color = LocalContentColor.current,
