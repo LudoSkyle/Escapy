@@ -7,7 +7,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import { getBytes, ref, uploadString } from "firebase/storage";
 import { afterAll, beforeAll, describe, test } from "vitest";
-import { PROJECT_ID } from "./support/emulators";
+import { PROJECT_ID, STORAGE_PORT } from "./support/emulators";
 
 let testEnv: RulesTestEnvironment;
 
@@ -17,7 +17,7 @@ beforeAll(async () => {
     storage: {
       rules: readFileSync(resolve(__dirname, "../../storage.rules"), "utf8"),
       host: "127.0.0.1",
-      port: 9199,
+      port: STORAGE_PORT,
     },
   });
 });

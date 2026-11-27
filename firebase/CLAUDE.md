@@ -34,6 +34,10 @@ Les principes et le contrat des fonctions sont dans [../docs/Backend/README.md](
   exportée par `src/index.ts`. Ce qui sert à plusieurs domaines vit dans `src/core/` ; ce qui touche
   aux données d'un domaine reste dans ce domaine, et les autres l'importent (`game/gameData.ts`, appelé
   par la suppression du compte et par `updateProfile`).
+- **Tests** : `npm test` vide les émulateurs des ports habituels, ceux de l'app : un téléphone branché
+  dessus perd ses comptes et ses parties. `npm run test:aside` lance les mêmes tests sur des
+  émulateurs à part (`firebase.aside.json`), à côté de ceux de l'app. Les tests lisent les adresses
+  que donne `emulators:exec` (`support/emulators.ts`).
 - **Tests** : chaque fonction et chaque règle se testent sur l'émulateur, dans `functions/test/`
   (vitest, un fichier par domaine). Une fonction s'appelle comme l'app l'appelle, par le SDK client
   (`newClient()` de `test/support/emulators.ts`), et son effet se vérifie par le SDK Admin. Une
@@ -59,6 +63,7 @@ Les principes et le contrat des fonctions sont dans [../docs/Backend/README.md](
 cd firebase/functions && npm ci               # installer
 cd firebase/functions && npm run typecheck    # types, tests compris
 cd firebase/functions && npm test             # build, émulateurs, tests, arrêt
+cd firebase/functions && npm run test:aside   # pareil, sur des émulateurs à part (ports 1xxxx) : ceux de l'app gardent leurs comptes
 cd firebase/functions && npx firebase --config ../firebase.json deploy --only firestore,storage,functions --project prod   # sur demande seulement : règles et index Firestore compris
 ```
 

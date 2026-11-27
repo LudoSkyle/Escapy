@@ -21,7 +21,7 @@ import {
   where,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, test } from "vitest";
-import { PROJECT_ID } from "./support/emulators";
+import { FIRESTORE_PORT, PROJECT_ID } from "./support/emulators";
 
 let testEnv: RulesTestEnvironment;
 
@@ -31,7 +31,7 @@ beforeAll(async () => {
     firestore: {
       rules: readFileSync(resolve(__dirname, "../../firestore.rules"), "utf8"),
       host: "127.0.0.1",
-      port: 8080,
+      port: FIRESTORE_PORT,
     },
   });
 });
@@ -251,6 +251,45 @@ describe("chat", () => {
     const bob = testEnv.authenticatedContext("bob").firestore();
     await assertFails(updateDoc(doc(bob, `games/manor/messages/${id}`), { text: "Rien" }));
     await assertFails(deleteDoc(doc(bob, `games/manor/messages/${id}`)));
+  });
+});
+
+describe("missions", () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const firestore = context.firestore();
+      await setDoc(doc(firestore, "games/manor/masterMissions/safe"), { title: "Le coffre", answers: ["0427"], state: "ACTIVE" });
+      await setDoc(doc(firestore, "games/manor/missions/safe"), { title: "Le coffre", state: "ACTIVE" });
+    });
+  });
+
+  test("the members read the missions they see, and nobody else does", async () => {
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDocs(collection(bob, "games/manor/missions")));
+    await assertSucceeds(getDoc(doc(bob, "games/manor/missions/safe")));
+    const carol = testEnv.authenticatedContext("carol").firestore();
+    await assertFails(getDocs(collection(carol, "games/manor/missions")));
+    await assertFails(getDocs(collection(testEnv.unauthenticatedContext().firestore(), "games/manor/missions")));
+  });
+
+  test("only the game master reads the missions with their answers", async () => {
+    const alice = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(getDocs(collection(alice, "games/manor/masterMissions")));
+    await assertSucceeds(getDoc(doc(alice, "games/manor/masterMissions/safe")));
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDocs(collection(bob, "games/manor/masterMissions")));
+    await assertFails(getDoc(doc(bob, "games/manor/masterMissions/safe")));
+    const carol = testEnv.authenticatedContext("carol").firestore();
+    await assertFails(getDoc(doc(carol, "games/manor/masterMissions/safe")));
+    await assertFails(getDocs(collection(testEnv.unauthenticatedContext().firestore(), "games/manor/masterMissions")));
+  });
+
+  test("nobody writes a mission, not even the game master", async () => {
+    const alice = testEnv.authenticatedContext("alice").firestore();
+    await assertFails(setDoc(doc(alice, "games/manor/missions/safe"), { title: "Hack", state: "SOLVED" }));
+    await assertFails(updateDoc(doc(alice, "games/manor/masterMissions/safe"), { state: "SOLVED" }));
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(updateDoc(doc(bob, "games/manor/missions/safe"), { state: "SOLVED" }));
   });
 });
 

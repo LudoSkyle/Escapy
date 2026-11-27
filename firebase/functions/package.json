@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.test.json",
-    "test": "npm run build && firebase --config ../firebase.json emulators:exec --project demo-escapy --only auth,firestore,functions,storage \"vitest run\""
+    "test": "npm run build && firebase --config ../firebase.json emulators:exec --project demo-escapy --only auth,firestore,functions,storage \"vitest run\"",
+    "test:aside": "npm run build && ESCAPY_FUNCTIONS_EMULATOR_PORT=15001 firebase --config ../firebase.aside.json emulators:exec --project demo-escapy --only auth,firestore,functions,storage \"vitest run\""
   },
   "dependencies": {
     "firebase-admin": "^14.5.1",

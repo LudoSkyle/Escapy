@@ -11,8 +11,8 @@ export type GameStatus = "WAITING" | "RUNNING" | "PAUSED" | "FINISHED";
 /** The games that still count towards ACTIVE_GAMES_LIMIT: a finished game only waits to be deleted. */
 export const ACTIVE_STATUSES: GameStatus[] = ["WAITING", "RUNNING", "PAUSED"];
 
-/** Why a game finished. The victory comes with the missions. */
-export type GameResult = "TIME_UP" | "ENDED_BY_MASTER";
+/** Why a game finished: its final missions solved, its time up, or its game master. */
+export type GameResult = "WON" | "TIME_UP" | "ENDED_BY_MASTER";
 
 export const GAME_TITLE_MIN_LENGTH = 3;
 export const GAME_TITLE_MAX_LENGTH = 40;
