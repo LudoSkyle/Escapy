@@ -32,3 +32,9 @@ class GameFinishedException(cause: Throwable? = null) : Exception("Game finished
 
 /** The minutes to add are out of bounds, or would add too much in all. */
 class InvalidAddedTimeException(cause: Throwable? = null) : Exception("Invalid added time", cause)
+
+/** The message is empty, or longer than ChatRules.MESSAGE_MAX_LENGTH. */
+class InvalidMessageException(cause: Throwable? = null) : Exception("Invalid message", cause)
+
+/** The chat refused the message: the game is over, or the user is no longer a member. */
+class MessageRefusedException(cause: Throwable? = null) : Exception("Message refused", cause)

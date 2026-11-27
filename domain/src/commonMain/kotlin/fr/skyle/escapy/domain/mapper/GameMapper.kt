@@ -1,8 +1,10 @@
 package fr.skyle.escapy.domain.mapper
 
 import fr.skyle.escapy.data.model.StoredGame
+import fr.skyle.escapy.data.model.StoredMessage
 import fr.skyle.escapy.data.model.StoredGameEntry
 import fr.skyle.escapy.data.model.StoredMember
+import fr.skyle.escapy.domain.model.ChatMessage
 import fr.skyle.escapy.domain.model.Game
 import fr.skyle.escapy.domain.model.GameEnd
 import fr.skyle.escapy.domain.model.GameResult
@@ -57,3 +59,15 @@ private fun String.toGameStatus(): GameStatus =
 
 private fun String.toGameResult(): GameResult? =
     GameResult.entries.firstOrNull { result -> result.name == this }
+
+internal fun StoredMessage.toChatMessage(currentUserId: String): ChatMessage =
+    ChatMessage(
+        id = id,
+        authorId = authorId,
+        authorUsername = authorUsername,
+        authorAvatarId = authorAvatarId,
+        text = text,
+        sentAt = sentAtMs?.let { millis -> Instant.fromEpochMilliseconds(millis) },
+        isMine = authorId == currentUserId,
+        isPending = isPending,
+    )

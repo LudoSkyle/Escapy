@@ -24,6 +24,10 @@ import fr.skyle.escapy.domain.usecase.auth.SignOutUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignOutUseCaseImpl
 import fr.skyle.escapy.domain.usecase.auth.SignUpWithEmailUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignUpWithEmailUseCaseImpl
+import fr.skyle.escapy.domain.usecase.chat.SendMessageUseCase
+import fr.skyle.escapy.domain.usecase.chat.SendMessageUseCaseImpl
+import fr.skyle.escapy.domain.usecase.chat.WatchMessagesUseCase
+import fr.skyle.escapy.domain.usecase.chat.WatchMessagesUseCaseImpl
 import fr.skyle.escapy.domain.usecase.clock.EstimateServerClockOffsetUseCase
 import fr.skyle.escapy.domain.usecase.clock.EstimateServerClockOffsetUseCaseImpl
 import fr.skyle.escapy.domain.usecase.game.AddTimeUseCase
@@ -113,6 +117,10 @@ val domainModule = module {
     factoryOf(::AddTimeUseCaseImpl) bind AddTimeUseCase::class
     factoryOf(::EndGameUseCaseImpl) bind EndGameUseCase::class
     factoryOf(::ExpireGameUseCaseImpl) bind ExpireGameUseCase::class
+
+    // Chat
+    factoryOf(::WatchMessagesUseCaseImpl) bind WatchMessagesUseCase::class
+    factoryOf(::SendMessageUseCaseImpl) bind SendMessageUseCase::class
 
     // Clock
     factoryOf(::EstimateServerClockOffsetUseCaseImpl) bind EstimateServerClockOffsetUseCase::class
