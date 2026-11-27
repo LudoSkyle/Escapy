@@ -85,7 +85,7 @@ export async function onGame<T>(
   uid: string,
   rawGameId: unknown,
   masterOnly: boolean,
-  action: (current: GameInTransaction) => T,
+  action: (current: GameInTransaction) => T | Promise<T>,
 ): Promise<T> {
   const game = db().collection(GAMES).doc(validateGameId(rawGameId));
   return db().runTransaction(async (transaction) => {

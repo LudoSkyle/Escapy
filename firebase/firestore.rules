@@ -46,6 +46,20 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      // The missions as the players see them, created when unlocked: never an answer
+      match /missions/{missionId} {
+        allow read: if request.auth != null && request.auth.uid in game(gameId).data.memberIds;
+        allow write: if false;
+      }
+
+      // The missions as the game master wrote them, answers and locked ones included: for the game
+      // master only. The app opens this observation for them only, a refusal elsewhere would leave
+      // the Android SDK late on the other observations (see docs/KMP/01_MODULE_DATA.md)
+      match /masterMissions/{missionId} {
+        allow read: if request.auth != null && request.auth.uid == game(gameId).data.masterId;
+        allow write: if false;
+      }
+
       // games/{gameId}/private: the excluded players, for the functions only (refused below)
     }
 

@@ -27,7 +27,12 @@ export type FailureReason =
   | "NOT_GAME_MEMBER"
   | "GAME_NOT_STARTED"
   | "GAME_FINISHED"
-  | "ADDED_TIME_INVALID";
+  | "ADDED_TIME_INVALID"
+  | "GAME_PAUSED"
+  | "MISSION_INVALID"
+  | "MISSION_NOT_FOUND"
+  | "TOO_MANY_MISSIONS"
+  | "TOO_MANY_ANSWERS";
 
 export function failure(code: FunctionsErrorCode, reason: FailureReason, message: string): HttpsError {
   return new HttpsError(code, message, { reason });
