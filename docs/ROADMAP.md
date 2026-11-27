@@ -32,7 +32,7 @@ Chaque lot est livré par une pull request vers `develop` (voir la section Git d
 - [x] Salle d'attente : les joueurs arrivent, le maître du jeu en exclut, lance la partie ; un
       joueur quitte
 - [x] Minuteur tenu par le serveur, le même chez tous : pause, reprise, ajout de temps
-- [ ] Chat écrit entre le maître du jeu et les joueurs
+- [x] Chat écrit entre le maître du jeu et les joueurs
 - [ ] Écran d'histoire d'intro, au lancement, tiré du scénario (lot 10)
 - [ ] Missions « code » et « mot ou phrase », avec leurs déclencheurs : manuel, dès le début, après
       une autre mission, mot ou phrase écrit dans le chat (voir
@@ -249,10 +249,28 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
            minuteur égal au serveur à la seconde près, temps écoulé (un seul appel au serveur), fin par
            le maître du jeu, récapitulatif, suppression, l'état sur l'accueil, un code d'une partie
            lancée refusé
-     - [ ] Non vérifié : sur Android (l'émulateur a été arrêté pour ne pas saturer la mémoire du Mac,
-           que le simulateur iOS manquait) ; la correction de l'écart d'horloge entre deux appareils
-           dont les horloges diffèrent (le simulateur et le script ont l'heure du Mac)
+     - [x] Puis sur un émulateur Android (API 36) seul, le joueur face à un maître du jeu joué par
+           un script : lancer, temps écoulé, récapitulatif ; **l'écart d'horloge corrigé**, l'émulateur
+           réglé 2 minutes en retard sur le Mac affichant le temps du serveur à la seconde près
    - 7b, **le chat** entre le maître du jeu et les joueurs.
+     - [x] Règles : un membre écrit en son nom, avec le pseudo et l'avatar de son profil, à l'heure
+           du serveur, partie en cours ou en pause avant son heure de fin ; 500 unités UTF-16 au plus,
+           pas que des espaces ; ni modification ni suppression ; lecture par les membres ; testées
+           (autre utilisateur, déconnecté, exclu, auteur ou pseudo faux, champ en trop, heure de
+           l'appareil, partie en attente, terminée, temps écoulé, emojis à la limite)
+     - [x] App : les 200 derniers messages, un message affiché dès l'envoi à l'heure estimée du
+           serveur ; le champ se vide sans attendre, un message refusé revient avec sa raison et fait
+           demander au serveur si le temps est écoulé ; la discussion d'une partie terminée se lit
+     - [x] Écran Discussion, ouvert par une carte de l'écran de jeu qui montre le dernier message ;
+           type `MESSAGE` d'`ESTextField` (plusieurs lignes)
+     - [x] Vérifié contre les émulateurs sur un émulateur Android (API 36), face à un maître du jeu
+           joué par un script : le message du maître du jeu en direct sur la carte et dans la
+           discussion, un message envoyé (accepté par les règles), un message après le temps écoulé
+           refusé puis la discussion fermée, la discussion d'une partie terminée en lecture seule
+     - [ ] Non vérifié sur iOS (le clavier et la liste qui suit le dernier message) : le simulateur a
+           été éteint pour ne pas faire tourner les deux en même temps
+     - L'heure des messages n'est pas affichée : elle demande kotlinx-datetime (fuseau de
+       l'appareil), qui viendra avec un écran qui en a besoin.
 8. **Missions** : types, déclencheurs, soumission avec anti-force brute, mots-clés du chat.
 9. **Indices** : texte et image (Storage), avec la progression de l'envoi côté maître du jeu.
 10. **Scénarios** : éditeur, expiration (TTL), créer une partie depuis un scénario ; l'histoire

@@ -38,7 +38,9 @@ coût est le démarrage à froid de la fonction, quelle que soit la base.
   une réponse attendue, il ne débloque jamais une mission, il ne décide jamais d'une victoire ni du
   temps restant.
 - **Les règles refusent toute écriture client, sauf l'envoi d'un message de chat** : auteur = soi,
-  partie en attente ou en cours, longueur bornée. La lecture d'une partie et de ses sous-collections
+  partie en attente ou en cours, longueur bornée. Précisé au lot 7b (2026-11-27) : la partie est en
+  cours ou en pause, avant son heure de fin, mais pas en attente ; l'auteur porte le pseudo et
+  l'avatar de son profil, que les règles comparent. La lecture d'une partie et de ses sous-collections
   est réservée à ses membres ; les secrets (réponses, mots-clés), au maître du jeu et aux fonctions.
   Une mission verrouillée n'a pas de document côté partie : il n'est créé qu'à son déblocage.
 - **Le code de partie vit dans un index d'unicité**, illisible par les clients, et se résout par la

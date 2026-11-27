@@ -18,8 +18,9 @@ Décidés par l'[ADR-0004](../adr/0004-firestore-et-le-serveur-source-de-verite.
 - **Le client ne valide rien.** La comparaison d'une réponse, le déblocage d'une mission, la
   détection d'un mot-clé du chat, la victoire, l'expiration d'un scénario : tout se décide dans une
   fonction (voir [Produit/02_MISSIONS.md](../Produit/02_MISSIONS.md)).
-- **Les règles refusent les écritures client**, sauf, plus tard, l'envoi d'un message de chat
-  (auteur = soi, partie en attente ou en cours, longueur bornée).
+- **Les règles refusent les écritures client**, sauf l'envoi d'un message de chat (auteur = soi,
+  avec le pseudo et l'avatar de son profil, partie en cours ou en pause avant son heure de fin,
+  longueur bornée ; voir le chat plus bas).
 - **Toute heure est un horodatage serveur** : minuteur, messages, journal.
 - Une instance chaude (`minInstances`) pour les fonctions de partie se décide avec leur coût : un
   démarrage à froid coûte de 1,3 à 2,3 s ([ADR-0003](../adr/0003-firebase-en-kotlin-commun-avec-gitlive.md)).
@@ -32,6 +33,7 @@ Décidés par l'[ADR-0004](../adr/0004-firestore-et-le-serveur-source-de-verite.
 | `users/{uid}` | `username`, `avatarId` (1 à 50), `createdAt`, `updatedAt` (horodatages serveur). Ni e-mail ni nom réel | son propriétaire | les fonctions |
 | `users/{uid}/games/{gameId}` | `title`, `isMaster`, `master` (`username`, `avatarId`), `status`, `createdAt` : la liste des parties de l'utilisateur, pour son accueil. Une fiche écrite avant le minuteur n'a pas de `status` : elle est d'une partie en attente | son propriétaire | les fonctions |
 | `games/{gameId}` | `title`, `durationMinutes`, `maxPlayers` (ou `null`), `status` (`WAITING`, `RUNNING`, `PAUSED`, `FINISHED`), `masterId`, `master` (`username`, `avatarId`), `memberIds` (le maître du jeu et les joueurs), `playerCount`, `joinCode`, `createdAt`, `updatedAt` ; une fois lancée : `startedAt`, `endsAt` (tant qu'elle tourne), `remainingMs` (en pause, et à la fin), `addedMinutes` ; à la fin : `result` (`TIME_UP`, `ENDED_BY_MASTER`), `playedMs` (le temps joué, pauses à part), `finishedAt` | ses membres ; une partie qui n'existe pas se lit absente | les fonctions |
+| `games/{gameId}/messages/{messageId}` | `authorId`, `author` (`username`, `avatarId`, recopiés du profil), `text` (de 1 à 500 unités UTF-16, pas que des espaces), `sentAt` (horodatage serveur) : un message du chat | les membres de la partie | un membre, en son nom, partie en cours ou en pause avant son heure de fin ; jamais modifié ni supprimé |
 | `games/{gameId}/players/{uid}` | `username`, `avatarId`, `joinedAt` : un joueur, le maître du jeu à part | les membres de la partie | les fonctions |
 | `games/{gameId}/private/access` | `excludedIds` : les joueurs exclus, que le code ne laisse plus entrer | personne | les fonctions |
 | `joinCodes/{code}` | `gameId`, `createdAt` : l'index d'unicité des codes de partie | personne | les fonctions |
@@ -61,6 +63,14 @@ crée (voir [ROADMAP.md](../ROADMAP.md)).
 - **Le temps écoulé** s'écrit par `expireGame`, que l'app de chaque membre appelle quand son
   minuteur atteint zéro ; le serveur décide par sa propre horloge. Sans aucune app ouverte, la
   partie reste écrite en cours, mais toute fonction la voit terminée.
+- **Le chat** est la seule écriture des clients ([ADR-0004](../adr/0004-firestore-et-le-serveur-source-de-verite.md)).
+  Un message porte le pseudo et l'avatar de son auteur tels qu'il les avait en l'écrivant : les
+  règles les comparent au profil, `updateProfile` ne réécrit pas les anciens messages, et un profil
+  en cache périmé fait refuser l'envoi. La longueur se compte en unités UTF-16, comme
+  `String.length` en Kotlin (un emoji compte deux), vérifié par un test des règles. La partie doit
+  être en cours ou en pause, et une partie dont l'heure de fin est passée est fermée, comme pour les
+  fonctions. Les messages partent avec leur partie (`deleteGame`). La détection des mots-clés pour
+  les missions viendra au lot 8, côté serveur.
 - **Le code** a 6 caractères tirés de `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (ni 0, O, 1, I ni L). Il est
   libéré quand la partie est supprimée.
 
