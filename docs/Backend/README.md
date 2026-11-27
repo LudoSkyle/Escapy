@@ -107,8 +107,9 @@ la fois.
 Aucune fonction n'a encore d'instance gardée chaude (`minInstances`). Créer ou rejoindre une partie
 se fait avant de jouer ; les fonctions du minuteur, au lot 7a, sont appelées par le maître du jeu
 (lancer, pause, temps ajouté, fin) ou en tâche de fond par l'app (`expireGame`, `getServerTime`,
-dont l'estimation écarte une réponse lente). Le coût d'une instance chaude se décide avec
-l'utilisateur, et au plus tard avec la validation des réponses (lot 8), qu'un joueur attend.
+dont l'estimation écarte une réponse lente). Décidé avec l'utilisateur au lot 8 : aucune instance
+chaude pour l'instant, la latence de la validation des réponses se mesurera sur un vrai téléphone
+après le déploiement.
 
 Un pseudo est nettoyé avant d'être gardé (espaces au bord retirés, espaces intérieurs réduits à un,
 forme Unicode composée), puis doit faire de 3 à 20 caractères : lettres de toutes les langues,
