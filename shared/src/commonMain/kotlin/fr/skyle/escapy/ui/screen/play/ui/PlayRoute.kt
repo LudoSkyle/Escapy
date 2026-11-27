@@ -2,16 +2,22 @@ package fr.skyle.escapy.ui.screen.play.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.skyle.escapy.designsystem.core.snackbar.rememberESSnackbarState
 import fr.skyle.escapy.domain.model.GameState
+import fr.skyle.escapy.resources.Res
+import fr.skyle.escapy.resources.mission_answer_right
+import fr.skyle.escapy.resources.mission_answer_wrong
 import fr.skyle.escapy.ui.core.error.gameErrorMessages
 import fr.skyle.escapy.ui.core.event.ObserveEvents
 import fr.skyle.escapy.ui.screen.play.ui.PlayViewModel.PlayEvent
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -23,6 +29,8 @@ fun PlayRoute(
     gameId: String,
     navigateBack: () -> Unit,
     navigateToChat: () -> Unit,
+    // A mission to change, or null for a new one
+    navigateToEditMission: (missionId: String?) -> Unit,
     viewModel: PlayViewModel = koinViewModel(key = gameId) { parametersOf(gameId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -31,6 +39,11 @@ fun PlayRoute(
     var isEndDialogShown by rememberSaveable { mutableStateOf(false) }
     var isLeaveDialogShown by rememberSaveable { mutableStateOf(false) }
     var isDeleteDialogShown by rememberSaveable { mutableStateOf(false) }
+    var missionIdToValidate by rememberSaveable { mutableStateOf<String?>(null) }
+    // What each player typed or turned for each mission, until answered right
+    val answerDrafts = remember { mutableStateMapOf<String, String>() }
+    val rightAnswerMessage = stringResource(Res.string.mission_answer_right)
+    val wrongAnswerMessage = stringResource(Res.string.mission_answer_wrong)
     val snackbarState = rememberESSnackbarState()
     val errorMessages = gameErrorMessages()
 
@@ -46,6 +59,7 @@ fun PlayRoute(
         isEndDialogShown = false
         isLeaveDialogShown = false
         isDeleteDialogShown = false
+        missionIdToValidate = null
     }
 
     ObserveEvents(viewModel.event) { event ->
@@ -57,6 +71,11 @@ fun PlayRoute(
             }
             PlayEvent.ActionFinished -> closeDialogs()
             is PlayEvent.ShowError -> snackbarState.show(message = errorMessages.getValue(event.error))
+            is PlayEvent.AnswerChecked -> {
+                // A wrong answer stays, to be corrected; a right one is done with
+                if (event.isCorrect) answerDrafts.remove(event.missionId)
+                snackbarState.show(message = if (event.isCorrect) rightAnswerMessage else wrongAnswerMessage)
+            }
         }
     }
 
@@ -66,6 +85,9 @@ fun PlayRoute(
         player.userId == playerIdToKick
     }
 
+    // A mission deleted meanwhile is no longer to validate: the dialog goes with it
+    val missionToValidate = uiState.missions?.firstOrNull { mission -> mission.id == missionIdToValidate }
+
     PlayScreen(
         uiState = uiState,
         playerToKick = playerToKick,
@@ -73,9 +95,19 @@ fun PlayRoute(
         isEndDialogShown = isEndDialogShown,
         isLeaveDialogShown = isLeaveDialogShown,
         isDeleteDialogShown = isDeleteDialogShown,
+        missionToValidate = missionToValidate,
+        answerDrafts = answerDrafts,
         snackbarState = snackbarState,
         onBackClicked = navigateBack,
         onChatClicked = navigateToChat,
+        onAnswerChanged = { missionId, answer -> answerDrafts[missionId] = answer },
+        onAnswerSubmitted = viewModel::onAnswerSubmitted,
+        onAddMissionClicked = { navigateToEditMission(null) },
+        onMissionClicked = { missionId -> navigateToEditMission(missionId) },
+        onUnlockClicked = viewModel::onUnlockClicked,
+        onValidateClicked = { missionId -> missionIdToValidate = missionId },
+        onValidateDismissed = { if (!isActing) missionIdToValidate = null },
+        onValidateConfirmed = { missionToValidate?.let { mission -> viewModel.onValidateConfirmed(missionId = mission.id) } },
         onPauseClicked = viewModel::onPauseClicked,
         onResumeClicked = viewModel::onResumeClicked,
         onAddTimeClicked = { minutesToAdd = DEFAULT_MINUTES_TO_ADD },

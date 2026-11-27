@@ -45,6 +45,7 @@ import fr.skyle.escapy.domain.model.GameResult
 import fr.skyle.escapy.domain.model.GameState
 import fr.skyle.escapy.domain.model.GameStatus
 import fr.skyle.escapy.domain.model.GameTimer
+import fr.skyle.escapy.domain.model.Mission
 import fr.skyle.escapy.resources.Res
 import fr.skyle.escapy.resources.action_add
 import fr.skyle.escapy.resources.action_add_time
@@ -59,6 +60,7 @@ import fr.skyle.escapy.resources.action_leave
 import fr.skyle.escapy.resources.action_leave_game
 import fr.skyle.escapy.resources.action_pause
 import fr.skyle.escapy.resources.action_resume
+import fr.skyle.escapy.resources.action_validate
 import fr.skyle.escapy.resources.add_time_dialog_message
 import fr.skyle.escapy.resources.add_time_fewer
 import fr.skyle.escapy.resources.add_time_minutes
@@ -83,6 +85,10 @@ import fr.skyle.escapy.resources.play_recap_played
 import fr.skyle.escapy.resources.play_time_left
 import fr.skyle.escapy.resources.play_time_up_message
 import fr.skyle.escapy.resources.play_time_up_title
+import fr.skyle.escapy.resources.play_won_message
+import fr.skyle.escapy.resources.play_won_title
+import fr.skyle.escapy.resources.validate_mission_dialog_message
+import fr.skyle.escapy.resources.validate_mission_dialog_title
 import fr.skyle.escapy.resources.waiting_room_deleted
 import fr.skyle.escapy.resources.waiting_room_excluded
 import fr.skyle.escapy.resources.waiting_room_master
@@ -90,12 +96,13 @@ import fr.skyle.escapy.resources.waiting_room_players
 import fr.skyle.escapy.ui.core.game.GameMemberRow
 import fr.skyle.escapy.ui.core.game.durationText
 import fr.skyle.escapy.ui.core.game.timerText
+import fr.skyle.escapy.ui.core.mission.MissionsSection
 import fr.skyle.escapy.ui.screen.play.ui.PlayViewModel.PlayAction
 import fr.skyle.escapy.ui.screen.play.ui.PlayViewModel.PlayUIState
-import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import org.jetbrains.compose.resources.stringResource
 
 /** The minutes the game master may add at once, one step of the stepper each. */
 internal val ADDED_MINUTES_CHOICES = listOf(1, 2, 3, 5, 10, 15, 20, 30, 45, 60)
@@ -112,9 +119,20 @@ fun PlayScreen(
     isEndDialogShown: Boolean,
     isLeaveDialogShown: Boolean,
     isDeleteDialogShown: Boolean,
+    // The mission the validation dialog is about, or null when it is closed
+    missionToValidate: Mission?,
+    answerDrafts: Map<String, String>,
     snackbarState: ESSnackbarState,
     onBackClicked: () -> Unit,
     onChatClicked: () -> Unit,
+    onAnswerChanged: (missionId: String, answer: String) -> Unit,
+    onAnswerSubmitted: (missionId: String, answer: String) -> Unit,
+    onAddMissionClicked: () -> Unit,
+    onMissionClicked: (missionId: String) -> Unit,
+    onUnlockClicked: (missionId: String) -> Unit,
+    onValidateClicked: (missionId: String) -> Unit,
+    onValidateDismissed: () -> Unit,
+    onValidateConfirmed: () -> Unit,
     onPauseClicked: () -> Unit,
     onResumeClicked: () -> Unit,
     onAddTimeClicked: () -> Unit,
@@ -146,60 +164,96 @@ fun PlayScreen(
         },
         snackbarState = snackbarState,
     ) { padding ->
+        val game = (state as? GameState.Available)?.game
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(ESTheme.spacing.l),
+                .padding(padding),
         ) {
-            when (state) {
-                null -> Loading()
+            // Always in sight while the game is played: the content scrolls under it
+            if (game != null && game.status != GameStatus.FINISHED) {
+                TimerCard(
+                    modifier = Modifier.padding(start = ESTheme.spacing.l, end = ESTheme.spacing.l, top = ESTheme.spacing.l),
+                    game = game,
+                    uiState = uiState,
+                )
+            }
 
-                is GameState.Available -> if (state.game.status == GameStatus.FINISHED) {
-                    EndContent(
-                        state = state,
-                        uiState = uiState,
-                        onBackClicked = onBackClicked,
-                        onChatClicked = onChatClicked,
-                        onLeaveClicked = onLeaveClicked,
-                        onDeleteClicked = onDeleteClicked,
-                    )
-                } else {
-                    PlayContent(
-                        state = state,
-                        uiState = uiState,
-                        onChatClicked = onChatClicked,
-                        onPauseClicked = onPauseClicked,
-                        onResumeClicked = onResumeClicked,
-                        onAddTimeClicked = onAddTimeClicked,
-                        onEndClicked = onEndClicked,
-                        onKickClicked = onKickClicked,
-                        onLeaveClicked = onLeaveClicked,
-                    )
-                }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(ESTheme.spacing.l),
+            ) {
+                when (state) {
+                    null -> Loading()
 
-                GameState.Deleted, GameState.Excluded -> {
-                    ESText(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(
-                            if (state == GameState.Deleted) Res.string.waiting_room_deleted else Res.string.waiting_room_excluded,
-                        ),
-                        style = ESTheme.typography.body,
-                    )
+                    is GameState.Available -> if (state.game.status == GameStatus.FINISHED) {
+                        EndContent(
+                            state = state,
+                            uiState = uiState,
+                            onBackClicked = onBackClicked,
+                            onChatClicked = onChatClicked,
+                            onLeaveClicked = onLeaveClicked,
+                            onDeleteClicked = onDeleteClicked,
+                        )
+                    } else {
+                        PlayContent(
+                            state = state,
+                            uiState = uiState,
+                            answerDrafts = answerDrafts,
+                            onChatClicked = onChatClicked,
+                            onAnswerChanged = onAnswerChanged,
+                            onAnswerSubmitted = onAnswerSubmitted,
+                            onAddMissionClicked = onAddMissionClicked,
+                            onMissionClicked = onMissionClicked,
+                            onUnlockClicked = onUnlockClicked,
+                            onValidateClicked = onValidateClicked,
+                            onPauseClicked = onPauseClicked,
+                            onResumeClicked = onResumeClicked,
+                            onAddTimeClicked = onAddTimeClicked,
+                            onEndClicked = onEndClicked,
+                            onKickClicked = onKickClicked,
+                            onLeaveClicked = onLeaveClicked,
+                        )
+                    }
 
-                    Spacer(modifier = Modifier.height(ESTheme.spacing.l))
+                    GameState.Deleted, GameState.Excluded -> {
+                        ESText(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(
+                                if (state == GameState.Deleted) Res.string.waiting_room_deleted else Res.string.waiting_room_excluded,
+                            ),
+                            style = ESTheme.typography.body,
+                        )
 
-                    ESButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(Res.string.action_back_to_home),
-                        onClick = onBackClicked,
-                        style = ESButtonDefaults.Style.PRIMARY,
-                        size = ESButtonDefaults.Size.LARGE,
-                    )
+                        Spacer(modifier = Modifier.height(ESTheme.spacing.l))
+
+                        ESButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(Res.string.action_back_to_home),
+                            onClick = onBackClicked,
+                            style = ESButtonDefaults.Style.PRIMARY,
+                            size = ESButtonDefaults.Size.LARGE,
+                        )
+                    }
                 }
             }
         }
+    }
+
+    if (missionToValidate != null) {
+        ESDialog(
+            title = stringResource(Res.string.validate_mission_dialog_title),
+            message = stringResource(Res.string.validate_mission_dialog_message),
+            confirmText = stringResource(Res.string.action_validate),
+            onConfirm = onValidateConfirmed,
+            dismissText = stringResource(Res.string.action_cancel),
+            onDismiss = onValidateDismissed,
+            style = ESDialogDefaults.Style.STANDARD,
+            isConfirmLoading = uiState.action == PlayAction.VALIDATE,
+        )
     }
 
     PlayDialogs(
@@ -240,7 +294,14 @@ private fun Loading() {
 private fun PlayContent(
     state: GameState.Available,
     uiState: PlayUIState,
+    answerDrafts: Map<String, String>,
     onChatClicked: () -> Unit,
+    onAnswerChanged: (missionId: String, answer: String) -> Unit,
+    onAnswerSubmitted: (missionId: String, answer: String) -> Unit,
+    onAddMissionClicked: () -> Unit,
+    onMissionClicked: (missionId: String) -> Unit,
+    onUnlockClicked: (missionId: String) -> Unit,
+    onValidateClicked: (missionId: String) -> Unit,
     onPauseClicked: () -> Unit,
     onResumeClicked: () -> Unit,
     onAddTimeClicked: () -> Unit,
@@ -249,10 +310,6 @@ private fun PlayContent(
     onLeaveClicked: () -> Unit,
 ) {
     val game = state.game
-
-    TimerCard(game = game, uiState = uiState)
-
-    Spacer(modifier = Modifier.height(ESTheme.spacing.m))
 
     ChatCard(uiState = uiState, onClick = onChatClicked)
 
@@ -295,6 +352,23 @@ private fun PlayContent(
         Spacer(modifier = Modifier.height(ESTheme.spacing.l))
     }
 
+    MissionsSection(
+        missions = uiState.missions,
+        isMaster = game.isMaster,
+        isStarted = true,
+        answerDrafts = answerDrafts,
+        answeringMissionId = uiState.answeringMissionId,
+        actionMissionId = uiState.actionMissionId,
+        onAnswerChanged = onAnswerChanged,
+        onAnswerSubmitted = onAnswerSubmitted,
+        onAddMissionClicked = onAddMissionClicked,
+        onMissionClicked = onMissionClicked,
+        onUnlockClicked = onUnlockClicked,
+        onValidateClicked = onValidateClicked,
+    )
+
+    Spacer(modifier = Modifier.height(ESTheme.spacing.l))
+
     Members(state = state, onKickClicked = if (game.isMaster) onKickClicked else null)
 
     if (!game.isMaster) {
@@ -313,9 +387,9 @@ private fun PlayContent(
 
 /** The time left, large enough to be read from across the room. */
 @Composable
-private fun TimerCard(game: Game, uiState: PlayUIState) {
+private fun TimerCard(game: Game, uiState: PlayUIState, modifier: Modifier = Modifier) {
     ESCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         style = ESCardDefaults.Style.STANDARD,
     ) {
         Column(
@@ -377,7 +451,13 @@ private fun EndContent(
         modifier = Modifier
             .fillMaxWidth()
             .semantics { liveRegion = LiveRegionMode.Polite },
-        text = stringResource(if (end?.result == GameResult.TIME_UP) Res.string.play_time_up_title else Res.string.play_ended_title),
+        text = stringResource(
+            when (end?.result) {
+                GameResult.WON -> Res.string.play_won_title
+                GameResult.TIME_UP -> Res.string.play_time_up_title
+                GameResult.ENDED_BY_MASTER, null -> Res.string.play_ended_title
+            },
+        ),
         style = ESTheme.typography.headline,
         textAlign = TextAlign.Center,
     )
@@ -386,7 +466,13 @@ private fun EndContent(
 
     ESText(
         modifier = Modifier.fillMaxWidth(),
-        text = stringResource(if (end?.result == GameResult.TIME_UP) Res.string.play_time_up_message else Res.string.play_ended_by_master),
+        text = stringResource(
+            when (end?.result) {
+                GameResult.WON -> Res.string.play_won_message
+                GameResult.TIME_UP -> Res.string.play_time_up_message
+                GameResult.ENDED_BY_MASTER, null -> Res.string.play_ended_by_master
+            },
+        ),
         style = ESTheme.typography.body,
         color = ESTheme.colors.textSecondary,
         textAlign = TextAlign.Center,
@@ -666,9 +752,19 @@ private fun PreviewPlayScreen(uiState: PlayUIState) {
             isEndDialogShown = false,
             isLeaveDialogShown = false,
             isDeleteDialogShown = false,
+            missionToValidate = null,
+            answerDrafts = emptyMap(),
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
             onChatClicked = {},
+            onAnswerChanged = { _, _ -> },
+            onAnswerSubmitted = { _, _ -> },
+            onAddMissionClicked = {},
+            onMissionClicked = {},
+            onUnlockClicked = {},
+            onValidateClicked = {},
+            onValidateDismissed = {},
+            onValidateConfirmed = {},
             onPauseClicked = {},
             onResumeClicked = {},
             onAddTimeClicked = {},

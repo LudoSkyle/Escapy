@@ -19,6 +19,9 @@ fun EntryProviderScope<Route>.playRouteEntry(
             navigateToChat = {
                 backStack.navigateTo(route = Route.Chat(gameId = route.gameId))
             },
+            navigateToEditMission = { missionId ->
+                backStack.navigateTo(route = Route.EditMission(gameId = route.gameId, missionId = missionId))
+            },
         )
     }
 }

@@ -7,6 +7,7 @@ import fr.skyle.escapy.domain.model.ChatMessage
 import fr.skyle.escapy.domain.model.Game
 import fr.skyle.escapy.domain.model.GameState
 import fr.skyle.escapy.domain.model.GameStatus
+import fr.skyle.escapy.domain.model.Mission
 import fr.skyle.escapy.domain.usecase.chat.WatchMessagesUseCase
 import fr.skyle.escapy.domain.usecase.clock.EstimateServerClockOffsetUseCase
 import fr.skyle.escapy.domain.usecase.game.AddTimeUseCase
@@ -18,6 +19,10 @@ import fr.skyle.escapy.domain.usecase.game.LeaveGameUseCase
 import fr.skyle.escapy.domain.usecase.game.PauseGameUseCase
 import fr.skyle.escapy.domain.usecase.game.ResumeGameUseCase
 import fr.skyle.escapy.domain.usecase.game.WatchGameUseCase
+import fr.skyle.escapy.domain.usecase.mission.SubmitAnswerUseCase
+import fr.skyle.escapy.domain.usecase.mission.UnlockMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.ValidateMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.WatchMissionsUseCase
 import fr.skyle.escapy.ui.core.error.GameError
 import fr.skyle.escapy.ui.core.error.toGameError
 import kotlinx.coroutines.CancellationException
@@ -49,7 +54,8 @@ import kotlin.time.Instant
  * record it; the server decides by its own clock.
  *
  * The game master pauses, resumes, adds time, ends the game, excludes a player and deletes the
- * game once over; a player leaves it. The latest message of the chat shows, to open it. The dialogs of the screen ask first: these actions run once
+ * game once over; a player leaves it. The latest message of the chat shows, to open it. The
+ * players answer the missions here, under the timer; the game master unlocks and validates them. The dialogs of the screen ask first: these actions run once
  * confirmed, pausing and resuming apart.
  */
 class PlayViewModel(
@@ -65,6 +71,10 @@ class PlayViewModel(
     private val kickPlayerUseCase: KickPlayerUseCase,
     private val leaveGameUseCase: LeaveGameUseCase,
     private val cancelGameUseCase: CancelGameUseCase,
+    private val watchMissionsUseCase: WatchMissionsUseCase,
+    private val submitAnswerUseCase: SubmitAnswerUseCase,
+    private val unlockMissionUseCase: UnlockMissionUseCase,
+    private val validateMissionUseCase: ValidateMissionUseCase,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -76,6 +86,7 @@ class PlayViewModel(
 
     private var watching: Job? = null
     private var watchingChat: Job? = null
+    private var watchingMissions: Job? = null
 
     // Kept apart from the state: observing the state here would count as the screen observing it
     private val isRunning = MutableStateFlow(false)
@@ -121,7 +132,63 @@ class PlayViewModel(
                     }
                     isRunning.value = (state as? GameState.Available)?.game?.status == GameStatus.RUNNING
                     refreshRemaining()
+                    if (state is GameState.Available && watchingMissions == null) {
+                        watchMissions(isMaster = state.game.isMaster)
+                    }
                 }
+        }
+    }
+
+    // Once the role is known: every mission for the game master, the unlocked ones for a player, whose
+    // observation of the full missions would be refused, and delay the others on Android
+    private fun watchMissions(isMaster: Boolean) {
+        watchingMissions = viewModelScope.launch {
+            watchMissionsUseCase(gameId = gameId, isMaster = isMaster)
+                .catch { exception ->
+                    Logger.e(throwable = exception) { "Failed to read the missions" }
+                }
+                .collect { missions ->
+                    _uiState.update { uiState ->
+                        uiState.copy(missions = missions)
+                    }
+                }
+        }
+    }
+
+    /** Sends [answer] to a mission; the server alone says whether it is right. */
+    fun onAnswerSubmitted(missionId: String, answer: String) {
+        if (answer.isBlank() || _uiState.value.answeringMissionId != null) return
+        viewModelScope.launch {
+            _uiState.update { uiState ->
+                uiState.copy(answeringMissionId = missionId)
+            }
+            try {
+                val isCorrect = submitAnswerUseCase(gameId = gameId, missionId = missionId, answer = answer)
+
+                _event.send(PlayEvent.AnswerChecked(missionId = missionId, isCorrect = isCorrect))
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                Logger.w(throwable = exception) { "Failed to send an answer" }
+
+                _event.send(PlayEvent.ShowError(error = exception.toGameError()))
+            } finally {
+                _uiState.update { uiState ->
+                    uiState.copy(answeringMissionId = null)
+                }
+            }
+        }
+    }
+
+    fun onUnlockClicked(missionId: String) {
+        runAction(action = PlayAction.UNLOCK, missionId = missionId, failureMessage = "Failed to unlock a mission") {
+            unlockMissionUseCase(gameId = gameId, missionId = missionId)
+        }
+    }
+
+    fun onValidateConfirmed(missionId: String) {
+        runAction(action = PlayAction.VALIDATE, missionId = missionId, failureMessage = "Failed to validate a mission") {
+            validateMissionUseCase(gameId = gameId, missionId = missionId)
         }
     }
 
@@ -259,11 +326,11 @@ class PlayViewModel(
     }
 
     // One action at a time; what changed comes back through the game, which the screen observes
-    private fun runAction(action: PlayAction, failureMessage: String, block: suspend () -> Unit) {
+    private fun runAction(action: PlayAction, failureMessage: String, missionId: String? = null, block: suspend () -> Unit) {
         if (_uiState.value.action != null) return
         viewModelScope.launch {
             _uiState.update { uiState ->
-                uiState.copy(action = action)
+                uiState.copy(action = action, actionMissionId = missionId)
             }
             try {
                 block()
@@ -275,7 +342,7 @@ class PlayViewModel(
                 _event.send(PlayEvent.ShowError(error = exception.toGameError()))
             } finally {
                 _uiState.update { uiState ->
-                    uiState.copy(action = null)
+                    uiState.copy(action = null, actionMissionId = null)
                 }
                 _event.send(PlayEvent.ActionFinished)
             }
@@ -295,6 +362,8 @@ class PlayViewModel(
             }
             watching?.cancelAndJoin()
             watchingChat?.cancelAndJoin()
+            watchingMissions?.cancelAndJoin()
+            watchingMissions = null
             try {
                 block()
 
@@ -328,6 +397,12 @@ class PlayViewModel(
         // The latest message of the chat, and whether the chat was read yet
         val lastMessage: ChatMessage? = null,
         val hasReadChat: Boolean = false,
+        // Null until read: every mission for the game master, the unlocked ones for a player
+        val missions: List<Mission>? = null,
+        // The mission whose answer is being checked
+        val answeringMissionId: String? = null,
+        // The mission the action under way is about, if any
+        val actionMissionId: String? = null,
     )
 
     enum class PlayAction {
@@ -338,6 +413,8 @@ class PlayViewModel(
         KICK,
         LEAVE,
         DELETE,
+        UNLOCK,
+        VALIDATE,
     }
 
     sealed interface PlayEvent {
@@ -347,6 +424,9 @@ class PlayViewModel(
         data object ActionFinished : PlayEvent
 
         data class ShowError(val error: GameError) : PlayEvent
+
+        /** The server checked an answer: right, the mission shows solved through the game. */
+        data class AnswerChecked(val missionId: String, val isCorrect: Boolean) : PlayEvent
     }
 
     private companion object {

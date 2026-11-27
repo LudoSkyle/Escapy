@@ -16,7 +16,12 @@ import fr.skyle.escapy.fake.FakeLeaveGameUseCase
 import fr.skyle.escapy.fake.FakePauseGameUseCase
 import fr.skyle.escapy.fake.FakeResumeGameUseCase
 import fr.skyle.escapy.fake.FakeWatchGameUseCase
+import fr.skyle.escapy.fake.FakeSubmitAnswerUseCase
+import fr.skyle.escapy.fake.FakeUnlockMissionUseCase
+import fr.skyle.escapy.fake.FakeValidateMissionUseCase
 import fr.skyle.escapy.fake.FakeWatchMessagesUseCase
+import fr.skyle.escapy.fake.FakeWatchMissionsUseCase
+import fr.skyle.escapy.fake.mission
 import fr.skyle.escapy.fake.chatMessage
 import fr.skyle.escapy.fake.game
 import fr.skyle.escapy.fake.gameMember
@@ -54,6 +59,9 @@ class PlayViewModelTest : MainDispatcherTest() {
     private val addTimeUseCase = FakeAddTimeUseCase()
     private val expireGameUseCase = FakeExpireGameUseCase()
     private val leaveGameUseCase = FakeLeaveGameUseCase()
+    private val watchMissionsUseCase = FakeWatchMissionsUseCase()
+    private val submitAnswerUseCase = FakeSubmitAnswerUseCase()
+    private val validateMissionUseCase = FakeValidateMissionUseCase()
 
     // The device clock moves with the virtual time of the test, as delay() does
     private val clock = object : Clock {
@@ -78,6 +86,10 @@ class PlayViewModelTest : MainDispatcherTest() {
             kickPlayerUseCase = FakeKickPlayerUseCase(),
             leaveGameUseCase = leaveGameUseCase,
             cancelGameUseCase = FakeCancelGameUseCase(),
+            watchMissionsUseCase = watchMissionsUseCase,
+            submitAnswerUseCase = submitAnswerUseCase,
+            unlockMissionUseCase = FakeUnlockMissionUseCase(),
+            validateMissionUseCase = validateMissionUseCase,
             clock = clock,
         ).also { viewModel -> viewModels += viewModel }
 
@@ -259,11 +271,13 @@ class PlayViewModelTest : MainDispatcherTest() {
         viewModel.onLeaveConfirmed()
         val observedWhileLeaving = watchGameUseCase.states.subscriptionCount.value
         val chatObservedWhileLeaving = watchMessagesUseCase.messages.subscriptionCount.value
+        val missionsObservedWhileLeaving = watchMissionsUseCase.missions.subscriptionCount.value
         gate.complete(Unit)
 
         // Then
         assertEquals(expected = 0, actual = observedWhileLeaving)
         assertEquals(expected = 0, actual = chatObservedWhileLeaving)
+        assertEquals(expected = 0, actual = missionsObservedWhileLeaving)
         assertEquals(expected = listOf("game"), actual = leaveGameUseCase.calls)
         assertEquals(expected = PlayEvent.Closed, actual = viewModel.event.first())
     }
@@ -296,6 +310,57 @@ class PlayViewModelTest : MainDispatcherTest() {
         assertTrue(beforeAnyMessage.hasReadChat)
         assertNull(beforeAnyMessage.lastMessage)
         assertEquals(expected = "Regardez sous le tapis", actual = viewModel.uiState.value.lastMessage?.text)
+    }
+
+    @Test
+    fun `a player answers a mission and the server says whether it is right`() = playTest {
+        // Given
+        val viewModel = viewModel()
+        watchGameUseCase.states.emit(running(endsIn = 10.minutes, isMaster = false))
+        watchMissionsUseCase.missions.emit(listOf(mission(id = "safe")))
+        submitAnswerUseCase.isCorrect = true
+
+        // When
+        viewModel.onAnswerSubmitted(missionId = "safe", answer = "0427")
+
+        // Then
+        assertEquals(expected = listOf(false), actual = watchMissionsUseCase.asMaster)
+        assertEquals(expected = listOf("safe"), actual = viewModel.uiState.value.missions?.map { mission -> mission.id })
+        assertEquals(expected = listOf("safe:0427"), actual = submitAnswerUseCase.calls)
+        assertEquals(expected = PlayEvent.AnswerChecked(missionId = "safe", isCorrect = true), actual = viewModel.event.first())
+        assertNull(viewModel.uiState.value.answeringMissionId)
+    }
+
+    @Test
+    fun `an answer is sent once at a time and never empty`() = playTest {
+        // Given
+        val viewModel = viewModel()
+        watchGameUseCase.states.emit(running(endsIn = 10.minutes, isMaster = false))
+        submitAnswerUseCase.gate = CompletableDeferred()
+
+        // When
+        viewModel.onAnswerSubmitted(missionId = "safe", answer = "   ")
+        viewModel.onAnswerSubmitted(missionId = "safe", answer = "0427")
+        viewModel.onAnswerSubmitted(missionId = "safe", answer = "0428")
+
+        // Then
+        assertEquals(expected = listOf("safe:0427"), actual = submitAnswerUseCase.calls)
+        assertEquals(expected = "safe", actual = viewModel.uiState.value.answeringMissionId)
+    }
+
+    @Test
+    fun `the game master observes every mission and validates one`() = playTest {
+        // Given
+        val viewModel = viewModel()
+        watchGameUseCase.states.emit(running(endsIn = 10.minutes, isMaster = true))
+
+        // When
+        viewModel.onValidateConfirmed(missionId = "safe")
+
+        // Then
+        assertEquals(expected = listOf(true), actual = watchMissionsUseCase.asMaster)
+        assertEquals(expected = listOf("safe"), actual = validateMissionUseCase.calls)
+        assertEquals(expected = PlayEvent.ActionFinished, actual = viewModel.event.first())
     }
 
     @Test

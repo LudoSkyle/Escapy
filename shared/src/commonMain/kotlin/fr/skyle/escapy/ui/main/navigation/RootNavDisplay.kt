@@ -17,6 +17,7 @@ import fr.skyle.escapy.ui.screen.chat.entry.chatRouteEntry
 import fr.skyle.escapy.ui.screen.creategame.entry.createGameRouteEntry
 import fr.skyle.escapy.ui.screen.deleteaccount.entry.deleteAccountRouteEntry
 import fr.skyle.escapy.ui.screen.editavatar.entry.editAvatarRouteEntry
+import fr.skyle.escapy.ui.screen.editmission.entry.editMissionRouteEntry
 import fr.skyle.escapy.ui.screen.editusername.entry.editUsernameRouteEntry
 import fr.skyle.escapy.ui.screen.linkaccount.entry.linkAccountRouteEntry
 import fr.skyle.escapy.ui.screen.play.entry.playRouteEntry
@@ -85,6 +86,7 @@ fun RootNavDisplay(
             waitingRoomRouteEntry(backStack = backStack)
             playRouteEntry(backStack = backStack)
             chatRouteEntry(backStack = backStack)
+            editMissionRouteEntry(backStack = backStack)
 
             profileRouteEntry(backStack = backStack)
 

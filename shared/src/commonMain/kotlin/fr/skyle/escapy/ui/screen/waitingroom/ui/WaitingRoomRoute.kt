@@ -19,6 +19,8 @@ fun WaitingRoomRoute(
     gameId: String,
     navigateBack: () -> Unit,
     navigateToGame: () -> Unit,
+    // A mission to change, or null for a new one
+    navigateToEditMission: (missionId: String?) -> Unit,
     viewModel: WaitingRoomViewModel = koinViewModel(key = gameId) { parametersOf(gameId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -65,6 +67,8 @@ fun WaitingRoomRoute(
         snackbarState = snackbarState,
         onBackClicked = navigateBack,
         onStartClicked = viewModel::onStartClicked,
+        onAddMissionClicked = { navigateToEditMission(null) },
+        onMissionClicked = { missionId -> navigateToEditMission(missionId) },
         onKickClicked = { player -> playerIdToKick = player.userId },
         onKickDismissed = { if (!uiState.isKicking) playerIdToKick = null },
         onKickConfirmed = { playerToKick?.let { player -> viewModel.onKickConfirmed(playerId = player.userId) } },

@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import fr.skyle.escapy.domain.model.GameState
 import fr.skyle.escapy.domain.model.GameStatus
+import fr.skyle.escapy.domain.model.Mission
 import fr.skyle.escapy.domain.usecase.game.CancelGameUseCase
 import fr.skyle.escapy.domain.usecase.game.KickPlayerUseCase
 import fr.skyle.escapy.domain.usecase.game.LeaveGameUseCase
 import fr.skyle.escapy.domain.usecase.game.StartGameUseCase
 import fr.skyle.escapy.domain.usecase.game.WatchGameUseCase
+import fr.skyle.escapy.domain.usecase.mission.WatchMissionsUseCase
 import fr.skyle.escapy.ui.core.error.GameError
 import fr.skyle.escapy.ui.core.error.toGameError
 import kotlinx.coroutines.CancellationException
@@ -37,6 +39,7 @@ class WaitingRoomViewModel(
     private val kickPlayerUseCase: KickPlayerUseCase,
     private val cancelGameUseCase: CancelGameUseCase,
     private val startGameUseCase: StartGameUseCase,
+    private val watchMissionsUseCase: WatchMissionsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WaitingRoomUIState())
@@ -46,6 +49,7 @@ class WaitingRoomViewModel(
     val event = _event.receiveAsFlow()
 
     private var watching: Job? = null
+    private var watchingMissions: Job? = null
 
     // The game is told started once: each later change of the game would tell it again
     private var isStartTold = false
@@ -64,9 +68,27 @@ class WaitingRoomViewModel(
                     _uiState.update { uiState ->
                         uiState.copy(state = state)
                     }
+                    // The missions the game master prepares: theirs only, a player's observation would be refused
+                    if (state is GameState.Available && state.game.isMaster && watchingMissions == null) {
+                        watchMissions()
+                    }
                     if (state is GameState.Available && state.game.status != GameStatus.WAITING && !isStartTold) {
                         isStartTold = true
                         _event.send(WaitingRoomEvent.Started)
+                    }
+                }
+        }
+    }
+
+    private fun watchMissions() {
+        watchingMissions = viewModelScope.launch {
+            watchMissionsUseCase(gameId = gameId, isMaster = true)
+                .catch { exception ->
+                    Logger.e(throwable = exception) { "Failed to read the missions" }
+                }
+                .collect { missions ->
+                    _uiState.update { uiState ->
+                        uiState.copy(missions = missions)
                     }
                 }
         }
@@ -157,6 +179,8 @@ class WaitingRoomViewModel(
      */
     private suspend fun close(failureMessage: String, action: suspend () -> Unit) {
         watching?.cancelAndJoin()
+        watchingMissions?.cancelAndJoin()
+        watchingMissions = null
         try {
             action()
 
@@ -175,6 +199,8 @@ class WaitingRoomViewModel(
     data class WaitingRoomUIState(
         // Null until the first read
         val state: GameState? = null,
+        // The missions the game master prepares; null for a player, or until read
+        val missions: List<Mission>? = null,
         val isStarting: Boolean = false,
         val isKicking: Boolean = false,
         val isLeaving: Boolean = false,

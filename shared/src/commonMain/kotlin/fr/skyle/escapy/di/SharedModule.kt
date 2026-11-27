@@ -9,6 +9,7 @@ import fr.skyle.escapy.ui.screen.chat.ui.ChatViewModel
 import fr.skyle.escapy.ui.screen.creategame.ui.CreateGameViewModel
 import fr.skyle.escapy.ui.screen.deleteaccount.ui.DeleteAccountViewModel
 import fr.skyle.escapy.ui.screen.editavatar.ui.EditAvatarViewModel
+import fr.skyle.escapy.ui.screen.editmission.ui.EditMissionViewModel
 import fr.skyle.escapy.ui.screen.editusername.ui.EditUsernameViewModel
 import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel
 import fr.skyle.escapy.ui.screen.linkaccount.ui.LinkAccountViewModel
@@ -51,6 +52,16 @@ val sharedModule = module {
             kickPlayerUseCase = get(),
             cancelGameUseCase = get(),
             startGameUseCase = get(),
+            watchMissionsUseCase = get(),
+        )
+    }
+    viewModel { parameters ->
+        EditMissionViewModel(
+            gameId = parameters[0],
+            missionId = parameters.getOrNull(),
+            watchMissionsUseCase = get(),
+            saveMissionUseCase = get(),
+            deleteMissionUseCase = get(),
         )
     }
     viewModel { parameters ->
@@ -76,6 +87,10 @@ val sharedModule = module {
             kickPlayerUseCase = get(),
             leaveGameUseCase = get(),
             cancelGameUseCase = get(),
+            watchMissionsUseCase = get(),
+            submitAnswerUseCase = get(),
+            unlockMissionUseCase = get(),
+            validateMissionUseCase = get(),
             clock = get(),
         )
     }
