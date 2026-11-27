@@ -58,7 +58,8 @@ val sharedModule = module {
     viewModel { parameters ->
         EditMissionViewModel(
             gameId = parameters[0],
-            missionId = parameters.getOrNull(),
+            // By position: getOrNull() looks for the first String, the game id, even for a new mission
+            missionId = parameters.values.getOrNull(1) as String?,
             watchMissionsUseCase = get(),
             saveMissionUseCase = get(),
             deleteMissionUseCase = get(),
