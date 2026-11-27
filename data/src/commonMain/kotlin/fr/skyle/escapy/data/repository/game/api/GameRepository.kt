@@ -33,4 +33,22 @@ interface GameRepository {
 
     /** Deletes a game the signed-in user runs, for everyone. */
     suspend fun cancelGame(gameId: String)
+
+    /** Starts the timer of a waiting game the signed-in user runs. */
+    suspend fun startGame(gameId: String)
+
+    /** Pauses the timer of a running game the signed-in user runs. */
+    suspend fun pauseGame(gameId: String)
+
+    /** Starts again the timer of a paused game the signed-in user runs. */
+    suspend fun resumeGame(gameId: String)
+
+    /** Adds [minutes] to a game the signed-in user runs, which had [addedMinutes] added so far. */
+    suspend fun addTime(gameId: String, minutes: Int, addedMinutes: Int)
+
+    /** Ends for good a started game the signed-in user runs. */
+    suspend fun endGame(gameId: String)
+
+    /** Asks the server to record that the time of a game is up, which it checks by its own clock. */
+    suspend fun expireGame(gameId: String)
 }

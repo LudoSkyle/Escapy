@@ -12,6 +12,13 @@ data class StoredGame(
     val master: StoredMember,
     val playerCount: Int,
     val joinCode: String,
+    // When the timer of a running game reaches zero, by the clock of the server
+    val endsAtMs: Long?,
+    // The time left to a paused game, or to a finished one
+    val remainingMs: Long?,
+    val addedMinutes: Int,
+    val result: String?,
+    val playedMs: Long?,
 )
 
 /** A member of a game: their id, and the name and avatar copied from their profile. */

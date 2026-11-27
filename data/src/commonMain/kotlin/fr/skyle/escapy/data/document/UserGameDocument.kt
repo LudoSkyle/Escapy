@@ -8,4 +8,6 @@ internal data class UserGameDocument(
     val title: String = "",
     val isMaster: Boolean = false,
     val master: MemberDocument = MemberDocument(),
+    // Written since the timer came: an older entry is of a waiting game
+    val status: String = "WAITING",
 )

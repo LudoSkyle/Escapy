@@ -2,6 +2,7 @@ package fr.skyle.escapy.test
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -14,8 +15,11 @@ import kotlin.test.AfterTest
 @OptIn(ExperimentalCoroutinesApi::class)
 abstract class MainDispatcherTest {
 
+    /** The virtual time of the test, which runTest shares with the main dispatcher. */
+    protected val mainScheduler = TestCoroutineScheduler()
+
     init {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+        Dispatchers.setMain(UnconfinedTestDispatcher(mainScheduler))
     }
 
     @AfterTest

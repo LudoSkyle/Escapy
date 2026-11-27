@@ -37,6 +37,7 @@ import fr.skyle.escapy.designsystem.core.textfield.ESTextField
 import fr.skyle.escapy.designsystem.core.textfield.ESTextFieldDefaults
 import fr.skyle.escapy.designsystem.core.topappbar.ESTopAppBar
 import fr.skyle.escapy.designsystem.theme.ESTheme
+import fr.skyle.escapy.domain.model.GameStatus
 import fr.skyle.escapy.domain.model.GameSummary
 import fr.skyle.escapy.domain.validation.GameRules
 import fr.skyle.escapy.resources.Res
@@ -55,6 +56,7 @@ import fr.skyle.escapy.resources.ic_person
 import fr.skyle.escapy.resources.ic_qr_code_scanner
 import fr.skyle.escapy.resources.profile_title
 import fr.skyle.escapy.ui.core.error.message
+import fr.skyle.escapy.ui.core.game.gameStatusText
 import fr.skyle.escapy.ui.screen.home.ui.HomeViewModel.HomeUIState
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -213,13 +215,15 @@ private fun HomeGames(
                     ESDivider()
                 }
 
+                val role = if (game.isMaster) {
+                    stringResource(Res.string.game_summary_master)
+                } else {
+                    stringResource(Res.string.game_summary_player, game.masterUsername)
+                }
+                val status = gameStatusText(status = game.status)
                 ESRow(
                     label = game.title,
-                    supportingText = if (game.isMaster) {
-                        stringResource(Res.string.game_summary_master)
-                    } else {
-                        stringResource(Res.string.game_summary_player, game.masterUsername)
-                    },
+                    supportingText = if (status == null) role else "$status · $role",
                     onClick = { onGameClicked(game.gameId) },
                     style = ESRowDefaults.Style.STANDARD,
                 )
@@ -237,7 +241,7 @@ private fun PreviewHomeScreen() {
             uiState = HomeUIState(
                 games = listOf(
                     previewGame(id = "manor", title = "Le manoir", isMaster = true),
-                    previewGame(id = "cellar", title = "La cave", isMaster = false),
+                    previewGame(id = "cellar", title = "La cave", isMaster = false, status = GameStatus.RUNNING),
                 ),
             ),
             snackbarState = rememberESSnackbarState(),
@@ -269,11 +273,12 @@ private fun PreviewHomeScreenWithoutGames() {
     }
 }
 
-private fun previewGame(id: String, title: String, isMaster: Boolean): GameSummary =
+private fun previewGame(id: String, title: String, isMaster: Boolean, status: GameStatus = GameStatus.WAITING): GameSummary =
     GameSummary(
         gameId = id,
         title = title,
         isMaster = isMaster,
         masterUsername = "Maître",
         masterAvatarId = 3,
+        status = status,
     )

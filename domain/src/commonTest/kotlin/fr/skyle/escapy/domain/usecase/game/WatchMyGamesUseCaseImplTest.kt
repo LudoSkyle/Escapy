@@ -6,6 +6,7 @@ import fr.skyle.escapy.domain.exception.NetworkUnavailableException
 import fr.skyle.escapy.domain.fake.FakeGameRepository
 import fr.skyle.escapy.domain.fake.FakeSessionRepository
 import fr.skyle.escapy.domain.fake.storedGameEntry
+import fr.skyle.escapy.domain.model.GameStatus
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -34,7 +35,9 @@ class WatchMyGamesUseCaseImplTest {
     fun `the games of the signed-in user tell which ones they run`() = runTest {
         // Given
         sessionRepository.sessions = flowOf(signedIn(userId = "master"))
-        gameRepository.gamesOf = flowOf(listOf(storedGameEntry(gameId = "own", isMaster = true), storedGameEntry(gameId = "other", isMaster = false)))
+        gameRepository.gamesOf = flowOf(
+            listOf(storedGameEntry(gameId = "own", isMaster = true), storedGameEntry(gameId = "other", isMaster = false, status = "RUNNING")),
+        )
 
         // When
         val games = watchMyGamesUseCase().first()
@@ -43,6 +46,8 @@ class WatchMyGamesUseCaseImplTest {
         assertEquals(expected = listOf("watchGamesOf:master"), actual = gameRepository.calls)
         assertTrue(games[0].isMaster)
         assertFalse(games[1].isMaster)
+        assertEquals(expected = GameStatus.WAITING, actual = games[0].status)
+        assertEquals(expected = GameStatus.RUNNING, actual = games[1].status)
     }
 
     @Test

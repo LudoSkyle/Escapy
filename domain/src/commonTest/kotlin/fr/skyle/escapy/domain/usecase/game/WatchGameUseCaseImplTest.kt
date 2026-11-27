@@ -6,7 +6,11 @@ import fr.skyle.escapy.data.model.StoredSession
 import fr.skyle.escapy.domain.fake.FakeGameRepository
 import fr.skyle.escapy.domain.fake.FakeSessionRepository
 import fr.skyle.escapy.domain.fake.storedGame
+import fr.skyle.escapy.domain.model.GameEnd
 import fr.skyle.escapy.domain.model.GameMember
+import fr.skyle.escapy.domain.model.GameResult
+import fr.skyle.escapy.domain.model.GameStatus
+import fr.skyle.escapy.domain.model.GameTimer
 import fr.skyle.escapy.domain.model.GameState
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -15,6 +19,8 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 import kotlin.test.assertTrue
 
 class WatchGameUseCaseImplTest {
@@ -47,6 +53,31 @@ class WatchGameUseCaseImplTest {
             expected = listOf(GameMember(userId = "player", username = "Joueuse", avatarId = 8, isCurrentUser = true)),
             actual = state.players,
         )
+    }
+
+    @Test
+    fun `a running game comes with its timer and a finished one with its end`() = runTest {
+        // Given
+        gameRepository.game = flowOf(
+            storedGame(status = "RUNNING", endsAtMs = 5_000_000, addedMinutes = 5),
+            storedGame(status = "FINISHED", remainingMs = 0, addedMinutes = 5, result = "TIME_UP", playedMs = 3_900_000),
+        )
+        gameRepository.players = flowOf(listOf(player))
+
+        // When
+        val states = watchGameUseCase(gameId = "game").toList()
+
+        // Then
+        val running = assertIs<GameState.Available>(states[0]).game
+        assertEquals(expected = GameStatus.RUNNING, actual = running.status)
+        assertEquals(
+            expected = GameTimer(endsAt = Instant.fromEpochMilliseconds(5_000_000), remaining = null, addedMinutes = 5),
+            actual = running.timer,
+        )
+        assertEquals(expected = null, actual = running.end)
+        val finished = assertIs<GameState.Available>(states[1]).game
+        assertEquals(expected = GameStatus.FINISHED, actual = finished.status)
+        assertEquals(expected = GameEnd(result = GameResult.TIME_UP, played = 65.minutes), actual = finished.end)
     }
 
     @Test

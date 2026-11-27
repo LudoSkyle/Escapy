@@ -35,6 +35,10 @@ sealed interface Route : NavKey {
     @Serializable
     data class WaitingRoom(val gameId: String) : Route
 
+    /** A started game, then its end: the timer, and the recap once it is over. */
+    @Serializable
+    data class Play(val gameId: String) : Route
+
     @Serializable
     data object Profile : Route
 

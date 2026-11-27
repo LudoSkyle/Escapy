@@ -46,6 +46,19 @@ class FakeGameRepository : GameRepository {
 
     override suspend fun cancelGame(gameId: String) = record("cancel:$gameId")
 
+    override suspend fun startGame(gameId: String) = record("start:$gameId")
+
+    override suspend fun pauseGame(gameId: String) = record("pause:$gameId")
+
+    override suspend fun resumeGame(gameId: String) = record("resume:$gameId")
+
+    override suspend fun addTime(gameId: String, minutes: Int, addedMinutes: Int) =
+        record("addTime:$gameId:$minutes:$addedMinutes")
+
+    override suspend fun endGame(gameId: String) = record("end:$gameId")
+
+    override suspend fun expireGame(gameId: String) = record("expire:$gameId")
+
     private fun record(call: String) {
         calls += call
         failure?.let { exception -> throw exception }
@@ -55,24 +68,36 @@ class FakeGameRepository : GameRepository {
 fun storedGame(
     masterId: String = "master",
     playerCount: Int = 1,
+    status: String = "WAITING",
+    endsAtMs: Long? = null,
+    remainingMs: Long? = null,
+    addedMinutes: Int = 0,
+    result: String? = null,
+    playedMs: Long? = null,
 ): StoredGame =
     StoredGame(
         id = "game",
         title = "Le manoir",
         durationMinutes = 60,
         maxPlayers = null,
-        status = "WAITING",
+        status = status,
         masterId = masterId,
         master = StoredMember(userId = masterId, username = "Maître", avatarId = 3),
         playerCount = playerCount,
         joinCode = "ABC234",
+        endsAtMs = endsAtMs,
+        remainingMs = remainingMs,
+        addedMinutes = addedMinutes,
+        result = result,
+        playedMs = playedMs,
     )
 
-fun storedGameEntry(gameId: String, isMaster: Boolean): StoredGameEntry =
+fun storedGameEntry(gameId: String, isMaster: Boolean, status: String = "WAITING"): StoredGameEntry =
     StoredGameEntry(
         gameId = gameId,
         title = "Le manoir",
         isMaster = isMaster,
         masterUsername = "Maître",
         masterAvatarId = 3,
+        status = status,
     )
