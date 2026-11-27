@@ -53,8 +53,13 @@ Firebase Auth, décide de la racine du back stack :
   back stack, et `NavDisplay` plante sur un back stack vide.
 - Un joueur exclu d'une partie, ou une partie terminée, se traite comme la session : l'écran le lit
   dans Firestore et la navigation suit l'état, plutôt qu'un écran qui en pousse un autre.
-- Aucune transition n'est déclarée pour l'instant : ce sont celles de Navigation 3 par défaut. Quand
-  elles viendront, elles se déclareront une fois, sur `NavDisplay`, pas écran par écran.
+- **Les transitions** sont celles de la première version de l'app, déclarées une fois sur
+  `NavDisplay` (`ui/main/navigation/NavTransitions.kt`) : un écran ouvert glisse depuis la droite
+  pendant que l'écran couvert part à gauche, et l'inverse au retour, geste de retour prédictif
+  compris (`tween()`, 300 ms). Passer d'un côté de la session à l'autre (connexion, inscription,
+  invité, déconnexion, suppression du compte) se fait en fondu : tout le back stack change. Les
+  écrans sans session portent la métadonnée `SIGNED_OUT_SCREEN` (`entry<Route.SignIn>(metadata =
+  SIGNED_OUT_SCREEN)`) ; un nouvel écran sans session la reçoit aussi.
 
 `ui/main/navigation/Route.kt`
 
