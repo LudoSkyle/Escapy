@@ -29,9 +29,9 @@ Chaque lot est livré par une pull request vers `develop` (voir la section Git d
 
 - [ ] L'app sur iOS, avec les mêmes écrans
 - [ ] Rejoindre par un code de partie à 6 caractères ou par un lien, en plus du QR code
-- [ ] Salle d'attente : les joueurs arrivent, le maître du jeu en exclut, lance la partie ; un
+- [x] Salle d'attente : les joueurs arrivent, le maître du jeu en exclut, lance la partie ; un
       joueur quitte
-- [ ] Minuteur tenu par le serveur, le même chez tous : pause, reprise, ajout de temps
+- [x] Minuteur tenu par le serveur, le même chez tous : pause, reprise, ajout de temps
 - [ ] Chat écrit entre le maître du jeu et les joueurs
 - [ ] Écran d'histoire d'intro, au lancement, tiré du scénario (lot 10)
 - [ ] Missions « code » et « mot ou phrase », avec leurs déclencheurs : manuel, dès le début, après
@@ -227,6 +227,31 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
      et celle du serveur (voir [Common/02_CONVENTIONS.md](./Common/02_CONVENTIONS.md)) ; écran de
      jeu du maître du jeu et des joueurs ; fin manuelle ou temps écoulé, avec son récapitulatif. La
      victoire arrive avec les missions (lot 8).
+     - [x] `startGame`, `pauseGame`, `resumeGame`, `addTime`, `endGame`, `expireGame`,
+           `getServerTime` : le minuteur tenu par le serveur (`endsAt` en cours, `remainingMs` en
+           pause) ; une partie dont l'heure de fin est passée est terminée pour toute fonction ; un
+           temps ajouté renvoyé n'est pas compté deux fois ; le temps joué, pauses à part, gardé à la
+           fin. Une partie se lance même sans joueur
+     - [x] Les parties terminées ne comptent plus dans les 5 menées à la fois ; les parties lancées
+           sans changement depuis 24 h sont supprimées ; index composés déclarés
+     - [x] L'écart avec l'horloge du serveur estimé en trois allers-retours (le plus court gardé),
+           à l'ouverture de l'écran et à chaque retour au premier plan ; le temps recalculé depuis
+           l'horloge à chaque tic, tant que l'écran l'affiche ; à zéro, le serveur décide, un seul
+           appel à la fois
+     - [x] Salle d'attente : « Lancer la partie », puis l'écran de jeu pour tous ; écran de jeu
+           (minuteur, pause, reprise, temps ajouté, fin, exclure, quitter) ; récapitulatif (temps
+           joué, temps ajouté, supprimer ou quitter) ; l'état des parties sur l'accueil
+     - [x] Le style `display` (chiffres de même largeur) et le contenu d'un `ESDialog` dans le
+           design system
+     - [x] Vérifié contre les émulateurs sur le simulateur iOS 27.2, le maître du jeu dans l'app face à
+           un joueur joué par un script, puis le joueur dans l'app face à un maître du jeu joué par un
+           script : lancer (la salle d'attente laisse place au jeu), pause, reprise, temps ajouté, le
+           minuteur égal au serveur à la seconde près, temps écoulé (un seul appel au serveur), fin par
+           le maître du jeu, récapitulatif, suppression, l'état sur l'accueil, un code d'une partie
+           lancée refusé
+     - [ ] Non vérifié : sur Android (l'émulateur a été arrêté pour ne pas saturer la mémoire du Mac,
+           que le simulateur iOS manquait) ; la correction de l'écart d'horloge entre deux appareils
+           dont les horloges diffèrent (le simulateur et le script ont l'heure du Mac)
    - 7b, **le chat** entre le maître du jeu et les joueurs.
 8. **Missions** : types, déclencheurs, soumission avec anti-force brute, mots-clés du chat.
 9. **Indices** : texte et image (Storage), avec la progression de l'envoi côté maître du jeu.
@@ -247,9 +272,10 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
   ([ADR-0004](./adr/0004-firestore-et-le-serveur-source-de-verite.md)).
 - **Pas de Room** : le cache hors ligne de Firestore suffit.
 - **Connexion Google en v1** (décidé le 2026-11-24), au lot 5c.
-- **`minInstances` sur les fonctions de partie** (validation d'une réponse, indice, ajout de temps,
-  démarrage) : un démarrage à froid coûte de 1,3 à 2,3 s. Le coût se chiffre avec ces fonctions, au
-  lot 7. Les fonctions du profil et celles du lot 6 (créer, rejoindre, quitter) n'en ont pas.
+- **Aucune instance chaude (`minInstances`) au lot 7a** (2026-11-27) : lancer, pause, temps ajouté
+  et fin sont des gestes du maître du jeu, où un démarrage à froid (1,3 à 2,3 s) se tolère ;
+  `expireGame` et `getServerTime` tournent en tâche de fond. La décision et son coût reviennent à
+  l'utilisateur, au plus tard avec la validation des réponses (lot 8), qu'un joueur attend.
 - **Lot 6 découpé en 6a, 6b et 6c** (décidé le 2026-11-26) ; le maître du jeu choisit un maximum de
   joueurs de 2 à 20, ou aucun.
 - **Lot 7 découpé en 7a et 7b** (décidé le 2026-11-27). L'intro attend les scénarios (lot 10) : une
