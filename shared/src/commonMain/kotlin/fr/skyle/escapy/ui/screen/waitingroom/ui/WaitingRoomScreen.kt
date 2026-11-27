@@ -63,6 +63,7 @@ import fr.skyle.escapy.resources.waiting_room_players
 import fr.skyle.escapy.resources.waiting_room_start_by_master
 import fr.skyle.escapy.resources.waiting_room_start_help
 import fr.skyle.escapy.ui.core.game.GameMemberRow
+import fr.skyle.escapy.ui.core.mission.MissionsSection
 import fr.skyle.escapy.ui.core.game.JoinCodeQrCode
 import fr.skyle.escapy.ui.core.game.durationText
 import fr.skyle.escapy.ui.core.game.playersText
@@ -78,6 +79,8 @@ fun WaitingRoomScreen(
     snackbarState: ESSnackbarState,
     onBackClicked: () -> Unit,
     onStartClicked: () -> Unit,
+    onAddMissionClicked: () -> Unit,
+    onMissionClicked: (missionId: String) -> Unit,
     onKickClicked: (GameMember) -> Unit,
     onKickDismissed: () -> Unit,
     onKickConfirmed: () -> Unit,
@@ -122,6 +125,8 @@ fun WaitingRoomScreen(
                     state = state,
                     uiState = uiState,
                     onStartClicked = onStartClicked,
+                    onAddMissionClicked = onAddMissionClicked,
+                    onMissionClicked = onMissionClicked,
                     onKickClicked = onKickClicked,
                     onLeaveClicked = onLeaveClicked,
                     onCancelClicked = onCancelClicked,
@@ -169,6 +174,8 @@ private fun WaitingRoomContent(
     state: GameState.Available,
     uiState: WaitingRoomUIState,
     onStartClicked: () -> Unit,
+    onAddMissionClicked: () -> Unit,
+    onMissionClicked: (missionId: String) -> Unit,
     onKickClicked: (GameMember) -> Unit,
     onLeaveClicked: () -> Unit,
     onCancelClicked: () -> Unit,
@@ -228,6 +235,25 @@ private fun WaitingRoomContent(
                 )
             }
         }
+    }
+
+    if (game.isMaster) {
+        Spacer(modifier = Modifier.height(ESTheme.spacing.l))
+
+        MissionsSection(
+            missions = uiState.missions,
+            isMaster = true,
+            isStarted = false,
+            answerDrafts = emptyMap(),
+            answeringMissionId = null,
+            actionMissionId = null,
+            onAnswerChanged = { _, _ -> },
+            onAnswerSubmitted = { _, _ -> },
+            onAddMissionClicked = onAddMissionClicked,
+            onMissionClicked = onMissionClicked,
+            onUnlockClicked = {},
+            onValidateClicked = {},
+        )
     }
 
     Spacer(modifier = Modifier.height(ESTheme.spacing.xl))
@@ -428,6 +454,8 @@ private fun PreviewWaitingRoomScreenForTheMaster() {
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
             onStartClicked = {},
+            onAddMissionClicked = {},
+            onMissionClicked = {},
             onKickClicked = {},
             onKickDismissed = {},
             onKickConfirmed = {},
@@ -458,6 +486,8 @@ private fun PreviewWaitingRoomScreenForAPlayer() {
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
             onStartClicked = {},
+            onAddMissionClicked = {},
+            onMissionClicked = {},
             onKickClicked = {},
             onKickDismissed = {},
             onKickConfirmed = {},
@@ -483,6 +513,8 @@ private fun PreviewWaitingRoomScreenDeleted() {
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
             onStartClicked = {},
+            onAddMissionClicked = {},
+            onMissionClicked = {},
             onKickClicked = {},
             onKickDismissed = {},
             onKickConfirmed = {},

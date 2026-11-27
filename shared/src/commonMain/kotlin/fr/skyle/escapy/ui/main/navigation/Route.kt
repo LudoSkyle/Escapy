@@ -39,6 +39,10 @@ sealed interface Route : NavKey {
     @Serializable
     data class Play(val gameId: String) : Route
 
+    /** A mission of a game to write, for its game master: [missionId] is null for a new one. */
+    @Serializable
+    data class EditMission(val gameId: String, val missionId: String?) : Route
+
     /** The chat of a game, opened from the game screen. */
     @Serializable
     data class Chat(val gameId: String) : Route

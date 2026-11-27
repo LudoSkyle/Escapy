@@ -8,6 +8,11 @@ import fr.skyle.escapy.domain.model.GameState
 import fr.skyle.escapy.domain.model.GameStatus
 import fr.skyle.escapy.domain.model.GameSummary
 import fr.skyle.escapy.domain.model.GameTimer
+import fr.skyle.escapy.domain.model.Mission
+import fr.skyle.escapy.domain.model.MissionDraft
+import fr.skyle.escapy.domain.model.MissionState
+import fr.skyle.escapy.domain.model.MissionTrigger
+import fr.skyle.escapy.domain.model.MissionType
 import fr.skyle.escapy.domain.usecase.chat.SendMessageUseCase
 import fr.skyle.escapy.domain.usecase.chat.WatchMessagesUseCase
 import fr.skyle.escapy.domain.usecase.clock.EstimateServerClockOffsetUseCase
@@ -24,6 +29,12 @@ import fr.skyle.escapy.domain.usecase.game.ResumeGameUseCase
 import fr.skyle.escapy.domain.usecase.game.StartGameUseCase
 import fr.skyle.escapy.domain.usecase.game.WatchGameUseCase
 import fr.skyle.escapy.domain.usecase.game.WatchMyGamesUseCase
+import fr.skyle.escapy.domain.usecase.mission.DeleteMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.SaveMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.SubmitAnswerUseCase
+import fr.skyle.escapy.domain.usecase.mission.UnlockMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.ValidateMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.WatchMissionsUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
@@ -129,6 +140,71 @@ fun chatMessage(id: String, isMine: Boolean = false, text: String = "Message $id
         sentAt = null,
         isMine = isMine,
         isPending = false,
+    )
+
+class FakeWatchMissionsUseCase : WatchMissionsUseCase {
+
+    val missions = MutableSharedFlow<List<Mission>>()
+
+    /** The roles the missions were asked for: true for the game master. */
+    val asMaster = mutableListOf<Boolean>()
+
+    override fun invoke(gameId: String, isMaster: Boolean): Flow<List<Mission>> {
+        asMaster += isMaster
+        return missions
+    }
+}
+
+class FakeSubmitAnswerUseCase : FakeAction(), SubmitAnswerUseCase {
+
+    var isCorrect = false
+
+    override suspend fun invoke(gameId: String, missionId: String, answer: String): Boolean {
+        record("$missionId:$answer")
+        return isCorrect
+    }
+}
+
+class FakeUnlockMissionUseCase : FakeAction(), UnlockMissionUseCase {
+    override suspend fun invoke(gameId: String, missionId: String) = record(missionId)
+}
+
+class FakeValidateMissionUseCase : FakeAction(), ValidateMissionUseCase {
+    override suspend fun invoke(gameId: String, missionId: String) = record(missionId)
+}
+
+class FakeSaveMissionUseCase : FakeAction(), SaveMissionUseCase {
+
+    val drafts = mutableListOf<MissionDraft>()
+
+    override suspend fun invoke(gameId: String, draft: MissionDraft): String {
+        drafts += draft
+        record(draft.title)
+        return draft.missionId ?: "new"
+    }
+}
+
+class FakeDeleteMissionUseCase : FakeAction(), DeleteMissionUseCase {
+    override suspend fun invoke(gameId: String, missionId: String) = record(missionId)
+}
+
+fun mission(
+    id: String,
+    state: MissionState = MissionState.ACTIVE,
+    trigger: MissionTrigger? = null,
+    answers: List<String> = emptyList(),
+): Mission =
+    Mission(
+        id = id,
+        title = "Mission $id",
+        statement = "Trouvez le code.",
+        type = MissionType.CODE,
+        codeLength = 4,
+        isFinal = false,
+        state = state,
+        solver = null,
+        answers = answers,
+        trigger = trigger,
     )
 
 fun gameMember(userId: String, isCurrentUser: Boolean = false): GameMember =

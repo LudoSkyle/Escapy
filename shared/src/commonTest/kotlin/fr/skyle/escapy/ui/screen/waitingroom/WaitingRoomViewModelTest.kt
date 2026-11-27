@@ -3,11 +3,14 @@ package fr.skyle.escapy.ui.screen.waitingroom
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
 import fr.skyle.escapy.domain.model.GameState
 import fr.skyle.escapy.domain.model.GameStatus
+import fr.skyle.escapy.domain.model.MissionState
 import fr.skyle.escapy.fake.FakeCancelGameUseCase
 import fr.skyle.escapy.fake.FakeKickPlayerUseCase
 import fr.skyle.escapy.fake.FakeLeaveGameUseCase
 import fr.skyle.escapy.fake.FakeStartGameUseCase
 import fr.skyle.escapy.fake.FakeWatchGameUseCase
+import fr.skyle.escapy.fake.FakeWatchMissionsUseCase
+import fr.skyle.escapy.fake.mission
 import fr.skyle.escapy.fake.game
 import fr.skyle.escapy.fake.gameMember
 import fr.skyle.escapy.test.MainDispatcherTest
@@ -34,6 +37,7 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
     private val cancelGameUseCase = FakeCancelGameUseCase()
 
     private val startGameUseCase = FakeStartGameUseCase()
+    private val watchMissionsUseCase = FakeWatchMissionsUseCase()
 
     private val viewModel = WaitingRoomViewModel(
         gameId = "game",
@@ -42,6 +46,7 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
         kickPlayerUseCase = kickPlayerUseCase,
         cancelGameUseCase = cancelGameUseCase,
         startGameUseCase = startGameUseCase,
+        watchMissionsUseCase = watchMissionsUseCase,
     )
 
     private val player = gameMember(userId = "player")
@@ -157,5 +162,25 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
 
         // Then
         assertEquals(expected = WaitingRoomEvent.Started, actual = viewModel.event.first())
+    }
+
+    @Test
+    fun `the game master sees the missions they prepare and a player observes none`() = runTest {
+        // When
+        watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = true), players = emptyList()))
+        watchMissionsUseCase.missions.emit(listOf(mission(id = "safe", state = MissionState.LOCKED)))
+
+        // Then
+        assertEquals(expected = listOf(true), actual = watchMissionsUseCase.asMaster)
+        assertEquals(expected = listOf("safe"), actual = viewModel.uiState.value.missions?.map { mission -> mission.id })
+    }
+
+    @Test
+    fun `a player observes no mission in the waiting room`() = runTest {
+        // When
+        watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = false), players = listOf(player)))
+
+        // Then
+        assertTrue(watchMissionsUseCase.asMaster.isEmpty())
     }
 }
