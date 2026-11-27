@@ -115,8 +115,20 @@ joueurs verraient deux temps différents, et des messages dans le désordre.
   `ServerTimestampBehavior.ESTIMATE`, pour qu'il s'affiche et se trie sans sauter (voir
   [KMP/01_MODULE_DATA.md](../KMP/01_MODULE_DATA.md)).
 - Le minuteur se calcule à partir des horodatages serveur de la partie, corrigés de l'**écart estimé
-  entre l'horloge de l'appareil et celle du serveur**. L'estimation se conçoit avec le minuteur, au
-  lot 7.
+  entre l'horloge de l'appareil et celle du serveur** : l'heure du serveur est l'heure de l'appareil
+  plus cet écart. `EstimateServerClockOffsetUseCase` demande l'heure du serveur (`getServerTime`)
+  trois fois ; le serveur a lu son horloge pendant l'aller-retour, à mi-chemin en moyenne, et
+  l'aller-retour le plus court donne l'estimation la plus juste. Le premier appel, souvent lent
+  (fonction à froid), donne déjà une estimation, que les suivants remplacent s'ils sont plus
+  rapides. L'aller-retour se mesure sur une horloge monotone (`TimeSource`), que personne ne règle
+  pendant la mesure.
+- L'écran de jeu estime l'écart à son ouverture, puis à chaque retour au premier plan (l'appareil a
+  pu dormir, ou son heure être changée). Sans réponse du serveur, il prend l'horloge de l'appareil.
+  Le temps restant se recalcule depuis l'horloge à chaque tic, jamais en décomptant un compteur ; les
+  tics ne tournent que tant que la partie tourne et que l'écran l'affiche.
+- **Le serveur décide de la fin.** À zéro, l'app demande au serveur d'écrire le temps écoulé
+  (`expireGame`), qu'il vérifie à sa propre horloge ; tant qu'il répond que la partie continue, l'app
+  redemande toutes les 2 s.
 - Quand du code a besoin de l'heure locale (une durée d'attente, l'affichage d'une date), il la
   reçoit par un `kotlin.time.Clock` passé au constructeur, jamais par un appel direct : les tests
   passent une heure fixe.

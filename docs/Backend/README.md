@@ -21,16 +21,17 @@ Décidés par l'[ADR-0004](../adr/0004-firestore-et-le-serveur-source-de-verite.
 - **Les règles refusent les écritures client**, sauf, plus tard, l'envoi d'un message de chat
   (auteur = soi, partie en attente ou en cours, longueur bornée).
 - **Toute heure est un horodatage serveur** : minuteur, messages, journal.
-- Les fonctions de partie garderont une instance chaude (`minInstances`) : un démarrage à froid
-  coûte de 1,3 à 2,3 s ([ADR-0003](../adr/0003-firebase-en-kotlin-commun-avec-gitlive.md)).
+- Une instance chaude (`minInstances`) pour les fonctions de partie se décide avec leur coût : un
+  démarrage à froid coûte de 1,3 à 2,3 s ([ADR-0003](../adr/0003-firebase-en-kotlin-commun-avec-gitlive.md)).
+  Aucune n'en a encore (voir la fin de la section des fonctions).
 
 ### Données
 
 | Chemin | Contenu | Lu par | Écrit par |
 |---|---|---|---|
 | `users/{uid}` | `username`, `avatarId` (1 à 50), `createdAt`, `updatedAt` (horodatages serveur). Ni e-mail ni nom réel | son propriétaire | les fonctions |
-| `users/{uid}/games/{gameId}` | `title`, `isMaster`, `master` (`username`, `avatarId`), `createdAt` : la liste des parties de l'utilisateur, pour son accueil | son propriétaire | les fonctions |
-| `games/{gameId}` | `title`, `durationMinutes`, `maxPlayers` (ou `null`), `status` (`WAITING`), `masterId`, `master` (`username`, `avatarId`), `memberIds` (le maître du jeu et les joueurs), `playerCount`, `joinCode`, `createdAt`, `updatedAt` | ses membres ; une partie qui n'existe pas se lit absente | les fonctions |
+| `users/{uid}/games/{gameId}` | `title`, `isMaster`, `master` (`username`, `avatarId`), `status`, `createdAt` : la liste des parties de l'utilisateur, pour son accueil. Une fiche écrite avant le minuteur n'a pas de `status` : elle est d'une partie en attente | son propriétaire | les fonctions |
+| `games/{gameId}` | `title`, `durationMinutes`, `maxPlayers` (ou `null`), `status` (`WAITING`, `RUNNING`, `PAUSED`, `FINISHED`), `masterId`, `master` (`username`, `avatarId`), `memberIds` (le maître du jeu et les joueurs), `playerCount`, `joinCode`, `createdAt`, `updatedAt` ; une fois lancée : `startedAt`, `endsAt` (tant qu'elle tourne), `remainingMs` (en pause, et à la fin), `addedMinutes` ; à la fin : `result` (`TIME_UP`, `ENDED_BY_MASTER`), `playedMs` (le temps joué, pauses à part), `finishedAt` | ses membres ; une partie qui n'existe pas se lit absente | les fonctions |
 | `games/{gameId}/players/{uid}` | `username`, `avatarId`, `joinedAt` : un joueur, le maître du jeu à part | les membres de la partie | les fonctions |
 | `games/{gameId}/private/access` | `excludedIds` : les joueurs exclus, que le code ne laisse plus entrer | personne | les fonctions |
 | `joinCodes/{code}` | `gameId`, `createdAt` : l'index d'unicité des codes de partie | personne | les fonctions |
@@ -46,10 +47,20 @@ crée (voir [ROADMAP.md](../ROADMAP.md)).
   chaque création, entrée, sortie, exclusion et suppression : des documents qu'il lit toujours. Une
   requête sur les parties (`memberIds` contient l'utilisateur) garderait une partie dont il vient
   d'être exclu : le SDK Android la laisse dans son cache tant que la requête ne change pas.
-- La recherche des parties abandonnées demande un index composé (`firestore.indexes.json`) :
-  **l'émulateur n'en exige aucun**, un index oublié ne se voit donc qu'en production.
+- La recherche des parties abandonnées (`status` et `createdAt`, `status` et `updatedAt`) et le
+  compte des parties menées non terminées (`masterId` et `status`) ont leurs index composés
+  (`firestore.indexes.json`) : **l'émulateur n'en exige aucun**, un index oublié ne se voit donc
+  qu'en production.
 - **Un joueur exclu** perd la lecture de la partie : son écoute s'arrête sur un refus. Une partie
   supprimée, elle, se lit absente.
+- **Le minuteur** : une partie qui tourne garde l'heure de sa fin (`endsAt`, heure du serveur), une
+  partie en pause le temps qui lui reste (`remainingMs`). Une partie qui tourne dont l'heure de fin
+  est passée est **terminée pour toutes les fonctions**, même avant qu'un appel ne l'écrive : chacune
+  la termine d'abord (`TIME_UP`), dans sa transaction (`onGame`, `game/timer.ts`). Un toucher juste
+  après zéro ne prolonge donc jamais une partie que les joueurs voient perdue.
+- **Le temps écoulé** s'écrit par `expireGame`, que l'app de chaque membre appelle quand son
+  minuteur atteint zéro ; le serveur décide par sa propre horloge. Sans aucune app ouverte, la
+  partie reste écrite en cours, mais toute fonction la voit terminée.
 - **Le code** a 6 caractères tirés de `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (ni 0, O, 1, I ni L). Il est
   libéré quand la partie est supprimée.
 
@@ -69,14 +80,25 @@ Toutes exigent un utilisateur connecté (sinon `unauthenticated`, raison `UNAUTH
 | `joinGame` | `{ code }` | `{ gameId }` | Fait entrer l'utilisateur dans la partie en attente d'un code, tapé sans souci de casse ni d'espaces. Rappelée par un membre, ou par le maître du jeu, elle rend la partie sans rien changer. 10 codes inconnus en 10 minutes bloquent l'utilisateur jusqu'à la fin de la fenêtre |
 | `leaveGame` | `{ gameId }` | `{ left: true }` | Fait quitter une partie à un joueur. Une partie supprimée ou déjà quittée n'est pas une erreur |
 | `kickPlayer` | `{ gameId, playerId }` | `{ kicked: true }` | Exclut un joueur, pour le maître du jeu : il quitte la partie et son code ne le laisse plus entrer |
-| `cancelGame` | `{ gameId }` | `{ cancelled: true }` | Supprime la partie pour tous, pour le maître du jeu, et libère son code. Une partie déjà supprimée n'est pas une erreur |
+| `cancelGame` | `{ gameId }` | `{ cancelled: true }` | Supprime la partie pour tous, pour le maître du jeu, et libère son code, quel que soit son état (une partie terminée aussi). Une partie déjà supprimée n'est pas une erreur |
+| `startGame` | `{ gameId }` | `{ status, remainingMs }` | Lance une partie en attente, pour le maître du jeu, même sans joueur : le minuteur part de la durée, la partie ne prend plus personne. Rappelée, elle laisse une partie lancée telle quelle |
+| `pauseGame` | `{ gameId }` | `{ status, remainingMs }` | Met en pause une partie qui tourne, pour le maître du jeu, en gardant le temps qui reste. Sans effet sur une partie en pause ou terminée |
+| `resumeGame` | `{ gameId }` | `{ status, remainingMs }` | Relance une partie en pause, pour le maître du jeu, du temps qui lui restait. Sans effet sur une partie qui tourne ou terminée |
+| `addTime` | `{ gameId, minutes, addedMinutes }` | `{ addedMinutes, remainingMs }` | Ajoute de 1 à 60 minutes à une partie lancée, 180 en tout, pour le maître du jeu. `addedMinutes` est ce que l'app voyait déjà ajouté : un appel renvoyé après une réponse perdue le trouve changé, et n'ajoute rien une seconde fois |
+| `endGame` | `{ gameId }` | `{ status, remainingMs }` | Termine une partie lancée, pour le maître du jeu (`ENDED_BY_MASTER`) ; une partie dont le temps était écoulé reste terminée sur le temps. Sans effet sur une partie terminée |
+| `expireGame` | `{ gameId }` | `{ status, remainingMs }` | Pour tout membre : termine une partie dont le temps est écoulé, à l'heure du serveur. Une partie qui n'en est pas là reste telle quelle, et la réponse dit le temps qui lui reste |
+| `getServerTime` | aucune | `{ nowMs }` | L'heure du serveur, d'où l'app estime l'écart avec l'horloge de l'appareil |
 
 Une fonction planifiée, `deleteStaleGames`, supprime toutes les heures les parties encore en attente
-24 h après leur création, avec leurs codes.
+24 h après leur création, et les parties lancées sans changement depuis 24 h (une partie terminée,
+24 h après sa fin), avec leurs codes. Une partie terminée ne compte plus dans les 5 parties menées à
+la fois.
 
-Aucune fonction n'a encore d'instance gardée chaude (`minInstances`) : créer ou rejoindre une partie
-se fait avant de jouer, où un démarrage à froid se tolère. La décision vient avec les fonctions de la
-partie en cours (lot 7).
+Aucune fonction n'a encore d'instance gardée chaude (`minInstances`). Créer ou rejoindre une partie
+se fait avant de jouer ; les fonctions du minuteur, au lot 7a, sont appelées par le maître du jeu
+(lancer, pause, temps ajouté, fin) ou en tâche de fond par l'app (`expireGame`, `getServerTime`,
+dont l'estimation écarte une réponse lente). Le coût d'une instance chaude se décide avec
+l'utilisateur, et au plus tard avec la validation des réponses (lot 8), qu'un joueur attend.
 
 Un pseudo est nettoyé avant d'être gardé (espaces au bord retirés, espaces intérieurs réduits à un,
 forme Unicode composée), puis doit faire de 3 à 20 caractères : lettres de toutes les langues,
@@ -106,8 +128,12 @@ raison en exception typée (voir [ADR-0005](../adr/0005-le-contrat-des-callables
 | `GAME_NOT_JOINABLE` | `failed-precondition` | La partie n'attend plus de joueurs |
 | `GAME_FULL` | `failed-precondition` | La partie a atteint son maximum de joueurs |
 | `PLAYER_EXCLUDED` | `permission-denied` | Le maître du jeu a exclu cet utilisateur de la partie |
-| `NOT_GAME_MASTER` | `permission-denied` | Exclure un joueur ou annuler la partie, sans en être le maître du jeu |
+| `NOT_GAME_MASTER` | `permission-denied` | Exclure un joueur, annuler la partie ou toucher à son minuteur, sans en être le maître du jeu |
 | `GAME_MASTER_CANNOT_LEAVE` | `failed-precondition` | Le maître du jeu quitte sa partie : il l'annule à la place |
+| `NOT_GAME_MEMBER` | `permission-denied` | `expireGame` par un utilisateur qui n'est pas membre de la partie (un joueur exclu) |
+| `GAME_NOT_STARTED` | `failed-precondition` | Pause, reprise, temps ajouté ou fin d'une partie pas encore lancée |
+| `GAME_FINISHED` | `failed-precondition` | Temps ajouté à une partie terminée, ou dont le temps vient de s'écouler |
+| `ADDED_TIME_INVALID` | `invalid-argument` | Moins de 1 ou plus de 60 minutes à la fois, ou plus de 180 en tout |
 
 ### Émulateur Firebase
 

@@ -126,6 +126,9 @@ internal expect val platformDataModule: Module
   `PREVIOUS` rendent `null`, `ESTIMATE` une heure estimée localement. Les messages du chat se lisent
   avec `ESTIMATE`, pour s'afficher et se trier sans sauter ; après l'accusé, ils portent l'heure du
   serveur.
+- **Lire une heure** : un champ d'horodatage se déclare `Timestamp?` (celui de GitLive, sérialisable)
+  dans le document, et sort du module en millisecondes (`toMilliseconds()`), comme `endsAt` d'une
+  partie : le domaine en fait un `Instant`.
 - Le tri d'une liste se fait par la requête (`orderBy` sur l'horodatage serveur), pas sur l'appareil.
 - Les documents se décodent avec kotlinx-serialization, dont R8 n'a pas besoin de règle (voir
   [Common/04_BUILD.md](../Common/04_BUILD.md)). Un nom de champ ou de type écrit dans Firestore
