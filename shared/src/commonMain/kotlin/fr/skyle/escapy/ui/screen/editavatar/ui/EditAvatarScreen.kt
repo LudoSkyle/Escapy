@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -70,6 +71,8 @@ fun EditAvatarScreen(
                     modifier = Modifier
                         .padding(ESTheme.spacing.xs)
                         .aspectRatio(1f)
+                        // Clipped first: the touch and its ripple follow the circle, not its square
+                        .clip(CircleShape)
                         .selectable(
                             selected = isSelected,
                             enabled = uiState.savingAvatarId == null,

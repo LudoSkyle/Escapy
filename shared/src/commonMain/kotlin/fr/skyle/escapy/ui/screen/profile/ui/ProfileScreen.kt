@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -98,11 +100,14 @@ fun ProfileScreen(
             val profile = uiState.profile
             if (profile != null) {
                 AvatarImage(
-                    modifier = Modifier.clickable(
-                        onClickLabel = stringResource(Res.string.profile_change_avatar),
-                        role = Role.Button,
-                        onClick = onEditAvatarClicked,
-                    ),
+                    // Clipped first: the touch and its ripple follow the circle, not its square
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(
+                            onClickLabel = stringResource(Res.string.profile_change_avatar),
+                            role = Role.Button,
+                            onClick = onEditAvatarClicked,
+                        ),
                     avatarId = profile.avatarId,
                     size = 112.dp,
                     contentDescription = stringResource(Res.string.profile_your_avatar),
