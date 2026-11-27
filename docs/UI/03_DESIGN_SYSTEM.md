@@ -127,10 +127,11 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
   `MEDIUM` et `LARGE`. **Pendant `isLoading`, il garde sa taille et ses couleurs, montre sa
   progression à la place du texte, ignore le toucher et se lit comme désactivé** : une action n'est
   jamais envoyée deux fois. Un écran désactive aussi la touche du clavier qui enverrait le formulaire.
-- **`ESTextField`** : son `kind` (`TEXT`, `USERNAME`, `EMAIL`, `PASSWORD`, `NEW_PASSWORD`, `CODE`)
-  ouvre le bon clavier et dit au gestionnaire de mots de passe quoi remplir ; `CODE` (le code d'une
-  partie) tape et s'affiche en capitales, sans correction, `TEXT` commence ses phrases par une
-  capitale. **La valeur saisie ne se réécrit pas dans `onValueChange`** (capitales, filtre) : le
+- **`ESTextField`** : son `kind` (`TEXT`, `USERNAME`, `EMAIL`, `PASSWORD`, `NEW_PASSWORD`, `CODE`,
+  `MESSAGE`) ouvre le bon clavier et dit au gestionnaire de mots de passe quoi remplir ; `CODE` (le
+  code d'une partie) tape et s'affiche en capitales, sans correction, `TEXT` commence ses phrases par
+  une capitale. `MESSAGE` (un message du chat) s'écrit sur plusieurs lignes, jusqu'à 4 avant de
+  défiler : la touche du clavier va à la ligne, un bouton de l'écran envoie. **La valeur saisie ne se réécrit pas dans `onValueChange`** (capitales, filtre) : le
   clavier Android, qui compose le mot, perd alors des touches ; l'affichage passe par une
   transformation visuelle, et la valeur se nettoie à l'envoi. Sa touche d'action fait d'abord ce
   qu'elle ferait sans gestionnaire : `Done`, `Go`, `Search` et `Send` retirent le focus et ferment le

@@ -106,20 +106,21 @@ fun ESTextField(
             else -> VisualTransformation.None
         },
         textStyle = ESTheme.typography.body,
-        singleLine = true,
+        singleLine = !kind.isMultiLine,
+        maxLines = if (kind.isMultiLine) MESSAGE_MAX_LINES else 1,
         keyboardOptions = KeyboardOptions(
             keyboardType = when (kind) {
                 ESTextFieldDefaults.Kind.EMAIL -> KeyboardType.Email
                 ESTextFieldDefaults.Kind.PASSWORD, ESTextFieldDefaults.Kind.NEW_PASSWORD -> KeyboardType.Password
-                ESTextFieldDefaults.Kind.TEXT, ESTextFieldDefaults.Kind.USERNAME -> KeyboardType.Text
+                ESTextFieldDefaults.Kind.TEXT, ESTextFieldDefaults.Kind.USERNAME, ESTextFieldDefaults.Kind.MESSAGE -> KeyboardType.Text
                 ESTextFieldDefaults.Kind.CODE -> KeyboardType.Ascii
             },
             capitalization = when (kind) {
                 ESTextFieldDefaults.Kind.CODE -> KeyboardCapitalization.Characters
-                ESTextFieldDefaults.Kind.TEXT -> KeyboardCapitalization.Sentences
+                ESTextFieldDefaults.Kind.TEXT, ESTextFieldDefaults.Kind.MESSAGE -> KeyboardCapitalization.Sentences
                 else -> KeyboardCapitalization.Unspecified
             },
-            autoCorrectEnabled = kind == ESTextFieldDefaults.Kind.TEXT,
+            autoCorrectEnabled = kind == ESTextFieldDefaults.Kind.TEXT || kind == ESTextFieldDefaults.Kind.MESSAGE,
             imeAction = imeAction,
         ),
         keyboardActions = KeyboardActions(
@@ -192,6 +193,9 @@ private fun PreviewESTextField() {
 }
 
 private val IME_ACTIONS_THAT_END_TYPING = setOf(ImeAction.Done, ImeAction.Go, ImeAction.Search, ImeAction.Send)
+
+// A message grows with its text up to these lines, then scrolls
+private const val MESSAGE_MAX_LINES = 4
 
 /**
  * Shows a code in capitals, whatever the keyboard typed, without changing the text: rewriting the
