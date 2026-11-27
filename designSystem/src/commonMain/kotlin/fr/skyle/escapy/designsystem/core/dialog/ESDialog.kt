@@ -1,5 +1,7 @@
 package fr.skyle.escapy.designsystem.core.dialog
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,6 +26,8 @@ fun ESDialog(
     style: ESDialogDefaults.Style,
     modifier: Modifier = Modifier,
     isConfirmLoading: Boolean = false,
+    // What the user sets before confirming, under the message
+    content: (@Composable () -> Unit)? = null,
 ) {
     AlertDialog(
         modifier = modifier,
@@ -39,10 +43,13 @@ fun ESDialog(
             )
         },
         text = {
-            ESText(
-                text = message,
-                style = ESTheme.typography.body,
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(ESTheme.spacing.m)) {
+                ESText(
+                    text = message,
+                    style = ESTheme.typography.body,
+                )
+                content?.invoke()
+            }
         },
         confirmButton = {
             ESButton(
