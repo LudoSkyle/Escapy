@@ -56,6 +56,18 @@ import fr.skyle.escapy.domain.usecase.game.WatchGameUseCase
 import fr.skyle.escapy.domain.usecase.game.WatchGameUseCaseImpl
 import fr.skyle.escapy.domain.usecase.game.WatchMyGamesUseCase
 import fr.skyle.escapy.domain.usecase.game.WatchMyGamesUseCaseImpl
+import fr.skyle.escapy.domain.usecase.mission.DeleteMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.DeleteMissionUseCaseImpl
+import fr.skyle.escapy.domain.usecase.mission.SaveMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.SaveMissionUseCaseImpl
+import fr.skyle.escapy.domain.usecase.mission.SubmitAnswerUseCase
+import fr.skyle.escapy.domain.usecase.mission.SubmitAnswerUseCaseImpl
+import fr.skyle.escapy.domain.usecase.mission.UnlockMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.UnlockMissionUseCaseImpl
+import fr.skyle.escapy.domain.usecase.mission.ValidateMissionUseCase
+import fr.skyle.escapy.domain.usecase.mission.ValidateMissionUseCaseImpl
+import fr.skyle.escapy.domain.usecase.mission.WatchMissionsUseCase
+import fr.skyle.escapy.domain.usecase.mission.WatchMissionsUseCaseImpl
 import fr.skyle.escapy.domain.usecase.profile.EnsureProfileUseCase
 import fr.skyle.escapy.domain.usecase.profile.EnsureProfileUseCaseImpl
 import fr.skyle.escapy.domain.usecase.profile.UpdateAvatarUseCase
@@ -117,6 +129,14 @@ val domainModule = module {
     factoryOf(::AddTimeUseCaseImpl) bind AddTimeUseCase::class
     factoryOf(::EndGameUseCaseImpl) bind EndGameUseCase::class
     factoryOf(::ExpireGameUseCaseImpl) bind ExpireGameUseCase::class
+
+    // Missions
+    factoryOf(::DeleteMissionUseCaseImpl) bind DeleteMissionUseCase::class
+    factoryOf(::SaveMissionUseCaseImpl) bind SaveMissionUseCase::class
+    factoryOf(::SubmitAnswerUseCaseImpl) bind SubmitAnswerUseCase::class
+    factoryOf(::UnlockMissionUseCaseImpl) bind UnlockMissionUseCase::class
+    factoryOf(::ValidateMissionUseCaseImpl) bind ValidateMissionUseCase::class
+    factoryOf(::WatchMissionsUseCaseImpl) bind WatchMissionsUseCase::class
 
     // Chat
     factoryOf(::WatchMessagesUseCaseImpl) bind WatchMessagesUseCase::class

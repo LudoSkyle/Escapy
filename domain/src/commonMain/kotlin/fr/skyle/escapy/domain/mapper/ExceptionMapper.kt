@@ -13,18 +13,23 @@ import fr.skyle.escapy.domain.exception.GameFullException
 import fr.skyle.escapy.domain.exception.GameNotFoundException
 import fr.skyle.escapy.domain.exception.GameNotJoinableException
 import fr.skyle.escapy.domain.exception.GameNotStartedException
+import fr.skyle.escapy.domain.exception.GamePausedException
 import fr.skyle.escapy.domain.exception.GoogleAccountAlreadyInUseException
 import fr.skyle.escapy.domain.exception.InvalidAddedTimeException
 import fr.skyle.escapy.domain.exception.InvalidCredentialsException
 import fr.skyle.escapy.domain.exception.InvalidEmailException
 import fr.skyle.escapy.domain.exception.InvalidGameTitleException
 import fr.skyle.escapy.domain.exception.InvalidJoinCodeException
+import fr.skyle.escapy.domain.exception.InvalidMissionException
 import fr.skyle.escapy.domain.exception.InvalidUsernameException
+import fr.skyle.escapy.domain.exception.MissionNotFoundException
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
 import fr.skyle.escapy.domain.exception.NotGameMasterException
 import fr.skyle.escapy.domain.exception.RecentSignInRequiredException
+import fr.skyle.escapy.domain.exception.TooManyAnswersException
 import fr.skyle.escapy.domain.exception.TooManyAttemptsException
 import fr.skyle.escapy.domain.exception.TooManyGamesException
+import fr.skyle.escapy.domain.exception.TooManyMissionsException
 import fr.skyle.escapy.domain.exception.WeakPasswordException
 import fr.skyle.escapy.domain.exception.WrongGoogleAccountException
 import fr.skyle.escapy.domain.validation.PasswordRule
@@ -66,6 +71,11 @@ internal fun Throwable.toDomainException(): Throwable =
             "GAME_NOT_STARTED" -> GameNotStartedException(cause = this)
             "GAME_FINISHED" -> GameFinishedException(cause = this)
             "ADDED_TIME_INVALID" -> InvalidAddedTimeException(cause = this)
+            "GAME_PAUSED" -> GamePausedException(cause = this)
+            "MISSION_INVALID" -> InvalidMissionException(cause = this)
+            "MISSION_NOT_FOUND" -> MissionNotFoundException(cause = this)
+            "TOO_MANY_MISSIONS" -> TooManyMissionsException(cause = this)
+            "TOO_MANY_ANSWERS" -> TooManyAnswersException(cause = this)
             else -> AccountUnavailableException(cause = this)
         }
         else -> this

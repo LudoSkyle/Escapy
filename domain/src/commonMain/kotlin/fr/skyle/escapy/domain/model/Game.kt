@@ -61,6 +61,9 @@ data class GameEnd(
 )
 
 enum class GameResult {
+    // Every final mission solved
+    WON,
+
     // The timer reached zero
     TIME_UP,
 

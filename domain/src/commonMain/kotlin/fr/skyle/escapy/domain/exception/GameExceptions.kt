@@ -38,3 +38,18 @@ class InvalidMessageException(cause: Throwable? = null) : Exception("Invalid mes
 
 /** The chat refused the message: the game is over, or the user is no longer a member. */
 class MessageRefusedException(cause: Throwable? = null) : Exception("Message refused", cause)
+
+/** The game is paused: answers wait for it to go on. */
+class GamePausedException(cause: Throwable? = null) : Exception("Game paused", cause)
+
+/** The mission written breaks a rule of MissionRules. */
+class InvalidMissionException(cause: Throwable? = null) : Exception("Invalid mission", cause)
+
+/** No mission the user may see has this id: deleted, or locked for a player. */
+class MissionNotFoundException(cause: Throwable? = null) : Exception("Mission not found", cause)
+
+/** The game has as many missions as it may. */
+class TooManyMissionsException(cause: Throwable? = null) : Exception("Too many missions", cause)
+
+/** Too many answers were sent to this mission this minute, by all the players together. */
+class TooManyAnswersException(cause: Throwable? = null) : Exception("Too many answers", cause)
