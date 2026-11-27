@@ -114,6 +114,7 @@ fun ESTextField(
                 ESTextFieldDefaults.Kind.PASSWORD, ESTextFieldDefaults.Kind.NEW_PASSWORD -> KeyboardType.Password
                 ESTextFieldDefaults.Kind.TEXT, ESTextFieldDefaults.Kind.USERNAME, ESTextFieldDefaults.Kind.MESSAGE -> KeyboardType.Text
                 ESTextFieldDefaults.Kind.CODE -> KeyboardType.Ascii
+                ESTextFieldDefaults.Kind.DIGITS -> KeyboardType.NumberPassword
             },
             capitalization = when (kind) {
                 ESTextFieldDefaults.Kind.CODE -> KeyboardCapitalization.Characters
