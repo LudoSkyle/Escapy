@@ -32,8 +32,10 @@ Décidés par l'[ADR-0004](../adr/0004-firestore-et-le-serveur-source-de-verite.
 |---|---|---|---|
 | `users/{uid}` | `username`, `avatarId` (1 à 50), `createdAt`, `updatedAt` (horodatages serveur). Ni e-mail ni nom réel | son propriétaire | les fonctions |
 | `users/{uid}/games/{gameId}` | `title`, `isMaster`, `master` (`username`, `avatarId`), `status`, `createdAt` : la liste des parties de l'utilisateur, pour son accueil. Une fiche écrite avant le minuteur n'a pas de `status` : elle est d'une partie en attente | son propriétaire | les fonctions |
-| `games/{gameId}` | `title`, `durationMinutes`, `maxPlayers` (ou `null`), `status` (`WAITING`, `RUNNING`, `PAUSED`, `FINISHED`), `masterId`, `master` (`username`, `avatarId`), `memberIds` (le maître du jeu et les joueurs), `playerCount`, `joinCode`, `createdAt`, `updatedAt` ; une fois lancée : `startedAt`, `endsAt` (tant qu'elle tourne), `remainingMs` (en pause, et à la fin), `addedMinutes` ; à la fin : `result` (`TIME_UP`, `ENDED_BY_MASTER`), `playedMs` (le temps joué, pauses à part), `finishedAt` | ses membres ; une partie qui n'existe pas se lit absente | les fonctions |
+| `games/{gameId}` | `title`, `durationMinutes`, `maxPlayers` (ou `null`), `status` (`WAITING`, `RUNNING`, `PAUSED`, `FINISHED`), `masterId`, `master` (`username`, `avatarId`), `memberIds` (le maître du jeu et les joueurs), `playerCount`, `joinCode`, `createdAt`, `updatedAt` ; une fois lancée : `startedAt`, `endsAt` (tant qu'elle tourne), `remainingMs` (en pause, et à la fin), `addedMinutes` ; à la fin : `result` (`WON`, `TIME_UP`, `ENDED_BY_MASTER`), `playedMs` (le temps joué, pauses à part), `finishedAt` | ses membres ; une partie qui n'existe pas se lit absente | les fonctions |
 | `games/{gameId}/messages/{messageId}` | `authorId`, `author` (`username`, `avatarId`, recopiés du profil), `text` (de 1 à 500 unités UTF-16, pas que des espaces), `sentAt` (horodatage serveur) : un message du chat | les membres de la partie | un membre, en son nom, partie en cours ou en pause avant son heure de fin ; jamais modifié ni supprimé |
+| `games/{gameId}/masterMissions/{missionId}` | Une mission telle que le maître du jeu l'a écrite : `title`, `statement`, `type` (`CODE`, `TEXT`), `answers`, `codeLength` (ou `null`), `trigger` (`MANUAL`, `ON_START`, ou `AFTER_MISSION` et son `missionId`), `isFinal` ; et son état : `state` (`LOCKED`, `ACTIVE`, `SOLVED`), `createdAt`, `unlockedAt`, `solvedAt`, `solvedBy` (`userId`, `username`), `answerWindow` (`startedAt`, `count` : les réponses de la minute en cours) | le maître du jeu | les fonctions |
+| `games/{gameId}/missions/{missionId}` | Ce qu'en voient les joueurs, créé au déblocage : `title`, `statement`, `type`, `codeLength`, `isFinal`, `state`, `createdAt`, `unlockedAt`, `solvedAt`, `solvedBy` ; **jamais une réponse** | les membres de la partie | les fonctions |
 | `games/{gameId}/players/{uid}` | `username`, `avatarId`, `joinedAt` : un joueur, le maître du jeu à part | les membres de la partie | les fonctions |
 | `games/{gameId}/private/access` | `excludedIds` : les joueurs exclus, que le code ne laisse plus entrer | personne | les fonctions |
 | `joinCodes/{code}` | `gameId`, `createdAt` : l'index d'unicité des codes de partie | personne | les fonctions |
@@ -70,7 +72,22 @@ crée (voir [ROADMAP.md](../ROADMAP.md)).
   `String.length` en Kotlin (un emoji compte deux), vérifié par un test des règles. La partie doit
   être en cours ou en pause, et une partie dont l'heure de fin est passée est fermée, comme pour les
   fonctions. Les messages partent avec leur partie (`deleteGame`). La détection des mots-clés pour
-  les missions viendra au lot 8, côté serveur.
+  les missions viendra au lot 8b, côté serveur.
+- **Les missions** vivent en deux exemplaires : la définition et l'état dans `masterMissions`, que
+  seul le maître du jeu lit, et ce qu'en voient les joueurs dans `missions`, créé au déblocage. Une
+  mission verrouillée n'existe pas pour les joueurs : ni sa présence, ni son titre, ni ses réponses
+  ne leur parviennent. Chaque fonction de mission lit toutes les missions de la partie dans sa
+  transaction (30 au plus), pour suivre les déclencheurs en cascade et décider de la victoire.
+- **La victoire** (`WON`) vient d'une mission résolue, par un joueur ou validée par le maître du jeu,
+  quand toutes les missions finales le sont ; une partie sans mission finale ne se gagne pas. Ni une
+  modification ni une suppression ne font gagner. Une mission ajoutée ou modifiée pendant la partie
+  se débloque aussitôt si son déclencheur est déjà passé (au lancement, ou après une mission déjà
+  résolue). Supprimer une mission fait passer celles qui la suivaient en déblocage manuel.
+- **Une réponse** se compare sur le serveur : un code exactement, comme une chaîne (les zéros de tête
+  comptent), un texte sans casse, sans accents, sans ponctuation autour des mots ni espaces en trop,
+  apostrophes typographiques et ligatures ramenées (« L’Œuvre » vaut « l'oeuvre »). Toutes les
+  réponses à une mission, de tous les joueurs, comptent ensemble : 10 par minute au plus, contre les
+  essais au hasard. Une partie en pause refuse les réponses.
 - **Le code** a 6 caractères tirés de `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (ni 0, O, 1, I ni L). Il est
   libéré quand la partie est supprimée.
 
@@ -98,6 +115,11 @@ Toutes exigent un utilisateur connecté (sinon `unauthenticated`, raison `UNAUTH
 | `endGame` | `{ gameId }` | `{ status, remainingMs }` | Termine une partie lancée, pour le maître du jeu (`ENDED_BY_MASTER`) ; une partie dont le temps était écoulé reste terminée sur le temps. Sans effet sur une partie terminée |
 | `expireGame` | `{ gameId }` | `{ status, remainingMs }` | Pour tout membre : termine une partie dont le temps est écoulé, à l'heure du serveur. Une partie qui n'en est pas là reste telle quelle, et la réponse dit le temps qui lui reste |
 | `getServerTime` | aucune | `{ nowMs }` | L'heure du serveur, d'où l'app estime l'écart avec l'horloge de l'appareil |
+| `saveMission` | `{ gameId, missionId, title, statement, type, answers, trigger, isFinal }` | `{ missionId }` | Crée ou modifie une mission, pour le maître du jeu, en attente comme en jeu. L'app choisit l'identifiant : une création renvoyée ne crée rien deux fois. Titre de 1 à 60 caractères, énoncé de 1000 au plus, de 1 à 10 réponses (un code de 3 à 8 chiffres, tous de même longueur ; un texte de 100 caractères au plus) ; une mission en suit une autre de la partie, jamais elle-même, même par d'autres. 30 missions par partie |
+| `deleteMission` | `{ gameId, missionId }` | `{ deleted: true }` | Supprime une mission, pour le maître du jeu ; celles qui la suivaient passent en déblocage manuel. Une mission déjà supprimée n'est pas une erreur |
+| `unlockMission` | `{ gameId, missionId }` | `{ unlocked: true }` | Débloque une mission d'une partie lancée, pour le maître du jeu. Sans effet sur une mission déjà débloquée |
+| `validateMission` | `{ gameId, missionId }` | `{ validated: true }` | Résout une mission d'une partie lancée à la place des joueurs, pour le maître du jeu, avec ce qui en découle (déblocages, victoire) |
+| `submitAnswer` | `{ gameId, missionId, answer }` | `{ correct }` | La réponse d'un membre à une mission débloquée d'une partie qui tourne : juste, elle résout la mission ; fausse, elle compte dans les 10 de la minute. Une mission déjà résolue répond juste. 200 caractères au plus |
 
 Une fonction planifiée, `deleteStaleGames`, supprime toutes les heures les parties encore en attente
 24 h après leur création, et les parties lancées sans changement depuis 24 h (une partie terminée,
@@ -139,12 +161,17 @@ raison en exception typée (voir [ADR-0005](../adr/0005-le-contrat-des-callables
 | `GAME_NOT_JOINABLE` | `failed-precondition` | La partie n'attend plus de joueurs |
 | `GAME_FULL` | `failed-precondition` | La partie a atteint son maximum de joueurs |
 | `PLAYER_EXCLUDED` | `permission-denied` | Le maître du jeu a exclu cet utilisateur de la partie |
-| `NOT_GAME_MASTER` | `permission-denied` | Exclure un joueur, annuler la partie ou toucher à son minuteur, sans en être le maître du jeu |
+| `NOT_GAME_MASTER` | `permission-denied` | Exclure un joueur, annuler la partie, toucher à son minuteur ou à ses missions, sans en être le maître du jeu |
 | `GAME_MASTER_CANNOT_LEAVE` | `failed-precondition` | Le maître du jeu quitte sa partie : il l'annule à la place |
-| `NOT_GAME_MEMBER` | `permission-denied` | `expireGame` par un utilisateur qui n'est pas membre de la partie (un joueur exclu) |
-| `GAME_NOT_STARTED` | `failed-precondition` | Pause, reprise, temps ajouté ou fin d'une partie pas encore lancée |
-| `GAME_FINISHED` | `failed-precondition` | Temps ajouté à une partie terminée, ou dont le temps vient de s'écouler |
+| `NOT_GAME_MEMBER` | `permission-denied` | `expireGame` ou `submitAnswer` par un utilisateur qui n'est pas membre de la partie (un joueur exclu) |
+| `GAME_NOT_STARTED` | `failed-precondition` | Pause, reprise, temps ajouté, fin, déblocage, validation ou réponse d'une partie pas encore lancée |
+| `GAME_FINISHED` | `failed-precondition` | Temps ajouté, mission ou réponse dans une partie terminée, ou dont le temps vient de s'écouler |
 | `ADDED_TIME_INVALID` | `invalid-argument` | Moins de 1 ou plus de 60 minutes à la fois, ou plus de 180 en tout |
+| `GAME_PAUSED` | `failed-precondition` | Une réponse à une mission d'une partie en pause |
+| `MISSION_INVALID` | `invalid-argument` | Une mission mal écrite : titre, énoncé, type, réponses, déclencheur (un cercle compris) ou `isFinal` |
+| `MISSION_NOT_FOUND` | `not-found` | Aucune mission n'a cet identifiant ; pour une réponse, aucune mission que voient les joueurs |
+| `TOO_MANY_MISSIONS` | `resource-exhausted` | Une trente et unième mission dans la partie |
+| `TOO_MANY_ANSWERS` | `resource-exhausted` | Plus de 10 réponses en une minute à une mission : les joueurs réessaient plus tard |
 
 ### Émulateur Firebase
 
@@ -180,7 +207,8 @@ projet.
 ### Tests et CI
 
 `npm test`, dans `firebase/functions`, construit les fonctions, lance les émulateurs, exécute les
-tests (vitest, `functions/test/`) et arrête les émulateurs. La CI le lance dans un job à part
+tests (vitest, `functions/test/`) et arrête les émulateurs. `npm run test:aside` fait de même sur des
+émulateurs à part (ports 1xxxx, `firebase.aside.json`), sans vider ceux où tourne l'app. La CI le lance dans un job à part
 (`backend`, sur Ubuntu, Node 24 et Java 17), à chaque pull request.
 
 ### Déploiement

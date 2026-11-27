@@ -40,7 +40,11 @@ Déclare l'entrée de navigation et branche les callbacks de navigation (voir
 Une `...Route` :
 
 - récupère son ViewModel (`koinViewModel()`) et collecte son état
-  (`collectAsStateWithLifecycle()`) ;
+  (`collectAsStateWithLifecycle()`) ; un ViewModel qui reçoit les arguments de sa route
+  (`parametersOf(gameId, missionId)`) les lit **par leur position** dans le module Koin
+  (`parameters[0]`, `parameters.values.getOrNull(1) as String?`) : `getOrNull()` cherche le premier
+  paramètre du type demandé, et rendrait l'identifiant de la partie à la place d'une mission absente ;
+  `SharedModuleTest` le vérifie ;
 - collecte les events one-shot et déclenche la navigation, les dialogs, les actions de Compose
   (`LocalUriHandler`, `LocalClipboard`, `LocalHapticFeedback`) ;
 - branche les callbacks du `Screen` sur le ViewModel.

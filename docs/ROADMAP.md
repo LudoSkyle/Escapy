@@ -36,9 +36,9 @@ Chaque lot est livré par une pull request vers `develop` (voir la section Git d
 - [ ] Écran d'histoire d'intro, au lancement, tiré du scénario (lot 10)
 - [ ] Missions « code » et « mot ou phrase », avec leurs déclencheurs : manuel, dès le début, après
       une autre mission, mot ou phrase écrit dans le chat (voir
-      [Produit/02_MISSIONS.md](./Produit/02_MISSIONS.md))
+      [Produit/02_MISSIONS.md](./Produit/02_MISSIONS.md)) ; tout sauf le mot-clé du chat (lot 8b)
 - [ ] Indices envoyés à tout moment : texte et image (v1), audio (v1.1)
-- [ ] Fin de partie : victoire, défaite ou fin manuelle, et son récapitulatif
+- [x] Fin de partie : victoire, défaite ou fin manuelle, et son récapitulatif
 - [ ] Scénarios : une partie préparée et réutilisable, gardée un temps limité
 - Plus tard (v1.1 et v2) : notifications push, journal complet côté maître du jeu, indices liés aux
   missions, nouveaux types de mission, mode écran partagé, historique, premium. Le détail est dans
@@ -276,6 +276,29 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
      mission ; les joueurs répondent, avec une limite de tentatives par minute et par mission ; le
      maître du jeu crée et modifie les missions en salle d'attente comme en jeu (une mission
      improvisée), les débloque et les valide ; les missions finales réussies font la victoire.
+     - [x] `saveMission`, `deleteMission`, `unlockMission`, `validateMission`, `submitAnswer` : la
+           définition et l'état d'une mission dans `masterMissions` (lu par le maître du jeu seul),
+           ce qu'en voient les joueurs dans `missions`, créé au déblocage, sans réponse ; un
+           déclencheur après une mission vérifié contre les cercles ; 30 missions par partie ; 10
+           réponses par minute et par mission, tous joueurs confondus ; une réponse refusée en pause ;
+           un code comparé comme une chaîne (les zéros de tête comptent), un texte sans casse,
+           accents, ponctuation ni espaces en trop ; la victoire quand toutes les finales sont
+           résolues, jamais par une modification ni une suppression
+     - [x] Règles : `missions` lu par les membres, `masterMissions` par le maître du jeu seul,
+           aucune écriture ; testées
+     - [x] App : les missions sur l'écran de jeu (cadenas à molettes pour un code, champ pour un
+           texte, « Vérifier »), et chez le maître du jeu en salle d'attente et en jeu (état, qui a
+           résolu, débloquer, valider à la place des joueurs, ajouter) ; écran Mission (titre,
+           énoncé, type, réponses, déclencheur, finale, suppression) ; `ESChoiceRow` et le type
+           `DIGITS` d'`ESTextField` dans le design system
+     - [x] Vérifié contre les émulateurs sur un émulateur Android (API 36) : le joueur face à un
+           maître du jeu joué par un script (une mission au lancement seule visible, un mauvais code
+           refusé, le bon code, la mission suivante débloquée, « LUMIERE » accepté pour « Lumière »,
+           la victoire) ; puis le maître du jeu dans l'app face à un joueur joué par un script
+           (deux missions créées dans l'éditeur, une rouverte et remplie, le cercle évité, lancer,
+           débloquer, valider, la mission suivante débloquée, la victoire)
+     - [ ] Non vérifié sur iOS (le cadenas à molettes, l'éditeur) : un seul simulateur ou émulateur
+           tourne à la fois
    - 8b, **le chat et le journal** : le déclencheur par mot-clé du chat, et le journal des tentatives
      côté maître du jeu.
 9. **Indices** : texte et image (Storage), avec la progression de l'envoi côté maître du jeu.

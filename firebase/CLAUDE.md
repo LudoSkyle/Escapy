@@ -34,7 +34,7 @@ Les principes et le contrat des fonctions sont dans [../docs/Backend/README.md](
   exportée par `src/index.ts`. Ce qui sert à plusieurs domaines vit dans `src/core/` ; ce qui touche
   aux données d'un domaine reste dans ce domaine, et les autres l'importent (`game/gameData.ts`, appelé
   par la suppression du compte et par `updateProfile`).
-- **Tests** : `npm test` vide les émulateurs des ports habituels, ceux de l'app : un téléphone branché
+- **Lancer les tests** : `npm test` vide les émulateurs des ports habituels, ceux de l'app : un téléphone branché
   dessus perd ses comptes et ses parties. `npm run test:aside` lance les mêmes tests sur des
   émulateurs à part (`firebase.aside.json`), à côté de ceux de l'app. Les tests lisent les adresses
   que donne `emulators:exec` (`support/emulators.ts`).

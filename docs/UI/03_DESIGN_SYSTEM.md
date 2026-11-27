@@ -169,6 +169,10 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
 - **`ESStepper`** : un libellé, la valeur écrite par l'écran, et un bouton de chaque côté, désactivé
   au bout de la plage. La valeur est relue par le lecteur d'écran à chaque changement. Il sert la
   durée et le maximum de joueurs d'une partie.
+- **`ESChoiceRow`** : une ligne à choisir, avec un titre et une précision facultative ; `SINGLE`
+  (un bouton radio, un seul choix parmi plusieurs) ou `MULTIPLE` (une case, qui se coche seule). Toute
+  la ligne se touche et se lit comme un seul contrôle. Elle sert le type, le déclencheur et la
+  finale d'une mission.
 
 ### Icônes
 

@@ -1,8 +1,9 @@
 ## Missions
 
-Une mission est une épreuve que les joueurs résolvent dans l'app. Ce document fixe ses règles. Rien
-de ce qui suit n'est encore codé : les missions arrivent au lot 8 (voir
-[../ROADMAP.md](../ROADMAP.md)).
+Une mission est une épreuve que les joueurs résolvent dans l'app. Ce document fixe ses règles. Tout
+est codé depuis le lot 8a, sauf le déclencheur par mot-clé du chat et le journal des tentatives,
+qui arrivent au lot 8b (voir [../ROADMAP.md](../ROADMAP.md)). Le contrat des fonctions est dans
+[../Backend/README.md](../Backend/README.md).
 
 **Toute la logique d'une mission vit sur le serveur** (voir
 [ADR-0004](../adr/0004-firestore-et-le-serveur-source-de-verite.md)) : la comparaison d'une réponse,
@@ -15,10 +16,11 @@ modifié ne peut donc ni lire une réponse ni voir une mission avant l'heure.
 
 | Type | Saisie | Comparaison |
 |---|---|---|
-| `CODE` | Des chiffres, de longueur fixe, sur un pavé façon cadenas | Exacte |
-| `TEXT` | Un mot ou une phrase | Normalisée : sans casse, sans accents, espaces réduits |
+| `CODE` | De 3 à 8 chiffres, de longueur fixe, sur des molettes façon cadenas | Exacte, comme une chaîne : les zéros de tête comptent |
+| `TEXT` | Un mot ou une phrase | Normalisée : sans casse, sans accents, sans ponctuation autour des mots, espaces réduits, apostrophes typographiques et ligatures ramenées |
 
-- Une mission accepte **plusieurs réponses** (synonymes, orthographes).
+- Une mission accepte **plusieurs réponses** (synonymes, orthographes), dix au plus ; les codes d'une
+  mission ont tous la même longueur.
 - Le client peut vérifier une saisie pour l'ergonomie (la longueur d'un code, un champ vide), jamais
   décider qu'elle est juste.
 - Plus tard : choix multiple, scan d'un QR code physique caché dans la pièce, photo validée par le MJ.
@@ -35,6 +37,14 @@ modifié ne peut donc ni lire une réponse ni voir une mission avant l'heure.
 Le MJ peut toujours débloquer une mission à la main, quel que soit son déclencheur, et la valider à
 la place des joueurs s'ils ont trouvé « en vrai ».
 
+- Une mission n'en suit jamais une autre qui la suit déjà, même par d'autres : un cercle ne se
+  débloquerait jamais. L'éditeur ne propose pas ces missions, le serveur les refuse.
+- Le MJ crée et modifie les missions en salle d'attente comme pendant la partie (une mission
+  improvisée). Une mission ajoutée ou modifiée en jeu se débloque aussitôt si son déclencheur est
+  déjà passé (au lancement, ou après une mission déjà réussie).
+- Supprimer une mission fait passer celles qui la suivaient en déblocage manuel.
+- 30 missions par partie au plus.
+
 ### États
 
 Une mission est **verrouillée** (elle n'existe pas encore côté partie), **active** (visible, à
@@ -42,12 +52,16 @@ résoudre) ou **réussie** (avec son heure, serveur, et qui l'a résolue).
 
 ### Mission finale
 
-Une ou plusieurs missions sont marquées « finale ». Les réussir toutes déclenche la victoire.
+Une ou plusieurs missions sont marquées « finale ». Les réussir toutes déclenche la victoire, que
+les joueurs les aient résolues ou que le MJ les ait validées. Seule une mission réussie fait gagner :
+ni une modification ni une suppression. Une partie sans mission finale ne se gagne pas, elle finit
+sur le temps ou à la main.
 
 ### Anti-force brute
 
-Le nombre de tentatives est limité par minute et par mission, côté serveur. Les tentatives
-apparaissent dans le journal du MJ.
+10 réponses par minute et par mission au plus, tous joueurs confondus, côté serveur : une réponse
+fausse compte. Une partie en pause refuse les réponses. Les tentatives apparaîtront dans le journal
+du MJ (lot 8b).
 
 ### Latence
 
