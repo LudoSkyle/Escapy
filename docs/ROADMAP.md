@@ -21,7 +21,7 @@ Chaque lot est livré par une pull request vers `develop` (voir la section Git d
 
 ### Parties (lot 6)
 
-- [ ] Créer une partie : titre et durée
+- [x] Créer une partie : titre et durée
 - [x] Rejoindre une partie par QR code
 - [ ] La partie en cours, vue par ses joueurs (l'écran n'était pas terminé)
 
@@ -33,7 +33,7 @@ Chaque lot est livré par une pull request vers `develop` (voir la section Git d
       joueur quitte
 - [ ] Minuteur tenu par le serveur, le même chez tous : pause, reprise, ajout de temps
 - [ ] Chat écrit entre le maître du jeu et les joueurs
-- [ ] Écran d'histoire d'intro, au lancement
+- [ ] Écran d'histoire d'intro, au lancement, tiré du scénario (lot 10)
 - [ ] Missions « code » et « mot ou phrase », avec leurs déclencheurs : manuel, dès le début, après
       une autre mission, mot ou phrase écrit dans le chat (voir
       [Produit/02_MISSIONS.md](./Produit/02_MISSIONS.md))
@@ -221,11 +221,17 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
            chemin de la caméra (session, aperçu, lecture), que le simulateur ne peut pas exécuter
    - 6c, **les liens qui ouvrent l'app** (App Links, liens universels) : demande un domaine, et sur
      iOS un compte Apple payant (Associated Domains).
-7. **Partie en cours** : minuteur serveur (écart avec l'horloge du serveur estimé, voir
-   [Common/02_CONVENTIONS.md](./Common/02_CONVENTIONS.md)), chat, intro, fin, victoire ou défaite.
+7. **Partie en cours**, en deux pull requests :
+   - 7a, **lancer, minuteur, fin** : le maître du jeu lance la partie ; minuteur tenu par le serveur
+     (pause, reprise, ajout de temps), affiché d'après l'écart estimé entre l'horloge de l'appareil
+     et celle du serveur (voir [Common/02_CONVENTIONS.md](./Common/02_CONVENTIONS.md)) ; écran de
+     jeu du maître du jeu et des joueurs ; fin manuelle ou temps écoulé, avec son récapitulatif. La
+     victoire arrive avec les missions (lot 8).
+   - 7b, **le chat** entre le maître du jeu et les joueurs.
 8. **Missions** : types, déclencheurs, soumission avec anti-force brute, mots-clés du chat.
 9. **Indices** : texte et image (Storage), avec la progression de l'envoi côté maître du jeu.
-10. **Scénarios** : éditeur, expiration (TTL), créer une partie depuis un scénario.
+10. **Scénarios** : éditeur, expiration (TTL), créer une partie depuis un scénario ; l'histoire
+    d'intro, affichée au lancement, vient du scénario.
 11. **Finitions v1** : animations, accessibilité, langues, remontée des crashs, publication.
 12. **v1.1 et au-delà** : indices audio, notifications push, journal, indices liés aux missions.
 
@@ -246,6 +252,8 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
   lot 7. Les fonctions du profil et celles du lot 6 (créer, rejoindre, quitter) n'en ont pas.
 - **Lot 6 découpé en 6a, 6b et 6c** (décidé le 2026-11-26) ; le maître du jeu choisit un maximum de
   joueurs de 2 à 20, ou aucun.
+- **Lot 7 découpé en 7a et 7b** (décidé le 2026-11-27). L'intro attend les scénarios (lot 10) : une
+  partie créée de zéro n'en a pas.
 - **Le dossier `firebase/` est dans ce dépôt** : app, règles et fonctions évoluent dans la même pull
   request, sous la même CI.
 - **Profil créé par une callable idempotente** (`ensureProfile`), pas par un déclencheur Auth ;
