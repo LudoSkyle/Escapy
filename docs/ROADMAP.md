@@ -276,6 +276,11 @@ Dans l'ordre. Chaque lot laisse l'app compilable sur les deux plateformes.
 10. **Scénarios** : éditeur, expiration (TTL), créer une partie depuis un scénario ; l'histoire
     d'intro, affichée au lancement, vient du scénario.
 11. **Finitions v1** : animations, accessibilité, langues, remontée des crashs, publication.
+    - [x] Retouches après un premier essai sur un téléphone (2026-11-27) : les transitions de la
+          première version (glissements, fondu entre les deux côtés de la session) ; l'accueil qui
+          souhaite la bienvenue par le pseudo, avec les anneaux de la première version en fond ; la
+          politique de confidentialité dans « À propos » seulement. Vérifié sur un Galaxy S21 FE
+          (Android) contre les émulateurs
 12. **v1.1 et au-delà** : indices audio, notifications push, journal, indices liés aux missions.
 
 ## Décisions prises
