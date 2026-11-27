@@ -133,6 +133,8 @@
     <string name="home_join_title">Join a game</string>
     <string name="home_my_games">My games</string>
     <string name="home_no_games">No game yet. Join one with its code, or create your own.</string>
+    <string name="home_welcome">Welcome,\n%1$s!</string>
+    <string name="home_welcome_anonymous">Welcome!</string>
     <string name="join_code_qr_description">QR code to join the game, code %1$s</string>
     <string name="kick_player_dialog_message">%1$s leaves the game, and its code no longer lets them in.</string>
     <string name="kick_player_dialog_title">Exclude %1$s?</string>

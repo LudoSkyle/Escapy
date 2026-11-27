@@ -4,27 +4,37 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import fr.skyle.escapy.domain.model.GameSummary
+import fr.skyle.escapy.domain.model.Session
 import fr.skyle.escapy.domain.usecase.game.JoinGameUseCase
 import fr.skyle.escapy.domain.usecase.game.WatchMyGamesUseCase
+import fr.skyle.escapy.domain.usecase.profile.WatchProfileUseCase
+import fr.skyle.escapy.domain.usecase.session.WatchSessionUseCase
 import fr.skyle.escapy.domain.validation.GameRules
 import fr.skyle.escapy.ui.core.error.GameError
 import fr.skyle.escapy.ui.core.error.toGameError
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** The games of the user, live, and the way into a game: its code, or a new one. */
+@OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(
     private val watchMyGamesUseCase: WatchMyGamesUseCase,
     private val joinGameUseCase: JoinGameUseCase,
+    private val watchSessionUseCase: WatchSessionUseCase,
+    private val watchProfileUseCase: WatchProfileUseCase,
 ) : ViewModel() {
 
     // What the user does here; the games come from their own observation
@@ -42,8 +52,23 @@ class HomeViewModel(
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = null)
 
-    val uiState: StateFlow<HomeUIState> = combine(_uiState, games) { uiState, games ->
-        uiState.copy(games = games)
+    // The name the screen welcomes the user by
+    private val username: StateFlow<String?> = watchSessionUseCase()
+        .flatMapLatest { session ->
+            if (session is Session.SignedIn) {
+                watchProfileUseCase(userId = session.userId).map { profile -> profile?.username }
+            } else {
+                flowOf(null)
+            }
+        }
+        .catch { exception ->
+            Logger.e(throwable = exception) { "Failed to read the profile" }
+            emit(null)
+        }
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = null)
+
+    val uiState: StateFlow<HomeUIState> = combine(_uiState, games, username) { uiState, games, username ->
+        uiState.copy(games = games, username = username)
     }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = HomeUIState())
 
     private val _event = Channel<HomeEvent>(Channel.BUFFERED)
@@ -91,6 +116,8 @@ class HomeViewModel(
     data class HomeUIState(
         // Null until the first read
         val games: List<GameSummary>? = null,
+        // Null until the profile is read
+        val username: String? = null,
         val joinCodeError: GameError? = null,
         val isJoining: Boolean = false,
     )
