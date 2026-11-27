@@ -21,12 +21,14 @@
     <string name="action_kick_player">Exclude %1$s</string>
     <string name="action_leave">Leave</string>
     <string name="action_leave_game">Leave the game</string>
+    <string name="action_open_chat">Open the chat</string>
     <string name="action_open_settings">Open the settings</string>
     <string name="action_pause">Pause</string>
     <string name="action_resume">Resume</string>
     <string name="action_retry">Retry</string>
     <string name="action_save">Save</string>
     <string name="action_scan_qr_code">Scan the QR code of a game</string>
+    <string name="action_send">Send</string>
     <string name="action_start_game">Start the game</string>
     <string name="add_time_dialog_message">The players see the timer change at once.</string>
     <string name="add_time_fewer">Fewer minutes</string>
@@ -42,6 +44,13 @@
     <string name="change_password_action">Change the password</string>
     <string name="change_password_done">Your password has been changed.</string>
     <string name="change_password_title">Change the password</string>
+    <string name="chat_closed_over">The game is over: the chat can only be read now.</string>
+    <string name="chat_empty">No message yet.</string>
+    <string name="chat_message_field">Message</string>
+    <string name="chat_pending">Sending…</string>
+    <string name="chat_preview_empty">Nobody wrote yet. Write to the game master or to the players.</string>
+    <string name="chat_preview_message">%1$s: %2$s</string>
+    <string name="chat_title">Chat</string>
     <string name="create_game_duration">Duration</string>
     <string name="create_game_fewer_players">Fewer players</string>
     <string name="create_game_longer">Longer</string>
@@ -82,6 +91,8 @@
     <string name="error_invalid_email">This email address is not valid.</string>
     <string name="error_invalid_username">This username is too short, too long or has a forbidden character.</string>
     <string name="error_join_code_invalid">A code has 6 letters and digits.</string>
+    <string name="error_message_invalid">A message has 1 to 500 characters.</string>
+    <string name="error_message_refused">This message could not be sent: the game may be over.</string>
     <string name="error_network">No connection. Check your network and try again.</string>
     <string name="error_not_a_game_qr_code">This QR code is not the one of an Escapy game.</string>
     <string name="error_recent_sign_in_required">For your safety, sign out and sign in again, then try again.</string>

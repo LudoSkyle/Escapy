@@ -3,9 +3,11 @@ package fr.skyle.escapy.ui.screen.play.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import fr.skyle.escapy.domain.model.ChatMessage
 import fr.skyle.escapy.domain.model.Game
 import fr.skyle.escapy.domain.model.GameState
 import fr.skyle.escapy.domain.model.GameStatus
+import fr.skyle.escapy.domain.usecase.chat.WatchMessagesUseCase
 import fr.skyle.escapy.domain.usecase.clock.EstimateServerClockOffsetUseCase
 import fr.skyle.escapy.domain.usecase.game.AddTimeUseCase
 import fr.skyle.escapy.domain.usecase.game.CancelGameUseCase
@@ -47,12 +49,13 @@ import kotlin.time.Instant
  * record it; the server decides by its own clock.
  *
  * The game master pauses, resumes, adds time, ends the game, excludes a player and deletes the
- * game once over; a player leaves it. The dialogs of the screen ask first: these actions run once
+ * game once over; a player leaves it. The latest message of the chat shows, to open it. The dialogs of the screen ask first: these actions run once
  * confirmed, pausing and resuming apart.
  */
 class PlayViewModel(
     private val gameId: String,
     private val watchGameUseCase: WatchGameUseCase,
+    private val watchMessagesUseCase: WatchMessagesUseCase,
     private val estimateServerClockOffsetUseCase: EstimateServerClockOffsetUseCase,
     private val pauseGameUseCase: PauseGameUseCase,
     private val resumeGameUseCase: ResumeGameUseCase,
@@ -72,6 +75,7 @@ class PlayViewModel(
     val event = _event.receiveAsFlow()
 
     private var watching: Job? = null
+    private var watchingChat: Job? = null
 
     // Kept apart from the state: observing the state here would count as the screen observing it
     private val isRunning = MutableStateFlow(false)
@@ -94,6 +98,18 @@ class PlayViewModel(
     }
 
     private fun watch() {
+        // The latest message of the chat, which the screen shows to open it
+        watchingChat = viewModelScope.launch {
+            watchMessagesUseCase(gameId = gameId)
+                .catch { exception ->
+                    Logger.e(throwable = exception) { "Failed to read the chat" }
+                }
+                .collect { messages ->
+                    _uiState.update { uiState ->
+                        uiState.copy(lastMessage = messages.lastOrNull(), hasReadChat = true)
+                    }
+                }
+        }
         watching = viewModelScope.launch {
             watchGameUseCase(gameId = gameId)
                 .catch { exception ->
@@ -278,6 +294,7 @@ class PlayViewModel(
                 uiState.copy(action = action)
             }
             watching?.cancelAndJoin()
+            watchingChat?.cancelAndJoin()
             try {
                 block()
 
@@ -308,6 +325,9 @@ class PlayViewModel(
         val remaining: Duration? = null,
         // The action under way, if any
         val action: PlayAction? = null,
+        // The latest message of the chat, and whether the chat was read yet
+        val lastMessage: ChatMessage? = null,
+        val hasReadChat: Boolean = false,
     )
 
     enum class PlayAction {

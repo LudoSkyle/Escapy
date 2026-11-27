@@ -4,6 +4,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import fr.skyle.escapy.ui.main.navigation.Route
 import fr.skyle.escapy.ui.main.navigation.navigateBackFrom
+import fr.skyle.escapy.ui.main.navigation.navigateTo
 import fr.skyle.escapy.ui.screen.play.ui.PlayRoute
 
 fun EntryProviderScope<Route>.playRouteEntry(
@@ -14,6 +15,9 @@ fun EntryProviderScope<Route>.playRouteEntry(
             gameId = route.gameId,
             navigateBack = {
                 backStack.navigateBackFrom(from = route)
+            },
+            navigateToChat = {
+                backStack.navigateTo(route = Route.Chat(gameId = route.gameId))
             },
         )
     }
