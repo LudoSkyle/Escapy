@@ -16,6 +16,7 @@ import fr.skyle.escapy.ui.screen.forgotpassword.ui.ForgotPasswordViewModel
 import fr.skyle.escapy.ui.screen.scancode.ui.ScanCodeViewModel
 import fr.skyle.escapy.ui.screen.signin.ui.SignInViewModel
 import fr.skyle.escapy.ui.screen.signup.ui.SignUpViewModel
+import fr.skyle.escapy.ui.screen.play.ui.PlayViewModel
 import fr.skyle.escapy.ui.screen.waitingroom.ui.WaitingRoomViewModel
 import fr.skyle.escapy.ui.screen.welcome.ui.WelcomeViewModel
 import org.koin.core.module.dsl.viewModel
@@ -48,6 +49,23 @@ val sharedModule = module {
             leaveGameUseCase = get(),
             kickPlayerUseCase = get(),
             cancelGameUseCase = get(),
+            startGameUseCase = get(),
+        )
+    }
+    viewModel { parameters ->
+        PlayViewModel(
+            gameId = parameters.get(),
+            watchGameUseCase = get(),
+            estimateServerClockOffsetUseCase = get(),
+            pauseGameUseCase = get(),
+            resumeGameUseCase = get(),
+            addTimeUseCase = get(),
+            endGameUseCase = get(),
+            expireGameUseCase = get(),
+            kickPlayerUseCase = get(),
+            leaveGameUseCase = get(),
+            cancelGameUseCase = get(),
+            clock = get(),
         )
     }
     // The version the host gave when it started

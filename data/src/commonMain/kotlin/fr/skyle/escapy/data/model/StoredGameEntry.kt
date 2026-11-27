@@ -7,4 +7,5 @@ data class StoredGameEntry(
     val isMaster: Boolean,
     val masterUsername: String,
     val masterAvatarId: Int,
+    val status: String,
 )

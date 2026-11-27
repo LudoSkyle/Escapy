@@ -24,16 +24,30 @@ import fr.skyle.escapy.domain.usecase.auth.SignOutUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignOutUseCaseImpl
 import fr.skyle.escapy.domain.usecase.auth.SignUpWithEmailUseCase
 import fr.skyle.escapy.domain.usecase.auth.SignUpWithEmailUseCaseImpl
+import fr.skyle.escapy.domain.usecase.clock.EstimateServerClockOffsetUseCase
+import fr.skyle.escapy.domain.usecase.clock.EstimateServerClockOffsetUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.AddTimeUseCase
+import fr.skyle.escapy.domain.usecase.game.AddTimeUseCaseImpl
 import fr.skyle.escapy.domain.usecase.game.CancelGameUseCase
 import fr.skyle.escapy.domain.usecase.game.CancelGameUseCaseImpl
 import fr.skyle.escapy.domain.usecase.game.CreateGameUseCase
 import fr.skyle.escapy.domain.usecase.game.CreateGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.EndGameUseCase
+import fr.skyle.escapy.domain.usecase.game.EndGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.ExpireGameUseCase
+import fr.skyle.escapy.domain.usecase.game.ExpireGameUseCaseImpl
 import fr.skyle.escapy.domain.usecase.game.JoinGameUseCase
 import fr.skyle.escapy.domain.usecase.game.JoinGameUseCaseImpl
 import fr.skyle.escapy.domain.usecase.game.KickPlayerUseCase
 import fr.skyle.escapy.domain.usecase.game.KickPlayerUseCaseImpl
 import fr.skyle.escapy.domain.usecase.game.LeaveGameUseCase
 import fr.skyle.escapy.domain.usecase.game.LeaveGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.PauseGameUseCase
+import fr.skyle.escapy.domain.usecase.game.PauseGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.ResumeGameUseCase
+import fr.skyle.escapy.domain.usecase.game.ResumeGameUseCaseImpl
+import fr.skyle.escapy.domain.usecase.game.StartGameUseCase
+import fr.skyle.escapy.domain.usecase.game.StartGameUseCaseImpl
 import fr.skyle.escapy.domain.usecase.game.WatchGameUseCase
 import fr.skyle.escapy.domain.usecase.game.WatchGameUseCaseImpl
 import fr.skyle.escapy.domain.usecase.game.WatchMyGamesUseCase
@@ -49,11 +63,17 @@ import fr.skyle.escapy.domain.usecase.profile.WatchProfileUseCaseImpl
 import fr.skyle.escapy.domain.usecase.session.WatchSessionUseCase
 import fr.skyle.escapy.domain.usecase.session.WatchSessionUseCaseImpl
 import org.koin.core.module.dsl.factoryOf
+import kotlin.time.Clock
+import kotlin.time.TimeSource
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val domainModule = module {
     includes(dataModule)
+
+    // Time: injected, so that tests pass their own
+    single<Clock> { Clock.System }
+    single<TimeSource> { TimeSource.Monotonic }
 
     // Session
     factoryOf(::WatchSessionUseCaseImpl) bind WatchSessionUseCase::class
@@ -87,6 +107,15 @@ val domainModule = module {
     factoryOf(::LeaveGameUseCaseImpl) bind LeaveGameUseCase::class
     factoryOf(::KickPlayerUseCaseImpl) bind KickPlayerUseCase::class
     factoryOf(::CancelGameUseCaseImpl) bind CancelGameUseCase::class
+    factoryOf(::StartGameUseCaseImpl) bind StartGameUseCase::class
+    factoryOf(::PauseGameUseCaseImpl) bind PauseGameUseCase::class
+    factoryOf(::ResumeGameUseCaseImpl) bind ResumeGameUseCase::class
+    factoryOf(::AddTimeUseCaseImpl) bind AddTimeUseCase::class
+    factoryOf(::EndGameUseCaseImpl) bind EndGameUseCase::class
+    factoryOf(::ExpireGameUseCaseImpl) bind ExpireGameUseCase::class
+
+    // Clock
+    factoryOf(::EstimateServerClockOffsetUseCaseImpl) bind EstimateServerClockOffsetUseCase::class
 }
 
 /** The Koin property a debug host sets to "true" to use the Firebase emulators. */

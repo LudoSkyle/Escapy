@@ -2,6 +2,7 @@ package fr.skyle.escapy.data.repository.game
 
 import dev.gitlive.firebase.firestore.Direction
 import dev.gitlive.firebase.firestore.DocumentSnapshot
+import dev.gitlive.firebase.firestore.toMilliseconds
 import fr.skyle.escapy.data.document.GameDocument
 import fr.skyle.escapy.data.document.MemberDocument
 import fr.skyle.escapy.data.document.UserGameDocument
@@ -10,6 +11,7 @@ import fr.skyle.escapy.data.exception.functionCall
 import fr.skyle.escapy.data.exception.withFirestoreErrors
 import fr.skyle.escapy.data.firebase.FirebaseProvider
 import fr.skyle.escapy.data.firebase.FirebaseServices
+import fr.skyle.escapy.data.function.AddTimeRequest
 import fr.skyle.escapy.data.function.CreateGameRequest
 import fr.skyle.escapy.data.function.GameIdResponse
 import fr.skyle.escapy.data.function.GameRequest
@@ -81,8 +83,26 @@ internal class GameRepositoryImpl(
         functionCall { callable.invoke(KickPlayerRequest(gameId = gameId, playerId = playerId)) }
     }
 
-    override suspend fun cancelGame(gameId: String) {
-        val callable = services().functions.httpsCallable(CANCEL_GAME)
+    override suspend fun cancelGame(gameId: String) = callOnGame(name = CANCEL_GAME, gameId = gameId)
+
+    override suspend fun startGame(gameId: String) = callOnGame(name = START_GAME, gameId = gameId)
+
+    override suspend fun pauseGame(gameId: String) = callOnGame(name = PAUSE_GAME, gameId = gameId)
+
+    override suspend fun resumeGame(gameId: String) = callOnGame(name = RESUME_GAME, gameId = gameId)
+
+    override suspend fun addTime(gameId: String, minutes: Int, addedMinutes: Int) {
+        val callable = services().functions.httpsCallable(ADD_TIME)
+        functionCall { callable.invoke(AddTimeRequest(gameId = gameId, minutes = minutes, addedMinutes = addedMinutes)) }
+    }
+
+    override suspend fun endGame(gameId: String) = callOnGame(name = END_GAME, gameId = gameId)
+
+    override suspend fun expireGame(gameId: String) = callOnGame(name = EXPIRE_GAME, gameId = gameId)
+
+    // The answer of these calls is the game itself, which the screens already observe
+    private suspend fun callOnGame(name: String, gameId: String) {
+        val callable = services().functions.httpsCallable(name)
         functionCall { callable.invoke(GameRequest(gameId = gameId)) }
     }
 
@@ -98,6 +118,12 @@ internal class GameRepositoryImpl(
         const val LEAVE_GAME = "leaveGame"
         const val KICK_PLAYER = "kickPlayer"
         const val CANCEL_GAME = "cancelGame"
+        const val START_GAME = "startGame"
+        const val PAUSE_GAME = "pauseGame"
+        const val RESUME_GAME = "resumeGame"
+        const val ADD_TIME = "addTime"
+        const val END_GAME = "endGame"
+        const val EXPIRE_GAME = "expireGame"
     }
 }
 
@@ -113,6 +139,11 @@ private fun DocumentSnapshot.toStoredGame(): StoredGame {
         master = document.master.toStoredMember(userId = document.masterId),
         playerCount = document.playerCount,
         joinCode = document.joinCode,
+        endsAtMs = document.endsAt?.toMilliseconds()?.toLong(),
+        remainingMs = document.remainingMs,
+        addedMinutes = document.addedMinutes,
+        result = document.result,
+        playedMs = document.playedMs,
     )
 }
 
@@ -123,6 +154,7 @@ private fun UserGameDocument.toStoredGameEntry(gameId: String): StoredGameEntry 
         isMaster = isMaster,
         masterUsername = master.username,
         masterAvatarId = master.avatarId,
+        status = status,
     )
 
 private fun MemberDocument.toStoredMember(userId: String): StoredMember =

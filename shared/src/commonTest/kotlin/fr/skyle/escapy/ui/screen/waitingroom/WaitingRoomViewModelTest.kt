@@ -2,9 +2,11 @@ package fr.skyle.escapy.ui.screen.waitingroom
 
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
 import fr.skyle.escapy.domain.model.GameState
+import fr.skyle.escapy.domain.model.GameStatus
 import fr.skyle.escapy.fake.FakeCancelGameUseCase
 import fr.skyle.escapy.fake.FakeKickPlayerUseCase
 import fr.skyle.escapy.fake.FakeLeaveGameUseCase
+import fr.skyle.escapy.fake.FakeStartGameUseCase
 import fr.skyle.escapy.fake.FakeWatchGameUseCase
 import fr.skyle.escapy.fake.game
 import fr.skyle.escapy.fake.gameMember
@@ -17,9 +19,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class WaitingRoomViewModelTest : MainDispatcherTest() {
@@ -29,12 +33,15 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
     private val kickPlayerUseCase = FakeKickPlayerUseCase()
     private val cancelGameUseCase = FakeCancelGameUseCase()
 
+    private val startGameUseCase = FakeStartGameUseCase()
+
     private val viewModel = WaitingRoomViewModel(
         gameId = "game",
         watchGameUseCase = watchGameUseCase,
         leaveGameUseCase = leaveGameUseCase,
         kickPlayerUseCase = kickPlayerUseCase,
         cancelGameUseCase = cancelGameUseCase,
+        startGameUseCase = startGameUseCase,
     )
 
     private val player = gameMember(userId = "player")
@@ -124,5 +131,31 @@ class WaitingRoomViewModelTest : MainDispatcherTest() {
         )
         assertFalse(viewModel.uiState.value.isCancelling)
         assertEquals(expected = 1, actual = watchGameUseCase.states.subscriptionCount.value)
+    }
+
+    @Test
+    fun `the game master starts the game and the screen gives way to it once`() = runTest {
+        // Given
+        watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = true), players = listOf(player)))
+
+        // When
+        viewModel.onStartClicked()
+        watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = true, status = GameStatus.RUNNING), players = listOf(player)))
+        watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = true, status = GameStatus.PAUSED), players = listOf(player)))
+
+        // Then
+        assertEquals(expected = listOf("game"), actual = startGameUseCase.calls)
+        assertFalse(viewModel.uiState.value.isStarting)
+        assertEquals(expected = WaitingRoomEvent.Started, actual = viewModel.event.first())
+        assertNull(withTimeoutOrNull(1_000) { viewModel.event.first() })
+    }
+
+    @Test
+    fun `a player sees the game start`() = runTest {
+        // When
+        watchGameUseCase.states.emit(GameState.Available(game = game(isMaster = false, status = GameStatus.RUNNING), players = listOf(player)))
+
+        // Then
+        assertEquals(expected = WaitingRoomEvent.Started, actual = viewModel.event.first())
     }
 }

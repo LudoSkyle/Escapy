@@ -23,3 +23,12 @@ class ExcludedFromGameException(cause: Throwable? = null) : Exception("Excluded 
 
 /** The action is for the game master of the game only. */
 class NotGameMasterException(cause: Throwable? = null) : Exception("Not the game master", cause)
+
+/** The timer of a game that has not started yet: the game master starts it first. */
+class GameNotStartedException(cause: Throwable? = null) : Exception("Game not started", cause)
+
+/** The game is over: its timer no longer changes. */
+class GameFinishedException(cause: Throwable? = null) : Exception("Game finished", cause)
+
+/** The minutes to add are out of bounds, or would add too much in all. */
+class InvalidAddedTimeException(cause: Throwable? = null) : Exception("Invalid added time", cause)

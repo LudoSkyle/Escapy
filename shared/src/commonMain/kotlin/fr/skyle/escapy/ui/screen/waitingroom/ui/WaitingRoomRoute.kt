@@ -18,6 +18,7 @@ import org.koin.core.parameter.parametersOf
 fun WaitingRoomRoute(
     gameId: String,
     navigateBack: () -> Unit,
+    navigateToGame: () -> Unit,
     viewModel: WaitingRoomViewModel = koinViewModel(key = gameId) { parametersOf(gameId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -35,6 +36,12 @@ fun WaitingRoomRoute(
                 isLeaveDialogShown = false
                 isCancelDialogShown = false
                 navigateBack()
+            }
+            WaitingRoomEvent.Started -> {
+                playerIdToKick = null
+                isLeaveDialogShown = false
+                isCancelDialogShown = false
+                navigateToGame()
             }
             WaitingRoomEvent.ActionFinished -> {
                 playerIdToKick = null
@@ -57,6 +64,7 @@ fun WaitingRoomRoute(
         isCancelDialogShown = isCancelDialogShown,
         snackbarState = snackbarState,
         onBackClicked = navigateBack,
+        onStartClicked = viewModel::onStartClicked,
         onKickClicked = { player -> playerIdToKick = player.userId },
         onKickDismissed = { if (!uiState.isKicking) playerIdToKick = null },
         onKickConfirmed = { playerToKick?.let { player -> viewModel.onKickConfirmed(playerId = player.userId) } },

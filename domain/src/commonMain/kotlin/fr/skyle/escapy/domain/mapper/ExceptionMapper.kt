@@ -8,10 +8,13 @@ import fr.skyle.escapy.domain.exception.AccountExistsWithPasswordException
 import fr.skyle.escapy.domain.exception.AccountUnavailableException
 import fr.skyle.escapy.domain.exception.EmailAlreadyInUseException
 import fr.skyle.escapy.domain.exception.ExcludedFromGameException
+import fr.skyle.escapy.domain.exception.GameFinishedException
 import fr.skyle.escapy.domain.exception.GameFullException
 import fr.skyle.escapy.domain.exception.GameNotFoundException
 import fr.skyle.escapy.domain.exception.GameNotJoinableException
+import fr.skyle.escapy.domain.exception.GameNotStartedException
 import fr.skyle.escapy.domain.exception.GoogleAccountAlreadyInUseException
+import fr.skyle.escapy.domain.exception.InvalidAddedTimeException
 import fr.skyle.escapy.domain.exception.InvalidCredentialsException
 import fr.skyle.escapy.domain.exception.InvalidEmailException
 import fr.skyle.escapy.domain.exception.InvalidGameTitleException
@@ -58,6 +61,11 @@ internal fun Throwable.toDomainException(): Throwable =
             "GAME_FULL" -> GameFullException(cause = this)
             "PLAYER_EXCLUDED" -> ExcludedFromGameException(cause = this)
             "NOT_GAME_MASTER" -> NotGameMasterException(cause = this)
+            // Only a former member reaches a game they know the id of: they were excluded
+            "NOT_GAME_MEMBER" -> ExcludedFromGameException(cause = this)
+            "GAME_NOT_STARTED" -> GameNotStartedException(cause = this)
+            "GAME_FINISHED" -> GameFinishedException(cause = this)
+            "ADDED_TIME_INVALID" -> InvalidAddedTimeException(cause = this)
             else -> AccountUnavailableException(cause = this)
         }
         else -> this

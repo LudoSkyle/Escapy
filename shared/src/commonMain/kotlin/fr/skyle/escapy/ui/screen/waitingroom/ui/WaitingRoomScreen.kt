@@ -36,6 +36,8 @@ import fr.skyle.escapy.designsystem.theme.ESTheme
 import fr.skyle.escapy.domain.model.Game
 import fr.skyle.escapy.domain.model.GameMember
 import fr.skyle.escapy.domain.model.GameState
+import fr.skyle.escapy.domain.model.GameStatus
+import fr.skyle.escapy.domain.model.GameTimer
 import fr.skyle.escapy.resources.Res
 import fr.skyle.escapy.resources.action_back_to_home
 import fr.skyle.escapy.resources.action_cancel
@@ -44,6 +46,7 @@ import fr.skyle.escapy.resources.action_keep_game
 import fr.skyle.escapy.resources.action_kick
 import fr.skyle.escapy.resources.action_leave
 import fr.skyle.escapy.resources.action_leave_game
+import fr.skyle.escapy.resources.action_start_game
 import fr.skyle.escapy.resources.cancel_game_dialog_message
 import fr.skyle.escapy.resources.cancel_game_dialog_title
 import fr.skyle.escapy.resources.field_join_code
@@ -58,6 +61,7 @@ import fr.skyle.escapy.resources.waiting_room_master
 import fr.skyle.escapy.resources.waiting_room_no_players
 import fr.skyle.escapy.resources.waiting_room_players
 import fr.skyle.escapy.resources.waiting_room_start_by_master
+import fr.skyle.escapy.resources.waiting_room_start_help
 import fr.skyle.escapy.ui.core.game.GameMemberRow
 import fr.skyle.escapy.ui.core.game.JoinCodeQrCode
 import fr.skyle.escapy.ui.core.game.durationText
@@ -73,6 +77,7 @@ fun WaitingRoomScreen(
     isCancelDialogShown: Boolean,
     snackbarState: ESSnackbarState,
     onBackClicked: () -> Unit,
+    onStartClicked: () -> Unit,
     onKickClicked: (GameMember) -> Unit,
     onKickDismissed: () -> Unit,
     onKickConfirmed: () -> Unit,
@@ -116,6 +121,7 @@ fun WaitingRoomScreen(
                 is GameState.Available -> WaitingRoomContent(
                     state = state,
                     uiState = uiState,
+                    onStartClicked = onStartClicked,
                     onKickClicked = onKickClicked,
                     onLeaveClicked = onLeaveClicked,
                     onCancelClicked = onCancelClicked,
@@ -162,6 +168,7 @@ fun WaitingRoomScreen(
 private fun WaitingRoomContent(
     state: GameState.Available,
     uiState: WaitingRoomUIState,
+    onStartClicked: () -> Unit,
     onKickClicked: (GameMember) -> Unit,
     onLeaveClicked: () -> Unit,
     onCancelClicked: () -> Unit,
@@ -226,6 +233,27 @@ private fun WaitingRoomContent(
     Spacer(modifier = Modifier.height(ESTheme.spacing.xl))
 
     if (game.isMaster) {
+        ESText(
+            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(Res.string.waiting_room_start_help),
+            style = ESTheme.typography.bodySmall,
+            color = ESTheme.colors.textSecondary,
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(modifier = Modifier.height(ESTheme.spacing.m))
+
+        ESButton(
+            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(Res.string.action_start_game),
+            onClick = onStartClicked,
+            style = ESButtonDefaults.Style.PRIMARY,
+            size = ESButtonDefaults.Size.LARGE,
+            isLoading = uiState.isStarting,
+        )
+
+        Spacer(modifier = Modifier.height(ESTheme.spacing.m))
+
         ESButton(
             modifier = Modifier.fillMaxWidth(),
             text = stringResource(Res.string.action_cancel_game),
@@ -375,6 +403,9 @@ private val previewGame = Game(
     master = previewMaster,
     playerCount = 2,
     joinCode = "ABC234",
+    status = GameStatus.WAITING,
+    timer = GameTimer(endsAt = null, remaining = null, addedMinutes = 0),
+    end = null,
 )
 
 @Preview
@@ -396,6 +427,7 @@ private fun PreviewWaitingRoomScreenForTheMaster() {
             isCancelDialogShown = false,
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
+            onStartClicked = {},
             onKickClicked = {},
             onKickDismissed = {},
             onKickConfirmed = {},
@@ -425,6 +457,7 @@ private fun PreviewWaitingRoomScreenForAPlayer() {
             isCancelDialogShown = false,
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
+            onStartClicked = {},
             onKickClicked = {},
             onKickDismissed = {},
             onKickConfirmed = {},
@@ -449,6 +482,7 @@ private fun PreviewWaitingRoomScreenDeleted() {
             isCancelDialogShown = false,
             snackbarState = rememberESSnackbarState(),
             onBackClicked = {},
+            onStartClicked = {},
             onKickClicked = {},
             onKickDismissed = {},
             onKickConfirmed = {},

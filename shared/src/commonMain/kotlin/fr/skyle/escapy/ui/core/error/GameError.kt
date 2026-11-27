@@ -2,19 +2,25 @@ package fr.skyle.escapy.ui.core.error
 
 import androidx.compose.runtime.Composable
 import fr.skyle.escapy.domain.exception.ExcludedFromGameException
+import fr.skyle.escapy.domain.exception.GameFinishedException
 import fr.skyle.escapy.domain.exception.GameFullException
 import fr.skyle.escapy.domain.exception.GameNotFoundException
 import fr.skyle.escapy.domain.exception.GameNotJoinableException
+import fr.skyle.escapy.domain.exception.GameNotStartedException
+import fr.skyle.escapy.domain.exception.InvalidAddedTimeException
 import fr.skyle.escapy.domain.exception.InvalidGameTitleException
 import fr.skyle.escapy.domain.exception.InvalidJoinCodeException
 import fr.skyle.escapy.domain.exception.NetworkUnavailableException
 import fr.skyle.escapy.domain.exception.TooManyAttemptsException
 import fr.skyle.escapy.domain.exception.TooManyGamesException
 import fr.skyle.escapy.resources.Res
+import fr.skyle.escapy.resources.error_added_time_invalid
 import fr.skyle.escapy.resources.error_excluded_from_game
+import fr.skyle.escapy.resources.error_game_finished
 import fr.skyle.escapy.resources.error_game_full
 import fr.skyle.escapy.resources.error_game_not_found
 import fr.skyle.escapy.resources.error_game_not_joinable
+import fr.skyle.escapy.resources.error_game_not_started
 import fr.skyle.escapy.resources.error_game_title_invalid
 import fr.skyle.escapy.resources.error_join_code_invalid
 import fr.skyle.escapy.resources.error_network
@@ -34,6 +40,9 @@ enum class GameError {
     GAME_NOT_JOINABLE,
     EXCLUDED_FROM_GAME,
     TOO_MANY_ATTEMPTS,
+    GAME_NOT_STARTED,
+    GAME_FINISHED,
+    INVALID_ADDED_TIME,
     // A QR code read by the camera that holds no code of a game: never sent to the server
     NOT_A_GAME_QR_CODE,
     NETWORK,
@@ -54,6 +63,9 @@ internal fun Throwable.toGameError(): GameError =
         is GameNotJoinableException -> GameError.GAME_NOT_JOINABLE
         is ExcludedFromGameException -> GameError.EXCLUDED_FROM_GAME
         is TooManyAttemptsException -> GameError.TOO_MANY_ATTEMPTS
+        is GameNotStartedException -> GameError.GAME_NOT_STARTED
+        is GameFinishedException -> GameError.GAME_FINISHED
+        is InvalidAddedTimeException -> GameError.INVALID_ADDED_TIME
         is NetworkUnavailableException -> GameError.NETWORK
         else -> GameError.UNKNOWN
     }
@@ -70,6 +82,9 @@ internal fun GameError.message(): String =
             GameError.GAME_NOT_JOINABLE -> Res.string.error_game_not_joinable
             GameError.EXCLUDED_FROM_GAME -> Res.string.error_excluded_from_game
             GameError.TOO_MANY_ATTEMPTS -> Res.string.error_too_many_attempts
+            GameError.GAME_NOT_STARTED -> Res.string.error_game_not_started
+            GameError.GAME_FINISHED -> Res.string.error_game_finished
+            GameError.INVALID_ADDED_TIME -> Res.string.error_added_time_invalid
             GameError.NOT_A_GAME_QR_CODE -> Res.string.error_not_a_game_qr_code
             GameError.NETWORK -> Res.string.error_network
             GameError.UNKNOWN -> Res.string.error_unknown
