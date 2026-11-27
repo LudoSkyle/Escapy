@@ -18,6 +18,8 @@ import org.jetbrains.compose.resources.Font
 /** The text styles of Escapy, all in Exo 2, each line taller than its text. */
 @Immutable
 data class ESTypography(
+    // A figure read from across the room: the timer of a game, with figures of one width
+    val display: TextStyle,
     // The title of a screen that stands alone (welcome, victory)
     val headline: TextStyle,
     // The title of a screen, of a dialog
@@ -47,6 +49,14 @@ private fun exo2(): FontFamily =
 internal fun escapyTypography(): ESTypography {
     val exo2 = exo2()
     return ESTypography(
+        display = TextStyle(
+            fontFamily = exo2,
+            fontWeight = FontWeight.Bold,
+            fontSize = 64.sp,
+            lineHeight = 72.sp,
+            // Tabular figures: a timer that counts down does not shift from one second to the next
+            fontFeatureSettings = "tnum",
+        ),
         headline = TextStyle(fontFamily = exo2, fontWeight = FontWeight.Bold, fontSize = 32.sp, lineHeight = 40.sp),
         title = TextStyle(fontFamily = exo2, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 32.sp),
         subtitle = TextStyle(fontFamily = exo2, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, lineHeight = 24.sp),
@@ -59,6 +69,7 @@ internal fun escapyTypography(): ESTypography {
 
 internal val LocalTypography = staticCompositionLocalOf {
     ESTypography(
+        display = TextStyle.Default,
         headline = TextStyle.Default,
         title = TextStyle.Default,
         subtitle = TextStyle.Default,

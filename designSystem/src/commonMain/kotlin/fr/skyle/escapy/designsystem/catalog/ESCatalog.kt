@@ -84,6 +84,7 @@ fun ESCatalog() {
 
             Spacer(modifier = Modifier.height(ESTheme.spacing.l))
 
+            ESText(text = "1:23:45", style = ESTheme.typography.display)
             ESText(text = "Headline", style = ESTheme.typography.headline)
             ESText(text = "Title", style = ESTheme.typography.title)
             ESText(text = "Subtitle", style = ESTheme.typography.subtitle)

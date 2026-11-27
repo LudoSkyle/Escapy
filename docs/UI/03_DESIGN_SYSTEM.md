@@ -80,7 +80,8 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
   surface où il se pose, 3:1 pour le bord d'un contrôle et une icône. Une couleur qui change ou un
   couple qui s'ajoute passe par ce test. Une carte se distingue du fond par son bord
   (`outlineVariant`) autant que par sa couleur : la différence de couleur seule est trop faible.
-- **Typographie** (`ESTypography`, Exo 2) : `headline` (32, Bold), `title` (24, SemiBold),
+- **Typographie** (`ESTypography`, Exo 2) : `display` (64, Bold, chiffres de même largeur, le
+  minuteur d'une partie), `headline` (32, Bold), `title` (24, SemiBold),
   `subtitle` (18, SemiBold), `body` (16), `bodySmall` (14), `label` (16, SemiBold, le texte d'un
   bouton), `caption` (13, Medium). Chaque interligne dépasse sa taille. Les polices se lisent dans
   Compose Resources, ce qui ne se fait que dans un composable : `escapyTypography()` est
@@ -139,7 +140,9 @@ valeurs ; l'objet `ESTheme` les lit (`ESTheme.colors`, `ESTheme.typography`, `ES
   focus se voit (bord ambre, plus épais). La touche du clavier fait `imeAction`, puis appelle
   `onImeAction`. Le libellé garde la taille que Material lui anime, dans la police Exo 2.
 - **`ESDialog`** : `STANDARD` ou `DESTRUCTIVE` (l'action en couleur d'erreur). Pendant
-  `isConfirmLoading`, l'action montre sa progression et le dialogue ne se ferme pas.
+  `isConfirmLoading`, l'action montre sa progression et le dialogue ne se ferme pas. Un `content`
+  facultatif, sous le message, porte ce que l'utilisateur règle avant de confirmer (les minutes à
+  ajouter à une partie).
 - **`ESScreenStructure`** : le cadre de chaque écran, qui garde son contenu hors des barres
   système et du clavier (`safeDrawing`) et lui passe ces marges (`PaddingValues`). Un toucher hors
   d'un champ et d'un bouton retire le focus, ce qui ferme le clavier : iOS le garde sinon, sur les
