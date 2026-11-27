@@ -75,3 +75,22 @@ internal fun <T> Flow<T>.withFirestoreErrors(): Flow<T> =
         }
         throw exception
     }
+
+/**
+ * Runs a write to Firestore, a refusal of its rules turned into AccessDeniedException and a lost
+ * network into NetworkUnavailableException.
+ */
+internal suspend fun <T> firestoreWrite(block: suspend () -> T): T =
+    try {
+        block()
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (exception: FirebaseFirestoreException) {
+        when (exception.code) {
+            FirestoreExceptionCode.PERMISSION_DENIED -> throw AccessDeniedException(cause = exception)
+            FirestoreExceptionCode.UNAVAILABLE -> throw NetworkUnavailableException(cause = exception)
+            else -> throw exception
+        }
+    } catch (exception: FirebaseNetworkException) {
+        throw NetworkUnavailableException(cause = exception)
+    }
