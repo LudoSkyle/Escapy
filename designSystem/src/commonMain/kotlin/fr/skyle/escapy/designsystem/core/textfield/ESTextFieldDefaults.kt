@@ -26,6 +26,8 @@ object ESTextFieldDefaults {
         NEW_PASSWORD,
         // A code to type as it is read, such as the code of a game: in capitals, never corrected
         CODE,
+        // Digits only, such as the code of a mission: the keyboard of digits, never corrected
+        DIGITS,
         // A message to write, such as in a chat: on a few lines, corrected, sentences capitalized; the
         // key of the keyboard goes to the next line, a button of the screen sends
         MESSAGE;
@@ -43,7 +45,7 @@ object ESTextFieldDefaults {
                 EMAIL -> ContentType.EmailAddress
                 PASSWORD -> ContentType.Password
                 NEW_PASSWORD -> ContentType.NewPassword
-                CODE, MESSAGE -> null
+                CODE, DIGITS, MESSAGE -> null
             }
     }
 }
