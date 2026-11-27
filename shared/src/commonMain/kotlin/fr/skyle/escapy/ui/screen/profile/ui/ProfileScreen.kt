@@ -51,7 +51,6 @@ import fr.skyle.escapy.resources.profile_general
 import fr.skyle.escapy.resources.profile_google_account
 import fr.skyle.escapy.resources.profile_guest_warning
 import fr.skyle.escapy.resources.profile_link_account
-import fr.skyle.escapy.resources.profile_privacy_policy
 import fr.skyle.escapy.resources.profile_title
 import fr.skyle.escapy.resources.profile_your_avatar
 import fr.skyle.escapy.resources.sign_out
@@ -73,7 +72,6 @@ fun ProfileScreen(
     onChangeEmailClicked: () -> Unit,
     onChangePasswordClicked: () -> Unit,
     onAboutClicked: () -> Unit,
-    onPrivacyPolicyClicked: () -> Unit,
     onSignOutClicked: () -> Unit,
     onDeleteAccountClicked: () -> Unit,
     onGuestSignOutConfirmed: () -> Unit,
@@ -217,13 +215,6 @@ fun ProfileScreen(
                     style = ESRowDefaults.Style.STANDARD,
                 )
 
-                ESDivider()
-
-                ESRow(
-                    label = stringResource(Res.string.profile_privacy_policy),
-                    onClick = onPrivacyPolicyClicked,
-                    style = ESRowDefaults.Style.STANDARD,
-                )
 
                 ESDivider()
 
@@ -291,7 +282,6 @@ private fun PreviewProfileScreen() {
             onChangeEmailClicked = {},
             onChangePasswordClicked = {},
             onAboutClicked = {},
-            onPrivacyPolicyClicked = {},
             onSignOutClicked = {},
             onDeleteAccountClicked = {},
             onGuestSignOutConfirmed = {},
@@ -317,7 +307,6 @@ private fun PreviewProfileScreen_Guest() {
             onChangeEmailClicked = {},
             onChangePasswordClicked = {},
             onAboutClicked = {},
-            onPrivacyPolicyClicked = {},
             onSignOutClicked = {},
             onDeleteAccountClicked = {},
             onGuestSignOutConfirmed = {},

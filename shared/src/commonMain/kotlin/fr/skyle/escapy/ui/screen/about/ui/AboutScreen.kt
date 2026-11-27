@@ -28,12 +28,12 @@ import fr.skyle.escapy.designsystem.core.topappbar.ESTopAppBar
 import fr.skyle.escapy.designsystem.theme.ESTheme
 import fr.skyle.escapy.resources.Res
 import fr.skyle.escapy.resources.about_description
+import fr.skyle.escapy.resources.about_privacy_policy
 import fr.skyle.escapy.resources.about_source_code
 import fr.skyle.escapy.resources.about_title
 import fr.skyle.escapy.resources.about_version
 import fr.skyle.escapy.resources.app_name
 import fr.skyle.escapy.resources.logo_keyhole
-import fr.skyle.escapy.resources.profile_privacy_policy
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -103,7 +103,7 @@ fun AboutScreen(
                 ESDivider()
 
                 ESRow(
-                    label = stringResource(Res.string.profile_privacy_policy),
+                    label = stringResource(Res.string.about_privacy_policy),
                     onClick = onPrivacyPolicyClicked,
                     style = ESRowDefaults.Style.STANDARD,
                 )
